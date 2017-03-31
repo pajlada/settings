@@ -1,3 +1,9 @@
+## pajadog
+
+debug/
+release/
+
+## Pregenerated
 # C++ objects and libs
 
 *.slo
