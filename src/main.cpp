@@ -34,6 +34,10 @@ TEST_CASE("XD", "xd")
 
     REQUIRE(Class2::i1.getValue() == 3);
 
+    Class2::i1 = 4;
+
+    REQUIRE(Class2::i1.getValue() == 4);
+
     REQUIRE(SettingsManager::saveAs("test2.json") == true);
 
     SettingsManager::clear();

@@ -41,44 +41,8 @@ public:
         this->filled = true;
 
         if (this->jsonValue != nullptr) {
-            this->setJSONValueValue(newValue);
+            SettingsManager::Setter<Type>::setValue(this->jsonValue, newValue);
         }
-    }
-
-    template <typename JSONType>
-    void
-    setJSONValueValue(const JSONType &newValue)
-    {
-        std::cout << "generic json value setter" << std::endl;
-    }
-
-    template <>
-    void
-    setJSONValueValue<int>(const int &newValue)
-    {
-        std::cout << "int specialization" << std::endl;
-        this->jsonValue->SetInt(newValue);
-    }
-
-    template <>
-    void
-    setJSONValueValue<double>(const double &newValue)
-    {
-        this->jsonValue->SetDouble(newValue);
-    }
-
-    template <>
-    void
-    setJSONValueValue<float>(const float &newValue)
-    {
-        this->jsonValue->SetFloat(newValue);
-    }
-
-    template <>
-    void
-    setJSONValueValue<std::string>(const std::string &newValue)
-    {
-        this->jsonValue->SetString(newValue.c_str(), SettingsManager::document.GetAllocator());
     }
 
     Type
@@ -179,6 +143,22 @@ public:
         this->data->setValue(newValue);
     }
 
+    Setting &
+    operator=(const Type &newValue)
+    {
+        this->data->setValue(newValue);
+
+        return *this;
+    }
+
+    Setting &
+    operator=(Type &&newValue) noexcept
+    {
+        this->data->setValue(newValue);
+
+        return *this;
+    }
+
 private:
     std::shared_ptr<SettingData<Type>> data;
 };
@@ -188,6 +168,47 @@ class SettingsManager
 public:
     SettingsManager();
     ~SettingsManager();
+
+    template <typename JSONType>
+    struct Setter {
+    };
+
+    template <>
+    struct Setter<int> {
+        static void
+        setValue(rapidjson::Value *jsonValue, const int &newValue)
+        {
+            jsonValue->SetInt(newValue);
+        }
+    };
+
+    template <>
+    struct Setter<float> {
+        static void
+        setValue(rapidjson::Value *jsonValue, const float &newValue)
+        {
+            jsonValue->SetFloat(newValue);
+        }
+    };
+
+    template <>
+    struct Setter<double> {
+        static void
+        setValue(rapidjson::Value *jsonValue, const double &newValue)
+        {
+            jsonValue->SetDouble(newValue);
+        }
+    };
+
+    template <>
+    struct Setter<std::string> {
+        static void
+        setValue(rapidjson::Value *jsonValue, const std::string &newValue)
+        {
+            jsonValue->SetString(newValue.c_str(),
+                                 SettingsManager::document.GetAllocator());
+        }
+    };
 
     std::string path = "settings.json";
 
