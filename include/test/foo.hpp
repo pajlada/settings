@@ -4,7 +4,7 @@
 
 namespace pajadog {
 
-class Class2
+class Foo
 {
 public:
     static settings::Setting<int> i1;
