@@ -1,3 +1,4 @@
+#include "test/channel.hpp"
 #include "test/foo.hpp"
 
 #define CATCH_CONFIG_MAIN
@@ -9,9 +10,15 @@
 using namespace pajadog;
 using namespace pajadog::settings;
 
-TEST_CASE("XD", "xd")
+TEST_CASE("Simple static", "xd")
 {
     SettingsManager::setPath("hehe.json");
+
+    Channel chHemirt("hemirt");
+    REQUIRE(chHemirt.maxMessageLength == 240);
+
+    Channel chPajlada("pajlada");
+    REQUIRE(chPajlada.maxMessageLength == 240);
 
     REQUIRE(Foo::i1.getValue() == 1);
     REQUIRE(Foo::i2.getValue() == 2);
@@ -23,6 +30,8 @@ TEST_CASE("XD", "xd")
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
     REQUIRE(SettingsManager::loadFrom("test.json") == true);
+
+    REQUIRE(chPajlada.maxMessageLength == 500);
 
     REQUIRE(Foo::i1.getValue() == 2);
     REQUIRE(Foo::i2.getValue() == 3);

@@ -9,5 +9,10 @@
         "a": "b",
         "i1": 2,
         "i2": 2
+    },
+    "channels": {
+        "pajlada": {
+            "maxMessageLength": 500
+        }
     }
 }
