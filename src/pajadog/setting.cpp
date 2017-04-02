@@ -1,9 +1,10 @@
 #include "pajadog/setting.hpp"
 
 #include <rapidjson/prettywriter.h>
-#include <QFile>
 
+#include <fstream>
 #include <iostream>
+#include <vector>
 
 namespace pajadog {
 namespace settings {
@@ -54,19 +55,30 @@ SettingsManager::load(const char *path)
 bool
 SettingsManager::loadFrom(const char *path)
 {
-    QFile file(path);
-    if (!file.open(QFile::ReadOnly)) {
-        std::cerr << "Unable to open file" << std::endl;
+    // Open file
+    std::ifstream fs(path, std::ios::binary | std::ios::ate);
+    if (!fs) {
+        return false;
+    }
+
+    // Read size of file
+    std::streamsize fileSize = fs.tellg();
+    fs.seekg(0, std::ios::beg);
+
+    // Create vector of appropriate size
+    std::vector<char> fileBuffer(fileSize);
+
+    // Read file data into vector
+    fs.read(fileBuffer.data(), fileSize);
+    if (!fs) {
         return false;
     }
 
     document = new rapidjson::Document;
+    document->Parse(fileBuffer.data(), fileSize);
 
-    auto fileData = file.readAll();
-
-    document->Parse(fileData.constData());
-
-    file.close();
+    // Close file
+    fs.close();
 
     // This restricts config files a bit. They NEED to be
     if (!document->IsObject()) {
@@ -122,9 +134,8 @@ SettingsManager::saveAs(const char *path)
         return false;
     }
 
-    QFile file(QString::fromStdString(path));
-    if (!file.open(QFile::WriteOnly)) {
-        std::cerr << "Unable to open file" << std::endl;
+    std::ofstream fs(path, std::ios::out | std::ios::trunc || std::ios::binary);
+    if (!fs) {
         return false;
     }
 
@@ -132,9 +143,12 @@ SettingsManager::saveAs(const char *path)
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     document->Accept(writer);
 
-    file.write(buffer.GetString());
+    fs.write(buffer.GetString(), buffer.GetSize());
+    if (!fs) {
+        return false;
+    }
 
-    file.close();
+    fs.close();
 
     return true;
 }

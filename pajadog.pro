@@ -1,6 +1,6 @@
 TEMPLATE = app
-CONFIG += c++14
-CONFIG -= app_bundle
+CONFIG += c++14 console
+CONFIG -= qt app_bundle
 
 INCLUDEPATH += ./include
 

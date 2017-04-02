@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rapidjson/document.h>
-#include <QString>
 
 #include <functional>
 #include <iostream>
@@ -19,7 +18,8 @@ class SettingsManager;
 class ISettingData
 {
 public:
-    ISettingData(const QString &_key, Setting<void> *_settingParent = nullptr)
+    ISettingData(const std::string &_key,
+                 Setting<void> *_settingParent = nullptr)
         : key(_key)
         , settingParent(_settingParent)
     {
@@ -51,7 +51,7 @@ public:
         this->jsonParent = newParent;
     }
 
-    const QString &
+    const std::string &
     getKey() const
     {
         return this->key;
@@ -79,21 +79,21 @@ protected:
 
 private:
     // Setting key (i.e. "numThreads")
-    const QString key;
+    const std::string key;
 };
 
 template <typename Type>
 class SettingData : public ISettingData
 {
 public:
-    SettingData(const QString &_key, const Type &&defaultValue,
+    SettingData(const std::string &_key, const Type &&defaultValue,
                 Setting<void> *_settingParent)
         : ISettingData(_key, _settingParent)
         , data(defaultValue)
     {
     }
 
-    SettingData(const QString &_key, Setting<void> *_settingParent)
+    SettingData(const std::string &_key, Setting<void> *_settingParent)
         : ISettingData(_key, _settingParent)
         , data(Type())
     {
@@ -125,7 +125,7 @@ template <>
 class SettingData<void> : public ISettingData
 {
 public:
-    SettingData(const QString &_key, Setting<void> *_settingParent)
+    SettingData(const std::string &_key, Setting<void> *_settingParent)
         : ISettingData(_key, _settingParent)
     {
     }
@@ -145,20 +145,20 @@ protected:
 
 private:
     // Setting description (i.e. Number of threads to run the application in)
-    QString description;
+    std::string description;
 };
 
 template <typename Type>
 class Setting : public ISetting
 {
 public:
-    Setting(const QString &key, const Type &&defaultValue,
+    Setting(const std::string &key, const Type &&defaultValue,
             Setting<void> *_parent = nullptr)
         : data(new SettingData<Type>(key, std::move(defaultValue), _parent))
     {
         SettingsManager::registerSetting(this->data);
     }
-    Setting(const QString &key, Setting<void> *_parent = nullptr)
+    Setting(const std::string &key, Setting<void> *_parent = nullptr)
         : data(new SettingData<Type>(key, _parent))
     {
         SettingsManager::registerSetting(this->data);
@@ -178,13 +178,13 @@ public:
         return this->data;
     }
 
-    const QString &
+    const std::string &
     getKey() const
     {
         return this->data->getKey();
     }
 
-    const QString &
+    const std::string &
     getName() const
     {
         return this->name;
@@ -234,7 +234,7 @@ public:
 private:
     std::shared_ptr<SettingData<Type>> data;
 
-    QString name;
+    std::string name;
 };
 
 class SettingsManager
@@ -493,8 +493,7 @@ public:
             return false;
         }
 
-        const QByteArray &tmpArr = setting->getKey().toLatin1();
-        const char *settingKey = tmpArr.constData();
+        const char *settingKey = setting->getKey().c_str();
 
         // XXX(pajlada): For now we assume that parents are always objects
         // TODO(pajlada): Implement support for parent arrays
@@ -675,7 +674,7 @@ template <>
 class Setting<void> : public ISetting
 {
 public:
-    Setting(const QString &key, Setting<void> *_settingParent = nullptr)
+    Setting(const std::string &key, Setting<void> *_settingParent = nullptr)
         : data(new SettingData<void>(key, _settingParent))
     {
         SettingsManager::registerSetting(this->data);
@@ -695,13 +694,13 @@ public:
         return this->data;
     }
 
-    const QString &
+    const std::string &
     getKey() const
     {
         return this->data->getKey();
     }
 
-    const QString &
+    const std::string &
     getName() const
     {
         return this->name;
@@ -710,7 +709,7 @@ public:
 private:
     std::shared_ptr<SettingData<void>> data;
 
-    QString name;
+    std::string name;
 };
 
 }  // namespace setting
