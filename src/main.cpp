@@ -39,6 +39,8 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
+    REQUIRE(SettingsManager::loadFrom("test-non-existant-file.json") == false);
+
     REQUIRE(SettingsManager::loadFrom("test.json") == true);
 
     // Booleans post-load
