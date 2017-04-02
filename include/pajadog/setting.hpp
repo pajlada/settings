@@ -11,22 +11,92 @@
 namespace pajadog {
 namespace settings {
 
+template <typename Type>
+class Setting;
+
 class SettingsManager;
 
-template <typename Type>
-class SettingData
+class ISettingData
 {
 public:
-    SettingData(const QString &_key, const Type &&defaultValue)
+    ISettingData(const QString &_key, Setting<void> *_settingParent = nullptr)
         : key(_key)
+        , settingParent(_settingParent)
+    {
+    }
+
+    virtual ~ISettingData() = default;
+
+    rapidjson::Value *
+    getJSONParent() const
+    {
+        return this->jsonParent;
+    }
+
+    rapidjson::Value *
+    getJSONValue() const
+    {
+        return this->jsonValue;
+    }
+
+    Setting<void> *
+    getSettingParent() const
+    {
+        return this->settingParent;
+    }
+
+    void
+    setJSONParent(rapidjson::Value *newParent)
+    {
+        this->jsonParent = newParent;
+    }
+
+    const QString &
+    getKey() const
+    {
+        return this->key;
+    }
+
+    inline bool
+    isFilled() const
+    {
+        return this->filled;
+    }
+
+    void
+    setJSONValue(rapidjson::Value *newValue)
+    {
+        this->jsonValue = newValue;
+    }
+
+protected:
+    // If the setting has been filled with any value other than the default one
+    bool filled = false;
+
+    rapidjson::Value *jsonParent = nullptr;
+    rapidjson::Value *jsonValue = nullptr;
+    Setting<void> *settingParent = nullptr;
+
+private:
+    // Setting key (i.e. "numThreads")
+    const QString key;
+};
+
+template <typename Type>
+class SettingData : public ISettingData
+{
+public:
+    SettingData(const QString &_key, const Type &&defaultValue,
+                Setting<void> *_settingParent)
+        : ISettingData(_key, _settingParent)
         , data(defaultValue)
     {
     }
 
-    rapidjson::Value *
-    getParent() const
+    SettingData(const QString &_key, Setting<void> *_settingParent)
+        : ISettingData(_key, _settingParent)
+        , data(Type())
     {
-        return this->jsonParent;
     }
 
     void
@@ -49,109 +119,47 @@ public:
     }
 
     Type data;
-
-    const QString &
-    getKey() const
-    {
-        return this->key;
-    }
-
-    inline bool
-    isFilled() const
-    {
-        return this->filled;
-    }
-
-    void
-    setJSONParent(rapidjson::Value *newParent)
-    {
-        this->jsonParent = newParent;
-    }
-
-    void
-    setJSONValue(rapidjson::Value *newValue)
-    {
-        this->jsonValue = newValue;
-    }
-
-private:
-    // Setting key (i.e. "numThreads")
-    const QString key;
-
-    // Setting description (i.e. Number of threads to run the application in)
-    QString description;
-
-    // If the setting has been filled with any value other than the default one
-    bool filled = false;
-
-    rapidjson::Value *jsonParent = nullptr;
-    rapidjson::Value *jsonValue = nullptr;
 };
 
 template <>
-class SettingData<void>
+class SettingData<void> : public ISettingData
 {
 public:
-    SettingData(const QString &_key)
-        : key(_key)
+    SettingData(const QString &_key, Setting<void> *_settingParent)
+        : ISettingData(_key, _settingParent)
     {
+    }
+};
+
+class ISetting
+{
+public:
+    Setting<void> *
+    getParent()
+    {
+        return this->parent;
     }
 
-    rapidjson::Value *
-    getParent() const
-    {
-        return this->jsonParent;
-    }
-
-    const QString &
-    getKey() const
-    {
-        return this->key;
-    }
-
-    inline bool
-    isFilled() const
-    {
-        return this->filled;
-    }
-
-    void
-    setJSONParent(rapidjson::Value *newParent)
-    {
-        this->jsonParent = newParent;
-    }
-
-    void
-    setJSONValue(rapidjson::Value *newValue)
-    {
-        this->jsonValue = newValue;
-    }
+protected:
+    Setting<void> *parent = nullptr;
 
 private:
-    // Setting key (i.e. "numThreads")
-    const QString key;
-
     // Setting description (i.e. Number of threads to run the application in)
     QString description;
-
-    // If the setting has been filled with any value other than the default one
-    bool filled = false;
-
-    rapidjson::Value *jsonParent = nullptr;
-    rapidjson::Value *jsonValue = nullptr;
 };
 
 template <typename Type>
-class Setting
+class Setting : public ISetting
 {
 public:
-    Setting(const QString &key, const Type &&defaultValue)
-        : data(new SettingData<Type>(key, std::move(defaultValue)))
+    Setting(const QString &key, const Type &&defaultValue,
+            Setting<void> *_parent = nullptr)
+        : data(new SettingData<Type>(key, std::move(defaultValue), _parent))
     {
         SettingsManager::registerSetting(this->data);
     }
-    Setting(const QString &key)
-        : data(new SettingData<Type>(key))
+    Setting(const QString &key, Setting<void> *_parent = nullptr)
+        : data(new SettingData<Type>(key, _parent))
     {
         SettingsManager::registerSetting(this->data);
     }
@@ -164,12 +172,10 @@ public:
         return *this;
     }
 
-    Setting &
-    setParent(Setting<void> *newParent)
+    std::shared_ptr<SettingData<Type>>
+    getData() const
     {
-        this->parent = newParent;
-
-        return *this;
+        return this->data;
     }
 
     const QString &
@@ -227,8 +233,6 @@ public:
 
 private:
     std::shared_ptr<SettingData<Type>> data;
-
-    Setting<void> *parent = nullptr;
 
     QString name;
 };
@@ -421,66 +425,21 @@ public:
     static rapidjson::Value *
     getSettingParent(std::shared_ptr<SettingData<Type>> &setting)
     {
-        auto parent = setting->getParent();
-        if (parent == nullptr) {
+        auto settingParent = setting->getSettingParent();
+        if (settingParent == nullptr) {
             return SettingsManager::document;
         }
 
-        return parent;
-    }
+        // Has the setting parent been loaded/created yet? (does it have a
+        // jsonValue yet?)
+        auto parentData = settingParent->getData();
 
-    bool
-    loadObject(const QString & /*objectKey*/)
-    {
-        // Sanity check
-        assert(loaded == true);
-
-// TODO: fix parentage
-
-#if 0
-        rapidjson::Value *parent = getSettingParent(setting);
-
-        setting->setJSONParent(SettingsManager::document);
-
-        // Find the key at root level
-        if (!parent->IsObject() && !parent->IsArray()) {
-            // Parent must be either an object or an array
-            std::cerr << "Parent must be either an object or an array"
-                      << std::endl;
-            return false;
+        if (parentData->getJSONValue() != nullptr) {
+            return parentData->getJSONValue();
         }
 
-        const QByteArray &tmpArr = setting->getKey().toLatin1();
-        const char *settingKey = tmpArr.constData();
-
-        // XXX(pajlada): For now we assume that parents are always objects
-        // TODO(pajlada): Implement support for parent arrays
-        if (parent->HasMember(settingKey)) {
-            /*
-            const rapidjson::Value &settingValue = parent[settingKey];
-
-            setting->setJSONValue(
-                &const_cast<rapidjson::Value &>(settingValue));
-
-            this->setSetting(setting, settingValue);
-            */
-        } else {
-            rapidjson::Value settingValue;
-            settingValue.SetInt(5);
-
-            auto doc = SettingsManager::document;
-            auto &allocator = doc->GetAllocator();
-
-            parent->AddMember("asd", settingValue, allocator);
-
-            setting->setJSONValue(
-                &const_cast<rapidjson::Value &>(settingValue));
-
-            this->setSetting(setting, settingValue);
-        }
-#endif
-
-        return false;
+        // returning nullptr means that we should give this another pass
+        return nullptr;
     }
 
     template <typename Type>
@@ -658,11 +617,11 @@ private:
 };
 
 template <>
-class Setting<void>
+class Setting<void> : public ISetting
 {
 public:
-    Setting(const QString &key)
-        : data(new SettingData<void>(key))
+    Setting(const QString &key, Setting<void> *_settingParent = nullptr)
+        : data(new SettingData<void>(key, _settingParent))
     {
         SettingsManager::registerSetting(this->data);
     }
@@ -675,12 +634,10 @@ public:
         return *this;
     }
 
-    Setting &
-    setParent(Setting<void> *newParent)
+    std::shared_ptr<SettingData<void>>
+    getData() const
     {
-        this->parent = newParent;
-
-        return *this;
+        return this->data;
     }
 
     const QString &
@@ -697,8 +654,6 @@ public:
 
 private:
     std::shared_ptr<SettingData<void>> data;
-
-    Setting<void> *parent = nullptr;
 
     QString name;
 };

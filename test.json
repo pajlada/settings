@@ -4,5 +4,10 @@
     "rootSetting3": 4,
     "rootSetting4": "Loaded string",
     "rootSetting5": 2.0202,
-    "rootSetting6": 1.0101
+    "rootSetting6": 1.0101,
+    "root": {
+        "a": "b",
+        "i1": 2,
+        "i2": 2
+    }
 }
