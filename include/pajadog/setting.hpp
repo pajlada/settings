@@ -245,6 +245,11 @@ public:
 
     template <typename JSONType>
     struct JSONWrapper {
+        static void
+        create(const std::shared_ptr<SettingData<void>> &)
+        {
+            static_assert(false, "Unimplemented JSONWrapper::create for Type");
+        }
     };
 
     template <>
@@ -274,6 +279,23 @@ public:
         setValue(rapidjson::Value *jsonValue, const int &newValue)
         {
             jsonValue->SetInt(newValue);
+        }
+    };
+
+    template <>
+    struct JSONWrapper<bool> {
+        static rapidjson::Value
+        create(const std::shared_ptr<SettingData<bool>> &setting)
+        {
+            rapidjson::Value v;
+            v.SetBool(setting->getValue());
+            return v;
+        }
+
+        static void
+        setValue(rapidjson::Value *jsonValue, const bool &newValue)
+        {
+            jsonValue->SetBool(newValue);
         }
     };
 
@@ -362,6 +384,13 @@ public:
 
     template <>
     static void
+    localRegister<bool>(std::shared_ptr<SettingData<bool>> setting)
+    {
+        manager->boolSettings.push_back(setting);
+    }
+
+    template <>
+    static void
     localRegister<int>(std::shared_ptr<SettingData<int>> setting)
     {
         manager->intSettings.push_back(setting);
@@ -414,6 +443,7 @@ public:
     static bool saveAs(const char *path);
 
     std::vector<std::shared_ptr<SettingData<int>>> intSettings;
+    std::vector<std::shared_ptr<SettingData<bool>>> boolSettings;
     std::vector<std::shared_ptr<SettingData<std::string>>> strSettings;
     std::vector<std::shared_ptr<SettingData<double>>> doubleSettings;
     std::vector<std::shared_ptr<SettingData<float>>> floatSettings;
@@ -561,6 +591,31 @@ public:
             case rapidjson::Type::kStringType: {
                 setting->setValue(value.GetString());
                 return true;
+            } break;
+        }
+
+        return false;
+    }
+
+    template <>
+    bool
+    setSetting<bool>(std::shared_ptr<SettingData<bool>> setting,
+                     const rapidjson::Value &value)
+    {
+        auto type = value.GetType();
+
+        switch (type) {
+            case rapidjson::Type::kTrueType:
+            case rapidjson::Type::kFalseType: {
+                setting->setValue(value.GetBool());
+                return true;
+            } break;
+
+            case rapidjson::Type::kNumberType: {
+                if (value.IsInt()) {
+                    setting->setValue(value.GetInt() == 1);
+                    return true;
+                }
             } break;
         }
 

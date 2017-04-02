@@ -85,6 +85,10 @@ SettingsManager::loadFrom(const char *path)
         if (manager->loadSetting(setting)) {
         }
     }
+    for (auto &setting : manager->boolSettings) {
+        if (manager->loadSetting(setting)) {
+        }
+    }
     for (auto &setting : manager->strSettings) {
         if (manager->loadSetting(setting)) {
         }

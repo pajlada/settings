@@ -5,6 +5,11 @@
     "rootSetting4": "Loaded string",
     "rootSetting5": 2.0202,
     "rootSetting6": 1.0101,
+    "bool1": false,
+    "bool2": true,
+    "bool3": 0,
+    "bool4": 1,
+    "bool5": 50291,
     "root": {
         "a": "b",
         "i1": 2,

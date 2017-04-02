@@ -26,10 +26,29 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::s1.getValue() == "Default string");
     REQUIRE(Foo::f1.getValue() == 1.0101f);
     REQUIRE(Foo::d1.getValue() == 2.0202);
+
+    // Booleans pre-load
+    REQUIRE(Foo::b1.getValue() == true);
+    REQUIRE(Foo::b2.getValue() == false);
+    REQUIRE(Foo::b3.getValue() == true);
+    REQUIRE(Foo::b4.getValue() == false);
+    REQUIRE(Foo::b5.getValue() == true);
+    REQUIRE(Foo::b6.getValue() == false);
+    REQUIRE(Foo::b7.getValue() == true);
+
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
     REQUIRE(SettingsManager::loadFrom("test.json") == true);
+
+    // Booleans post-load
+    REQUIRE(Foo::b1.getValue() == false);  // false
+    REQUIRE(Foo::b2.getValue() == true);   // true
+    REQUIRE(Foo::b3.getValue() == false);  // 0
+    REQUIRE(Foo::b4.getValue() == true);   // 1
+    REQUIRE(Foo::b5.getValue() == false);  // 50291 (anything but 1)
+    REQUIRE(Foo::b6.getValue() == false);  // nothing loaded
+    REQUIRE(Foo::b7.getValue() == true);   // nothing loaded
 
     REQUIRE(chPajlada.maxMessageLength == 500);
 
