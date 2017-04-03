@@ -3,13 +3,27 @@
     "rootSetting2": 3,
     "rootSetting3": 4,
     "rootSetting4": "Loaded string",
-    "rootSetting5": 2.0202,
-    "rootSetting6": 1.0101,
+
+    "float1": 1,
+    "float2": -1,
+    "float3": 500.987654321,
+    "float4": 5.1,
+    "float5": 5.321,
+    "float6": 500000.1,
+
+    "double1": 1,
+    "double2": -1,
+    "double3": 500.987654321,
+    "double4": 5.1,
+    "double5": 5.321,
+    "double6": 500000.1,
+
     "bool1": false,
     "bool2": true,
     "bool3": 0,
     "bool4": 1,
     "bool5": 50291,
+
     "root": {
         "a": "b",
         "i1": 2,

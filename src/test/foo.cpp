@@ -8,8 +8,21 @@ Setting<int> Foo::i1("rootSetting1", 1);
 Setting<int> Foo::i2("rootSetting2", 2);
 Setting<int> Foo::i3("rootSetting3", 3);
 Setting<std::string> Foo::s1("rootSetting4", "Default string");
-Setting<float> Foo::f1("rootSetting5", 1.0101f);
-Setting<double> Foo::d1("rootSetting6", 2.0202);
+
+Setting<float> Foo::f1("float1", 1.0101f);
+Setting<float> Foo::f2("float2", 1.0101010101f);
+Setting<float> Foo::f3("float3", 1.123456789f);
+Setting<float> Foo::f4("float4", 1.f);
+Setting<float> Foo::f5("float5", 0.f);
+Setting<float> Foo::f6("float6", -.1f);
+
+Setting<double> Foo::d1("double1", 1.0101);
+Setting<double> Foo::d2("double2", 1.0101010101);
+Setting<double> Foo::d3("double3", 1.123456789);
+Setting<double> Foo::d4("double4", 1.);
+Setting<double> Foo::d5("double5", 0.);
+Setting<double> Foo::d6("double6", -.1);
+Setting<double> Foo::d7("double7", 123.456);
 
 Setting<bool> Foo::b1("bool1", true);
 Setting<bool> Foo::b2("bool2", false);

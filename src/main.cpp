@@ -24,8 +24,23 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::i2.getValue() == 2);
     REQUIRE(Foo::i3.getValue() == 3);
     REQUIRE(Foo::s1.getValue() == "Default string");
+
+    // Floats pre-load
     REQUIRE(Foo::f1.getValue() == 1.0101f);
-    REQUIRE(Foo::d1.getValue() == 2.0202);
+    REQUIRE(Foo::f2.getValue() == 1.0101010101f);
+    REQUIRE(Foo::f3.getValue() == 1.123456789f);
+    REQUIRE(Foo::f4.getValue() == 1.f);
+    REQUIRE(Foo::f5.getValue() == 0.f);
+    REQUIRE(Foo::f6.getValue() == -.1f);
+
+    // Doubles pre-load
+    REQUIRE(Foo::d1.getValue() == 1.0101);
+    REQUIRE(Foo::d2.getValue() == 1.0101010101);
+    REQUIRE(Foo::d3.getValue() == 1.123456789);
+    REQUIRE(Foo::d4.getValue() == 1.);
+    REQUIRE(Foo::d5.getValue() == 0.);
+    REQUIRE(Foo::d6.getValue() == -.1);
+    REQUIRE(Foo::d7.getValue() == 123.456);
 
     // Booleans pre-load
     REQUIRE(Foo::b1.getValue() == true);
@@ -43,6 +58,23 @@ TEST_CASE("Simple static", "xd")
 
     REQUIRE(SettingsManager::loadFrom("test.json") == true);
 
+    // Floats post-load
+    REQUIRE(Foo::f1.getValue() == 1.f);
+    REQUIRE(Foo::f2.getValue() == -1.f);
+    REQUIRE(Foo::f3.getValue() == 500.987654321f);
+    REQUIRE(Foo::f4.getValue() == 5.1f);
+    REQUIRE(Foo::f5.getValue() == 5.321f);
+    REQUIRE(Foo::f6.getValue() == 500000.1f);
+
+    // Doubles post-load
+    REQUIRE(Foo::d1.getValue() == 1.);
+    REQUIRE(Foo::d2.getValue() == -1.);
+    REQUIRE(Foo::d3.getValue() == 500.987654321);
+    REQUIRE(Foo::d4.getValue() == 5.1);
+    REQUIRE(Foo::d5.getValue() == 5.321);
+    REQUIRE(Foo::d6.getValue() == 500000.1);
+    REQUIRE(Foo::d7.getValue() == 123.456);
+
     // Booleans post-load
     REQUIRE(Foo::b1.getValue() == false);  // false
     REQUIRE(Foo::b2.getValue() == true);   // true
@@ -58,8 +90,6 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::i2.getValue() == 3);
     REQUIRE(Foo::i3.getValue() == 4);
     REQUIRE(Foo::s1.getValue() == "Loaded string");
-    REQUIRE(Foo::d1.getValue() == 1.0101);
-    REQUIRE(Foo::f1.getValue() == 2.0202f);
     REQUIRE(Foo::rootInt1.getValue() == 2);
     REQUIRE(Foo::rootInt2.getValue() == 2);
 
