@@ -10,32 +10,57 @@
 using namespace pajadog;
 using namespace pajadog::settings;
 
-TEST_CASE("Channel", "xd")
+TEST_CASE("Channel", "[settings]")
 {
+    Channel chHemirt("hemirt");
+    Channel chPajlada("pajlada");
+
     SECTION("Before load")
     {
-        Channel chHemirt("hemirt");
         REQUIRE(chHemirt.maxMessageLength == 240);
 
-        Channel chPajlada("pajlada");
         REQUIRE(chPajlada.maxMessageLength == 240);
+    }
+
+    REQUIRE(SettingsManager::loadFrom("files/channels.json") == true);
+
+    SECTION("After load")
+    {
+        REQUIRE(chHemirt.maxMessageLength == 240);
+
+        REQUIRE(chPajlada.maxMessageLength == 500);
     }
 }
 
-TEST_CASE("Simple static", "xd")
+TEST_CASE("Load files", "[settings]")
 {
-    Channel chHemirt("hemirt");
-    REQUIRE(chHemirt.maxMessageLength == 240);
+    SECTION("Invalid files")
+    {
+        REQUIRE(SettingsManager::loadFrom("files/bad-1.json") == false);
+        REQUIRE(SettingsManager::loadFrom("files/bad-2.json") == false);
+        REQUIRE(SettingsManager::loadFrom("files/bad-3.json") == false);
+        REQUIRE(SettingsManager::loadFrom("files/empty.json") == false);
+    }
 
-    Channel chPajlada("pajlada");
-    REQUIRE(chPajlada.maxMessageLength == 240);
+    SECTION("Non-existant files")
+    {
+        REQUIRE(SettingsManager::loadFrom(
+                    "files/test-non-existant-file.json") == false);
+    }
 
+    SECTION("Valid files")
+    {
+        REQUIRE(SettingsManager::loadFrom("files/default.json") == true);
+    }
+}
+
+TEST_CASE("Simple static", "[settings]")
+{
     REQUIRE(Foo::i1.getValue() == 1);
     REQUIRE(Foo::i2.getValue() == 2);
     REQUIRE(Foo::i3.getValue() == 3);
     REQUIRE(Foo::s1.getValue() == "Default string");
 
-    // Floats pre-load
     REQUIRE(Foo::f1.getValue() == 1.0101f);
     REQUIRE(Foo::f2.getValue() == 1.0101010101f);
     REQUIRE(Foo::f3.getValue() == 1.123456789f);
@@ -43,7 +68,6 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::f5.getValue() == 0.f);
     REQUIRE(Foo::f6.getValue() == -.1f);
 
-    // Doubles pre-load
     REQUIRE(Foo::d1.getValue() == 1.0101);
     REQUIRE(Foo::d2.getValue() == 1.0101010101);
     REQUIRE(Foo::d3.getValue() == 1.123456789);
@@ -52,7 +76,6 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::d6.getValue() == -.1);
     REQUIRE(Foo::d7.getValue() == 123.456);
 
-    // Booleans pre-load
     REQUIRE(Foo::b1.getValue() == true);
     REQUIRE(Foo::b2.getValue() == false);
     REQUIRE(Foo::b3.getValue() == true);
@@ -64,9 +87,7 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
-    REQUIRE(SettingsManager::loadFrom("test-non-existant-file.json") == false);
-
-    REQUIRE(SettingsManager::loadFrom("test.json") == true);
+    REQUIRE(SettingsManager::loadFrom("files/test.json") == true);
 
     // Floats post-load
     REQUIRE(Foo::f1.getValue() == 1.f);
@@ -93,8 +114,6 @@ TEST_CASE("Simple static", "xd")
     REQUIRE(Foo::b5.getValue() == false);  // 50291 (anything but 1)
     REQUIRE(Foo::b6.getValue() == false);  // nothing loaded
     REQUIRE(Foo::b7.getValue() == true);   // nothing loaded
-
-    REQUIRE(chPajlada.maxMessageLength == 500);
 
     REQUIRE(Foo::i1.getValue() == 2);
     REQUIRE(Foo::i2.getValue() == 3);

@@ -18,5 +18,4 @@ HEADERS += \
     include/test/channelmanager.hpp \
     include/test/channel.hpp
 
-DISTFILES += \
-    test.json
+DISTFILES +=

@@ -81,9 +81,8 @@ SettingsManager::loadFrom(const char *path)
     // Close file
     fs.close();
 
-    // This restricts config files a bit. They NEED to be
+    // This restricts config files a bit. They NEED to have an object root
     if (!document->IsObject()) {
-        std::cerr << "Error loading config file at " << path << std::endl;
         return false;
     }
 

@@ -1,0 +1,7 @@
+{
+    "channels": {
+        "pajlada": {
+            "maxMessageLength": 500
+        }
+    }
+}
