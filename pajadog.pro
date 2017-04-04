@@ -15,6 +15,7 @@ HEADERS += \
     include/pajadog/setting.hpp \
     include/libs/catch.hpp \
     include/test/foo.hpp \
+    include/test/channelmanager.hpp \
     include/test/channel.hpp
 
 DISTFILES += \
