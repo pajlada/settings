@@ -2,6 +2,8 @@
 
 #include <rapidjson/document.h>
 
+#include <algorithm>
+#include <atomic>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -22,7 +24,14 @@ public:
                  Setting<void> *_settingParent = nullptr)
         : key(_key)
         , settingParent(_settingParent)
+        , connectionID(++this->latestConnectionID)
     {
+    }
+
+    inline const uint64_t
+    getConnectionID() const
+    {
+        return this->connectionID;
     }
 
     virtual ~ISettingData() = default;
@@ -76,6 +85,9 @@ protected:
     rapidjson::Value *jsonParent = nullptr;
     rapidjson::Value *jsonValue = nullptr;
     Setting<void> *settingParent = nullptr;
+
+    uint64_t connectionID = 0;
+    static std::atomic<uint64_t> latestConnectionID;
 
 private:
     // Setting key (i.e. "numThreads")
@@ -134,6 +146,8 @@ public:
 class ISetting
 {
 public:
+    virtual ~ISetting() = default;
+
     Setting<void> *
     getParent()
     {
@@ -162,6 +176,11 @@ public:
         : data(new SettingData<Type>(key, _parent))
     {
         SettingsManager::registerSetting(this->data);
+    }
+
+    ~Setting()
+    {
+        SettingsManager::unregisterSetting(this->data);
     }
 
     Setting &
@@ -355,6 +374,13 @@ public:
 
     template <typename Type>
     static void
+    unregisterSetting(const std::shared_ptr<SettingData<Type>> &setting)
+    {
+        SettingsManager::localUnregister(setting);
+    }
+
+    template <typename Type>
+    static void
     registerSetting(std::shared_ptr<SettingData<Type>> setting)
     {
         requireManager();
@@ -366,56 +392,6 @@ public:
         }
 
         SettingsManager::localRegister(std::move(setting));
-    }
-
-    template <typename Type>
-    static void
-    localRegister(std::shared_ptr<SettingData<Type>> setting)
-    {
-        static_assert(false, "Unimplemented setting type");
-    }
-
-    template <>
-    static void
-    localRegister<void>(std::shared_ptr<SettingData<void>> setting)
-    {
-        manager->objectSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<bool>(std::shared_ptr<SettingData<bool>> setting)
-    {
-        manager->boolSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<int>(std::shared_ptr<SettingData<int>> setting)
-    {
-        manager->intSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<std::string>(
-        std::shared_ptr<SettingData<std::string>> setting)
-    {
-        manager->strSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<float>(std::shared_ptr<SettingData<float>> setting)
-    {
-        manager->floatSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<double>(std::shared_ptr<SettingData<double>> setting)
-    {
-        manager->doubleSettings.push_back(setting);
     }
 
     static SettingsManager *manager;
@@ -545,10 +521,13 @@ public:
         switch (type) {
             case rapidjson::Type::kNumberType: {
                 if (value.IsDouble()) {
-                    setting->setValue(value.GetDouble());
+                    setting->setValue(static_cast<float>(value.GetDouble()));
+                    return true;
+                } else if (value.IsFloat()) {
+                    setting->setValue(value.GetFloat());
                     return true;
                 } else if (value.IsInt()) {
-                    setting->setValue(value.GetInt());
+                    setting->setValue(static_cast<float>(value.GetInt()));
                     return true;
                 }
             } break;
@@ -631,7 +610,7 @@ public:
         switch (type) {
             case rapidjson::Type::kNumberType: {
                 if (value.IsDouble()) {
-                    setting->setValue(value.GetDouble());
+                    setting->setValue(static_cast<int>(value.GetDouble()));
                     return true;
                 } else if (value.IsInt()) {
                     setting->setValue(value.GetInt());
@@ -667,6 +646,120 @@ private:
         if (manager == nullptr) {
             manager = new SettingsManager;
         }
+    }
+
+private:
+    template <typename Type>
+    static void
+    localRegister(std::shared_ptr<SettingData<Type>> setting)
+    {
+        static_assert(false, "Unimplemented localRegister for setting type");
+    }
+
+    template <typename Type>
+    static void
+    localUnregister(const std::shared_ptr<SettingData<Type>> &setting)
+    {
+        static_assert(false, "Unimplemented localUnregister for setting type");
+    }
+
+    template <class Vector, typename Type>
+    static void
+    removeSettingFrom(Vector &vec,
+                      const std::shared_ptr<SettingData<Type>> &setting)
+    {
+        vec.erase(std::remove_if(std::begin(vec), std::end(vec),
+                                 [setting](const auto &item) {
+                                     return setting->getConnectionID() ==
+                                            item->getConnectionID();
+                                 }),
+                  std::end(vec));
+    }
+
+    template <>
+    static void
+    localRegister<void>(std::shared_ptr<SettingData<void>> setting)
+    {
+        manager->objectSettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localRegister<bool>(std::shared_ptr<SettingData<bool>> setting)
+    {
+        manager->boolSettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localRegister<int>(std::shared_ptr<SettingData<int>> setting)
+    {
+        manager->intSettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localRegister<std::string>(
+        std::shared_ptr<SettingData<std::string>> setting)
+    {
+        manager->strSettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localRegister<float>(std::shared_ptr<SettingData<float>> setting)
+    {
+        manager->floatSettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localRegister<double>(std::shared_ptr<SettingData<double>> setting)
+    {
+        manager->doubleSettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localUnregister<void>(const std::shared_ptr<SettingData<void>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->objectSettings, setting);
+    }
+
+    template <>
+    static void
+    localUnregister<bool>(const std::shared_ptr<SettingData<bool>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->boolSettings, setting);
+    }
+
+    template <>
+    static void
+    localUnregister<int>(const std::shared_ptr<SettingData<int>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->intSettings, setting);
+    }
+
+    template <>
+    static void
+    localUnregister<std::string>(
+        const std::shared_ptr<SettingData<std::string>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->strSettings, setting);
+    }
+
+    template <>
+    static void
+    localUnregister<float>(const std::shared_ptr<SettingData<float>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->floatSettings, setting);
+    }
+
+    template <>
+    static void
+    localUnregister<double>(const std::shared_ptr<SettingData<double>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->doubleSettings, setting);
     }
 };
 

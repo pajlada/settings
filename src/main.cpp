@@ -10,10 +10,20 @@
 using namespace pajadog;
 using namespace pajadog::settings;
 
+TEST_CASE("Channel", "xd")
+{
+    SECTION("Before load")
+    {
+        Channel chHemirt("hemirt");
+        REQUIRE(chHemirt.maxMessageLength == 240);
+
+        Channel chPajlada("pajlada");
+        REQUIRE(chPajlada.maxMessageLength == 240);
+    }
+}
+
 TEST_CASE("Simple static", "xd")
 {
-    SettingsManager::setPath("hehe.json");
-
     Channel chHemirt("hemirt");
     REQUIRE(chHemirt.maxMessageLength == 240);
 

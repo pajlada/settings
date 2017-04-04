@@ -10,6 +10,7 @@ namespace pajadog {
 namespace settings {
 
 rapidjson::Document *SettingsManager::document = nullptr;
+std::atomic<uint64_t> ISettingData::latestConnectionID = 0;
 
 SettingsManager *SettingsManager::manager = nullptr;
 bool SettingsManager::loaded = false;
