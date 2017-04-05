@@ -134,7 +134,7 @@ SettingsManager::saveAs(const char *path)
         return false;
     }
 
-    std::ofstream fs(path, std::ios::out | std::ios::trunc || std::ios::binary);
+    std::ofstream fs(path, std::ios::out | std::ios::trunc | std::ios::binary);
     if (!fs) {
         return false;
     }
