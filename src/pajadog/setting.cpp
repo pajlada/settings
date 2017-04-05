@@ -39,6 +39,8 @@ SettingsManager::setPath(const char *path)
 void
 SettingsManager::clear()
 {
+    delete document;
+
     document = nullptr;
     loaded = false;
 }
@@ -75,15 +77,26 @@ SettingsManager::loadFrom(const char *path)
         return false;
     }
 
-    document = new rapidjson::Document;
-    document->Parse(fileBuffer.data(), fileSize);
+    auto d = new rapidjson::Document;
+
+    d->Parse(fileBuffer.data(), fileSize);
 
     // Close file
     fs.close();
 
     // This restricts config files a bit. They NEED to have an object root
-    if (!document->IsObject()) {
+    if (!d->IsObject()) {
         return false;
+    }
+
+    if (loaded) {
+        // A document has already been created/loaded
+        // Merge newly parsed config file into our pre-existing document
+        document->CopyFrom(*d, document->GetAllocator());
+
+        delete d;
+    } else {
+        document = d;
     }
 
     loaded = true;

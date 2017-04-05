@@ -1,0 +1,7 @@
+{
+    "channels": {
+        "hemirt": {
+            "maxMessageLength": 200
+        }
+    }
+}

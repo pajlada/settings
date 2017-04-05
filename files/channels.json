@@ -2,6 +2,9 @@
     "channels": {
         "pajlada": {
             "maxMessageLength": 500
+        },
+        "hemirt": {
+            "maxMessageLength": 300
         }
     }
 }

@@ -12,24 +12,28 @@ using namespace pajadog::settings;
 
 TEST_CASE("Channel", "[settings]")
 {
+    SettingsManager::clear();
+
     Channel chHemirt("hemirt");
     Channel chPajlada("pajlada");
 
-    SECTION("Before load")
-    {
-        REQUIRE(chHemirt.maxMessageLength == 240);
+    // Pre-load
+    REQUIRE(chHemirt.maxMessageLength == 240);
+    REQUIRE(chPajlada.maxMessageLength == 240);
 
-        REQUIRE(chPajlada.maxMessageLength == 240);
-    }
+    // Load default file
+    REQUIRE(SettingsManager::loadFrom("files/d.channels.json") == true);
 
+    // Post defaults load
+    REQUIRE(chHemirt.maxMessageLength.getValue() == 200);
+    REQUIRE(chPajlada.maxMessageLength == 240);
+
+    // Load custom file
     REQUIRE(SettingsManager::loadFrom("files/channels.json") == true);
 
-    SECTION("After load")
-    {
-        REQUIRE(chHemirt.maxMessageLength == 240);
-
-        REQUIRE(chPajlada.maxMessageLength == 500);
-    }
+    // Post channels load
+    REQUIRE(chHemirt.maxMessageLength == 300);
+    REQUIRE(chPajlada.maxMessageLength == 500);
 }
 
 TEST_CASE("Load files", "[settings]")
@@ -56,6 +60,8 @@ TEST_CASE("Load files", "[settings]")
 
 TEST_CASE("Simple static", "[settings]")
 {
+    SettingsManager::clear();
+
     REQUIRE(Foo::i1.getValue() == 1);
     REQUIRE(Foo::i2.getValue() == 2);
     REQUIRE(Foo::i3.getValue() == 3);
@@ -122,11 +128,9 @@ TEST_CASE("Simple static", "[settings]")
     REQUIRE(Foo::rootInt1.getValue() == 2);
     REQUIRE(Foo::rootInt2.getValue() == 2);
 
-    /*
-    Class2::i1.signalValueChanged.connect([](const int &newValue) {
-        std::cout << "new value for i1: " << newValue << std::endl;
-    });
-    */
+    // Class2::i1.signalValueChanged.connect([](const int &newValue) {
+    //     std::cout << "new value for i1: " << newValue << std::endl;
+    // });
 
     Foo::rootInt1 = 3;
 
@@ -138,9 +142,9 @@ TEST_CASE("Simple static", "[settings]")
 
     REQUIRE(Foo::i1.getValue() == 4);
 
-    REQUIRE(SettingsManager::saveAs("test2.json") == true);
+    REQUIRE(SettingsManager::saveAs("files/test2.json") == true);
 
     SettingsManager::clear();
 
-    REQUIRE(SettingsManager::saveAs("test2.json") == false);
+    REQUIRE(SettingsManager::saveAs("files/test2.json") == false);
 }
