@@ -1,5 +1,5 @@
-# pajadog
-test settings lib
+# Settings
+My C++ Settings library
 
 ## Intended usage
 Store settings in each relevant class (static and non-static)
@@ -9,11 +9,11 @@ Store settings in each relevant class (static and non-static)
 class ServerManager {
     ...
 
-    static pajadog::Setting serverPort;
+    static pajlada::settings::Setting serverPort;
 }
 
 // servermanager.cpp
-pajadog::Setting ServerManager::serverPort(new SettingData("serverPort", 1337 /* default port */)->setDescription("Port that the server will be hosted on"));
+pajlada::settings::Setting ServerManager::serverPort(new SettingData("serverPort", 1337 /* default port */)->setDescription("Port that the server will be hosted on"));
 ```
 
 OR
@@ -29,6 +29,6 @@ class Server {
 
     }
 
-    pajadog::Setting serverPort;
+    pajlada::settings::Setting serverPort;
 }
 ```

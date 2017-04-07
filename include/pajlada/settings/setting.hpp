@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-namespace pajadog {
+namespace pajlada {
 namespace settings {
 
 template <typename Type>
@@ -806,4 +806,4 @@ private:
 };
 
 }  // namespace setting
-}  // namespace pajadog
+}  // namespace pajlada

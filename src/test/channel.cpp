@@ -1,9 +1,11 @@
 #include "test/channel.hpp"
 
-namespace pajadog {
+namespace pajlada {
+namespace test {
 
 using namespace settings;
 
 settings::Setting<void> Channel::globalRoot("channels");
 
-}  // namespace pajadog
+}  // namespace test
+}  // namespace pajlada

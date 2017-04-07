@@ -7,8 +7,9 @@
 #include <assert.h>
 #include <iostream>
 
-using namespace pajadog;
-using namespace pajadog::settings;
+using namespace pajlada;
+using namespace pajlada::settings;
+using namespace pajlada::test;
 
 TEST_CASE("Channel", "[settings]")
 {

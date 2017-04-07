@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pajadog/setting.hpp"
+#include "pajlada/settings/setting.hpp"
 
-namespace pajadog {
+namespace pajlada {
 
 class Foo
 {
@@ -40,4 +40,4 @@ public:
     static settings::Setting<int> rootInt2;
 };
 
-}  // namespace pajadog
+}  // namespace pajlada

@@ -1,6 +1,6 @@
 #include "test/foo.hpp"
 
-namespace pajadog {
+namespace pajlada {
 
 using namespace settings;
 
@@ -36,4 +36,4 @@ Setting<void> Foo::root("root");
 Setting<int> Foo::rootInt1 = Setting<int>("i1", 1, &Foo::root);
 Setting<int> Foo::rootInt2 = Setting<int>("i2", 1, &Foo::root);
 
-}  // namespace pajadog
+}  // namespace pajlada

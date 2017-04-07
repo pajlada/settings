@@ -1,8 +1,9 @@
 #pragma once
 
-#include "pajadog/setting.hpp"
+#include "pajlada/settings/setting.hpp"
 
-namespace pajadog {
+namespace pajlada {
+namespace test {
 
 class Channel
 {
@@ -21,4 +22,5 @@ public:
     settings::Setting<int> maxMessageLength;
 };
 
-}  // namespace pajadog
+}  // namespace test
+}  // namespace pajlada

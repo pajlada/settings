@@ -1,4 +1,4 @@
-#include "pajadog/setting.hpp"
+#include "pajlada/settings/setting.hpp"
 
 #include <rapidjson/prettywriter.h>
 
@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 
-namespace pajadog {
+namespace pajlada {
 namespace settings {
 
 rapidjson::Document *SettingsManager::document = nullptr;
@@ -167,4 +167,4 @@ SettingsManager::saveAs(const char *path)
 }
 
 }  // namespace settings
-}  // namespace pajadog
+}  // namespace pajlada
