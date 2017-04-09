@@ -13,7 +13,6 @@ Setting<std::string> Foo::s1(
     "Default string");  // XXX(pajlada): Something is wrong with this
 
 Setting<float> Foo::f1("float1", 1.0101f);
-/*
 Setting<float> Foo::f2("float2", 1.0101010101f);
 Setting<float> Foo::f3("float3", 1.123456789f);
 Setting<float> Foo::f4("float4", 1.f);
@@ -35,7 +34,6 @@ Setting<bool> Foo::b4("bool4", false);
 Setting<bool> Foo::b5("bool5", true);
 Setting<bool> Foo::b6("bool6", false);
 Setting<bool> Foo::b7("bool7", true);
-*/
 
 Setting<settings::Object> Foo::root("root");
 Setting<int> Foo::rootInt1 = Setting<int>("i1", 1, &Foo::root);

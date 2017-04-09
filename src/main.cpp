@@ -2,6 +2,10 @@
 #include "test/channelmanager.hpp"
 #include "test/foo.hpp"
 
+#include "pajlada/settings/setting.hpp"
+#include "pajlada/settings/settingdata.hpp"
+#include "pajlada/settings/settingmanager.hpp"
+
 #define CATCH_CONFIG_MAIN
 #include "libs/catch.hpp"
 
@@ -22,7 +26,7 @@ TEST_CASE("ChannelManager", "[settings]")
         REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
     }
 
-    REQUIRE(SettingsManager::loadFrom("files/channelmanager.json"));
+    REQUIRE(SettingManager::loadFrom("files/channelmanager.json"));
 
     REQUIRE(manager.channels.at(0).name.getValue() == "pajlada");
     REQUIRE(manager.channels.at(1).name.getValue() == "hemirt");
@@ -46,7 +50,7 @@ TEST_CASE("ChannelManager", "[settings]")
                 ->getData()
                 ->getJSONValue()
                 ->Size());
-    SettingsManager::saveAs("files/test3.json");
+    SettingManager::saveAs("files/test3.json");
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
     REQUIRE(manager.channels.size() ==
             manager.channels.at(0)
@@ -58,10 +62,9 @@ TEST_CASE("ChannelManager", "[settings]")
 }
 
 #ifndef ONLY_MINI_TEST
-/*
 TEST_CASE("Channel", "[settings]")
 {
-    SettingsManager::clear();
+    SettingManager::clear();
 
     Channel chHemirt("hemirt");
     Channel chPajlada("pajlada");
@@ -71,14 +74,14 @@ TEST_CASE("Channel", "[settings]")
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load default file
-    REQUIRE(SettingsManager::loadFrom("files/d.channels.json") == true);
+    REQUIRE(SettingManager::loadFrom("files/d.channels.json") == true);
 
     // Post defaults load
     REQUIRE(chHemirt.maxMessageLength.getValue() == 200);
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load custom file
-    REQUIRE(SettingsManager::loadFrom("files/channels.json") == true);
+    REQUIRE(SettingManager::loadFrom("files/channels.json") == true);
 
     // Post channels load
     REQUIRE(chHemirt.maxMessageLength == 300);
@@ -89,27 +92,27 @@ TEST_CASE("Load files", "[settings]")
 {
     SECTION("Invalid files")
     {
-        REQUIRE(SettingsManager::loadFrom("files/bad-1.json") == false);
-        REQUIRE(SettingsManager::loadFrom("files/bad-2.json") == false);
-        REQUIRE(SettingsManager::loadFrom("files/bad-3.json") == false);
-        REQUIRE(SettingsManager::loadFrom("files/empty.json") == false);
+        REQUIRE(SettingManager::loadFrom("files/bad-1.json") == false);
+        REQUIRE(SettingManager::loadFrom("files/bad-2.json") == false);
+        REQUIRE(SettingManager::loadFrom("files/bad-3.json") == false);
+        REQUIRE(SettingManager::loadFrom("files/empty.json") == false);
     }
 
     SECTION("Non-existant files")
     {
-        REQUIRE(SettingsManager::loadFrom(
-                    "files/test-non-existant-file.json") == false);
+        REQUIRE(SettingManager::loadFrom("files/test-non-existant-file.json") ==
+                false);
     }
 
     SECTION("Valid files")
     {
-        REQUIRE(SettingsManager::loadFrom("files/default.json") == true);
+        REQUIRE(SettingManager::loadFrom("files/default.json") == true);
     }
 }
 
 TEST_CASE("Simple static", "[settings]")
 {
-    SettingsManager::clear();
+    SettingManager::clear();
 
     REQUIRE(Foo::i1.getValue() == 1);
     REQUIRE(Foo::i2.getValue() == 2);
@@ -142,7 +145,7 @@ TEST_CASE("Simple static", "[settings]")
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
-    REQUIRE(SettingsManager::loadFrom("files/test.json") == true);
+    REQUIRE(SettingManager::loadFrom("files/test.json") == true);
 
     // Floats post-load
     REQUIRE(Foo::f1.getValue() == 1.f);
@@ -191,11 +194,10 @@ TEST_CASE("Simple static", "[settings]")
 
     REQUIRE(Foo::i1.getValue() == 4);
 
-    REQUIRE(SettingsManager::saveAs("files/test2.json") == true);
+    REQUIRE(SettingManager::saveAs("files/test2.json") == true);
 
-    SettingsManager::clear();
+    SettingManager::clear();
 
-    REQUIRE(SettingsManager::saveAs("files/test2.json") == false);
+    REQUIRE(SettingManager::saveAs("files/test2.json") == false);
 }
-*/
 #endif
