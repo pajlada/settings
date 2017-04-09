@@ -12,6 +12,14 @@
 namespace pajlada {
 namespace settings {
 
+// Custom "JSON Object {}" type
+struct Object {
+};
+
+// Custom "JSON Array []" type
+struct Array {
+};
+
 template <typename Type>
 class Setting;
 
@@ -20,10 +28,20 @@ class SettingsManager;
 class ISettingData
 {
 public:
-    ISettingData(const std::string &_key,
-                 Setting<void> *_settingParent = nullptr)
+    ISettingData(const std::string &_key, Setting<Object> *_parent)
         : key(_key)
-        , settingParent(_settingParent)
+        , index()
+        , settingObjectParent(_parent)
+        , settingArrayParent(nullptr)
+        , connectionID(++this->latestConnectionID)
+    {
+    }
+
+    ISettingData(unsigned _index, Setting<Array> *_parent)
+        : key()
+        , index(_index)
+        , settingObjectParent(nullptr)
+        , settingArrayParent(_parent)
         , connectionID(++this->latestConnectionID)
     {
     }
@@ -48,10 +66,16 @@ public:
         return this->jsonValue;
     }
 
-    Setting<void> *
-    getSettingParent() const
+    Setting<Object> *
+    getSettingObjectParent() const
     {
-        return this->settingParent;
+        return this->settingObjectParent;
+    }
+
+    Setting<Array> *
+    getSettingArrayParent() const
+    {
+        return this->settingArrayParent;
     }
 
     void
@@ -66,6 +90,12 @@ public:
         return this->key;
     }
 
+    unsigned
+    getIndex() const
+    {
+        return this->index;
+    }
+
     inline bool
     isFilled() const
     {
@@ -78,36 +108,58 @@ public:
         this->jsonValue = newValue;
     }
 
+private:
+    // Setting key (i.e. "numThreads")
+    const std::string key;
+
+    // Setting index (i.e. 2)
+    const unsigned index;
+
 protected:
-    // If the setting has been filled with any value other than the default one
+    // If the setting has been filled with any value other than the default
+    // one
     bool filled = false;
 
     rapidjson::Value *jsonParent = nullptr;
     rapidjson::Value *jsonValue = nullptr;
-    Setting<void> *settingParent = nullptr;
+    Setting<Object> *settingObjectParent;
+    Setting<Array> *settingArrayParent;
 
     uint64_t connectionID = 0;
     static std::atomic<uint64_t> latestConnectionID;
-
-private:
-    // Setting key (i.e. "numThreads")
-    const std::string key;
 };
 
 template <typename Type>
 class SettingData : public ISettingData
 {
 public:
-    SettingData(const std::string &_key, const Type &&defaultValue,
-                Setting<void> *_settingParent)
-        : ISettingData(_key, _settingParent)
+    // Key, Default Value, Object Parent
+    SettingData(const std::string &_key, const Type &defaultValue,
+                Setting<Object> *_parent)
+        : ISettingData(_key, _parent)
         , data(defaultValue)
     {
     }
 
-    SettingData(const std::string &_key, Setting<void> *_settingParent)
-        : ISettingData(_key, _settingParent)
-        , data(Type())
+    // Index, Default Value, Array Parent
+    SettingData(unsigned _index, const Type &defaultValue,
+                Setting<Array> *_parent)
+        : ISettingData(_index, _parent)
+        , data(defaultValue)
+    {
+    }
+
+    // Key, Object Parent
+    SettingData(const std::string &_key, Setting<Object> *_parent)
+        : ISettingData(_key, _parent)
+        , data()
+    {
+    }
+
+    // Index, Array Parent
+    SettingData(unsigned _index, Setting<Array> *_parent)
+        : ISettingData(_index, _parent)
+        , data()
     {
     }
 
@@ -134,11 +186,35 @@ public:
 };
 
 template <>
-class SettingData<void> : public ISettingData
+class SettingData<Object> : public ISettingData
 {
 public:
-    SettingData(const std::string &_key, Setting<void> *_settingParent)
-        : ISettingData(_key, _settingParent)
+    // Key, Object Parent
+    SettingData(const std::string &_key, Setting<Object> *_parent)
+        : ISettingData(_key, _parent)
+    {
+    }
+
+    // Index, Array Parent
+    SettingData(unsigned _index, Setting<Array> *_parent)
+        : ISettingData(_index, _parent)
+    {
+    }
+};
+
+template <>
+class SettingData<Array> : public ISettingData
+{
+public:
+    // Key, Object Parent
+    SettingData(const std::string &_key, Setting<Object> *_parent)
+        : ISettingData(_key, _parent)
+    {
+    }
+
+    // Index, Array Parent
+    SettingData(unsigned _index, Setting<Array> *_parent)
+        : ISettingData(_index, _parent)
     {
     }
 };
@@ -148,17 +224,9 @@ class ISetting
 public:
     virtual ~ISetting() = default;
 
-    Setting<void> *
-    getParent()
-    {
-        return this->parent;
-    }
-
-protected:
-    Setting<void> *parent = nullptr;
-
 private:
-    // Setting description (i.e. Number of threads to run the application in)
+    // Setting description (i.e. Number of threads to run the application
+    // in)
     std::string description;
 };
 
@@ -166,14 +234,32 @@ template <typename Type>
 class Setting : public ISetting
 {
 public:
-    Setting(const std::string &key, const Type &&defaultValue,
-            Setting<void> *_parent = nullptr)
-        : data(new SettingData<Type>(key, std::move(defaultValue), _parent))
+    // Key, Default Value, Object Parent
+    Setting(const std::string &key, const Type &defaultValue,
+            Setting<Object> *parent = nullptr)
+        : data(new SettingData<Type>(key, defaultValue, parent))
     {
         SettingsManager::registerSetting(this->data);
     }
-    Setting(const std::string &key, Setting<void> *_parent = nullptr)
-        : data(new SettingData<Type>(key, _parent))
+
+    // Index, Default Value, Array Parent
+    Setting(unsigned index, const Type &defaultValue,
+            Setting<Array> *parent = nullptr)
+        : data(new SettingData<Type>(index, defaultValue, parent))
+    {
+        SettingsManager::registerSetting(this->data);
+    }
+
+    // Key, Object Parent
+    Setting(const std::string &key, Setting<Object> *parent = nullptr)
+        : data(new SettingData<Type>(key, parent))
+    {
+        SettingsManager::registerSetting(this->data);
+    }
+
+    // Index, Array Parent
+    Setting(unsigned index, Setting<Array> *parent = nullptr)
+        : data(new SettingData<Type>(index, parent))
     {
         SettingsManager::registerSetting(this->data);
     }
@@ -265,20 +351,39 @@ public:
     template <typename JSONType>
     struct JSONWrapper {
         static void
-        create(const std::shared_ptr<SettingData<void>> &)
+        create(const std::shared_ptr<SettingData<JSONType>> &)
         {
             static_assert(false, "Unimplemented JSONWrapper::create for Type");
         }
     };
 
     template <>
-    struct JSONWrapper<void> {
+    struct JSONWrapper<Object> {
         static rapidjson::Value
-        create(const std::shared_ptr<SettingData<void>> &)
+        create(const std::shared_ptr<SettingData<Object>> &setting)
         {
             rapidjson::Value v;
 
             v.SetObject();
+
+            std::cout << "Create object: " << setting->getKey().c_str()
+                      << std::endl;
+
+            return v;
+        }
+    };
+
+    template <>
+    struct JSONWrapper<Array> {
+        static rapidjson::Value
+        create(const std::shared_ptr<SettingData<Array>> &setting)
+        {
+            rapidjson::Value v;
+
+            v.SetArray();
+
+            std::cout << "Create array: " << setting->getKey().c_str()
+                      << std::endl;
 
             return v;
         }
@@ -386,7 +491,8 @@ public:
         requireManager();
 
         if (loaded) {
-            // If settings are already loaded from a file, try to fill in the
+            // If settings are already loaded from a file, try to fill in
+            // the
             // settings
             manager->loadSetting(setting);
         }
@@ -403,16 +509,19 @@ public:
     // Clear the loaded json settings
     static void clear();
 
-    // Load from given path and set given path as the "default path" (or load
+    // Load from given path and set given path as the "default path" (or
+    // load
     // from default path if nullptr is sent)
     static bool load(const char *path = nullptr);
     // Load from given path
     static bool loadFrom(const char *path);
 
     // Force a settings save
-    // It is recommended to run this every now and then unless your application
+    // It is recommended to run this every now and then unless your
+    // application
     // is crash free
-    // Save to given path and set path as the default path (or save from default
+    // Save to given path and set path as the default path (or save from
+    // default
     // path is nullptr is sent
     static bool save(const char *path = nullptr);
     // Save to given path
@@ -423,7 +532,8 @@ public:
     std::vector<std::shared_ptr<SettingData<std::string>>> strSettings;
     std::vector<std::shared_ptr<SettingData<double>>> doubleSettings;
     std::vector<std::shared_ptr<SettingData<float>>> floatSettings;
-    std::vector<std::shared_ptr<SettingData<void>>> objectSettings;
+    std::vector<std::shared_ptr<SettingData<Object>>> objectSettings;
+    std::vector<std::shared_ptr<SettingData<Array>>> arraySettings;
 
     static rapidjson::Document *document;
 
@@ -431,17 +541,30 @@ public:
     static rapidjson::Value *
     getSettingParent(std::shared_ptr<SettingData<Type>> &setting)
     {
-        auto settingParent = setting->getSettingParent();
-        if (settingParent == nullptr) {
+        auto settingObjParent = setting->getSettingObjectParent();
+        auto settingArrParent = setting->getSettingArrayParent();
+
+        if (settingObjParent == nullptr && settingArrParent == nullptr) {
+            // No parent set
             return SettingsManager::document;
         }
 
-        // Has the setting parent been loaded/created yet? (does it have a
-        // jsonValue yet?)
-        auto parentData = settingParent->getData();
+        if (settingObjParent != nullptr) {
+            // Has the setting parent been loaded/created yet? (does it have a
+            // jsonValue yet?)
+            auto parentData = settingObjParent->getData();
 
-        if (parentData->getJSONValue() != nullptr) {
-            return parentData->getJSONValue();
+            if (parentData->getJSONValue() != nullptr) {
+                return parentData->getJSONValue();
+            }
+        } else if (settingArrParent != nullptr) {
+            // Has the setting parent been loaded/created yet? (does it have a
+            // jsonValue yet?)
+            auto parentData = settingArrParent->getData();
+
+            if (parentData->getJSONValue() != nullptr) {
+                return parentData->getJSONValue();
+            }
         }
 
         // returning nullptr means that we should give this another pass
@@ -455,24 +578,33 @@ public:
         // Sanity check
         assert(loaded == true);
 
-        // TODO: fix parentage
-
         rapidjson::Value *parent = getSettingParent(setting);
 
-        setting->setJSONParent(parent);
-
-        // Find the key at root level
-        if (!parent->IsObject() && !parent->IsArray()) {
-            // Parent must be either an object or an array
-            std::cerr << "Parent must be either an object or an array"
-                      << std::endl;
+        if (parent == nullptr) {
+            // Parent not loaded yet, re-do in second pass
             return false;
         }
 
+        setting->setJSONParent(parent);
+
+        if (parent->IsObject()) {
+            return this->loadSettingFromObject(setting, parent);
+        } else if (parent->IsArray()) {
+            return this->loadSettingFromArray(setting, parent);
+        }
+
+        // Parent must be either an object or an array
+        std::cerr << "Parent must be either an object or an array" << std::endl;
+        return false;
+    }
+
+    template <typename Type>
+    bool
+    loadSettingFromObject(std::shared_ptr<SettingData<Type>> setting,
+                          rapidjson::Value *parent)
+    {
         const char *settingKey = setting->getKey().c_str();
 
-        // XXX(pajlada): For now we assume that parents are always objects
-        // TODO(pajlada): Implement support for parent arrays
         if (parent->HasMember(settingKey)) {
             const rapidjson::Value &settingValue = (*parent)[settingKey];
 
@@ -489,7 +621,35 @@ public:
             setting->setJSONValue(&(*parent)[settingKey]);
         }
 
-        return false;
+        return true;
+    }
+
+    template <typename Type>
+    bool
+    loadSettingFromArray(std::shared_ptr<SettingData<Type>> setting,
+                         rapidjson::Value *parent)
+    {
+        const unsigned index = setting->getIndex();
+
+        if (index < parent->Size()) {
+            rapidjson::Value &settingValue = (*parent)[index];
+
+            setting->setJSONValue(&settingValue);
+
+            this->setSetting(setting, settingValue);
+        } else if (index == parent->Size()) {
+            // Just out of reach, create new object
+            rapidjson::Value createdValue = JSONWrapper<Type>::create(setting);
+            // rapidjson::Value createdValue("xd", document->GetAllocator());
+
+            parent->PushBack(createdValue.Move(), document->GetAllocator());
+
+            std::cout << "New capacity: " << parent->Size() << std::endl;
+
+            setting->setJSONValue(&(*parent)[index]);
+        }
+
+        return true;
     }
 
     template <typename Type>
@@ -503,8 +663,18 @@ public:
 
     template <>
     bool
-    setSetting<void>(std::shared_ptr<SettingData<void>>,
-                     const rapidjson::Value &)
+    setSetting<Object>(std::shared_ptr<SettingData<Object>>,
+                       const rapidjson::Value &)
+    {
+        // Do nothing
+        // Void = object type
+        return true;
+    }
+
+    template <>
+    bool
+    setSetting<Array>(std::shared_ptr<SettingData<Array>>,
+                      const rapidjson::Value &)
     {
         // Do nothing
         // Void = object type
@@ -649,20 +819,6 @@ private:
     }
 
 private:
-    template <typename Type>
-    static void
-    localRegister(std::shared_ptr<SettingData<Type>> setting)
-    {
-        static_assert(false, "Unimplemented localRegister for setting type");
-    }
-
-    template <typename Type>
-    static void
-    localUnregister(const std::shared_ptr<SettingData<Type>> &setting)
-    {
-        static_assert(false, "Unimplemented localUnregister for setting type");
-    }
-
     template <class Vector, typename Type>
     static void
     removeSettingFrom(Vector &vec,
@@ -676,9 +832,23 @@ private:
                   std::end(vec));
     }
 
+    template <typename Type>
+    static void
+    localRegister(std::shared_ptr<SettingData<Type>> setting)
+    {
+        static_assert(false, "Unimplemented localRegister for setting type");
+    }
+
     template <>
     static void
-    localRegister<void>(std::shared_ptr<SettingData<void>> setting)
+    localRegister<Array>(std::shared_ptr<SettingData<Array>> setting)
+    {
+        manager->arraySettings.push_back(setting);
+    }
+
+    template <>
+    static void
+    localRegister<Object>(std::shared_ptr<SettingData<Object>> setting)
     {
         manager->objectSettings.push_back(setting);
     }
@@ -719,9 +889,24 @@ private:
         manager->doubleSettings.push_back(setting);
     }
 
+    template <typename Type>
+    static void
+    localUnregister(const std::shared_ptr<SettingData<Type>> &setting)
+    {
+        static_assert(false, "Unimplemented localUnregister for setting type");
+        static bool const value = Type::value;
+    }
+
     template <>
     static void
-    localUnregister<void>(const std::shared_ptr<SettingData<void>> &setting)
+    localUnregister<Array>(const std::shared_ptr<SettingData<Array>> &setting)
+    {
+        SettingsManager::removeSettingFrom(manager->arraySettings, setting);
+    }
+
+    template <>
+    static void
+    localUnregister<Object>(const std::shared_ptr<SettingData<Object>> &setting)
     {
         SettingsManager::removeSettingFrom(manager->objectSettings, setting);
     }
@@ -761,48 +946,6 @@ private:
     {
         SettingsManager::removeSettingFrom(manager->doubleSettings, setting);
     }
-};
-
-template <>
-class Setting<void> : public ISetting
-{
-public:
-    Setting(const std::string &key, Setting<void> *_settingParent = nullptr)
-        : data(new SettingData<void>(key, _settingParent))
-    {
-        SettingsManager::registerSetting(this->data);
-    }
-
-    Setting &
-    setName(const char *newName)
-    {
-        this->name = newName;
-
-        return *this;
-    }
-
-    std::shared_ptr<SettingData<void>>
-    getData() const
-    {
-        return this->data;
-    }
-
-    const std::string &
-    getKey() const
-    {
-        return this->data->getKey();
-    }
-
-    const std::string &
-    getName() const
-    {
-        return this->name;
-    }
-
-private:
-    std::shared_ptr<SettingData<void>> data;
-
-    std::string name;
 };
 
 }  // namespace setting

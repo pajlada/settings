@@ -1,0 +1,30 @@
+{
+    "channelsArray": [
+        {
+            "name": "pajlada"
+        },
+        {
+            "name": "hemirt"
+        },
+        {
+            "name": "gempir"
+        },
+        {
+            "name": "nightnacht"
+        },
+        {
+            "index": 4,
+            "name": "From file FeelsGoodMan"
+        }
+    ],
+    "root": {
+        "i1": 1,
+        "i2": 1
+    },
+    "channels": {},
+    "rootSetting1": 1,
+    "rootSetting2": 2,
+    "rootSetting3": 3,
+    "float1": 1.01010000705719,
+    "rootSetting4": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000—\u0015^,û"
+}

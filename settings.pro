@@ -4,6 +4,8 @@ CONFIG -= qt app_bundle
 
 INCLUDEPATH += ./include
 
+# DEFINES += ONLY_MINI_TEST
+
 include(dependencies/rapidjson.pri)
 
 SOURCES += src/main.cpp \

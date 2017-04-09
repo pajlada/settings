@@ -1,4 +1,5 @@
 #include "test/channel.hpp"
+#include "test/channelmanager.hpp"
 #include "test/foo.hpp"
 
 #define CATCH_CONFIG_MAIN
@@ -11,6 +12,53 @@ using namespace pajlada;
 using namespace pajlada::settings;
 using namespace pajlada::test;
 
+TEST_CASE("ChannelManager", "[settings]")
+{
+    ChannelManager manager;
+
+    REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+
+    for (auto i = 0; i < manager.channels.size(); ++i) {
+        REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
+    }
+
+    REQUIRE(SettingsManager::loadFrom("files/channelmanager.json"));
+
+    REQUIRE(manager.channels.at(0).name.getValue() == "pajlada");
+    REQUIRE(manager.channels.at(1).name.getValue() == "hemirt");
+    REQUIRE(manager.channels.at(2).name.getValue() == "gempir");
+    REQUIRE(manager.channels.at(3).name.getValue() == "nightnacht");
+
+    // Last channel should always be unset
+    REQUIRE(
+        manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
+        "Name not loaded");
+
+    for (auto i = 4; i < pajlada::test::NUM_CHANNELS; ++i) {
+        manager.channels.at(i).name = "From file FeelsGoodMan";
+    }
+
+    REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    REQUIRE(manager.channels.size() ==
+            manager.channels.at(0)
+                .localRoot.getData()
+                ->getSettingArrayParent()
+                ->getData()
+                ->getJSONValue()
+                ->Size());
+    SettingsManager::saveAs("files/test3.json");
+    REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    REQUIRE(manager.channels.size() ==
+            manager.channels.at(0)
+                .localRoot.getData()
+                ->getSettingArrayParent()
+                ->getData()
+                ->getJSONValue()
+                ->Size());
+}
+
+#ifndef ONLY_MINI_TEST
+/*
 TEST_CASE("Channel", "[settings]")
 {
     SettingsManager::clear();
@@ -149,3 +197,5 @@ TEST_CASE("Simple static", "[settings]")
 
     REQUIRE(SettingsManager::saveAs("files/test2.json") == false);
 }
+*/
+#endif

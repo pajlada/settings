@@ -7,12 +7,14 @@ namespace pajlada {
 class Foo
 {
 public:
+#ifndef ONLY_MINI_TEST
     static settings::Setting<int> i1;
     static settings::Setting<int> i2;
     static settings::Setting<int> i3;
     static settings::Setting<std::string> s1;
 
     static settings::Setting<float> f1;
+    /*
     static settings::Setting<float> f2;
     static settings::Setting<float> f3;
     static settings::Setting<float> f4;
@@ -34,10 +36,12 @@ public:
     static settings::Setting<bool> b5;
     static settings::Setting<bool> b6;
     static settings::Setting<bool> b7;
+    */
 
-    static settings::Setting<void> root;
+    static settings::Setting<settings::Object> root;
     static settings::Setting<int> rootInt1;
     static settings::Setting<int> rootInt2;
+#endif
 };
 
 }  // namespace pajlada

@@ -25,11 +25,8 @@
         "i1": 3,
         "i2": 2
     },
-    "channels": {
-        "hemirt": {},
-        "pajlada": {}
-    },
+    "channels": {},
+    "double7": 123.456,
     "bool6": false,
-    "bool7": true,
-    "double7": 123.456
+    "bool7": true
 }

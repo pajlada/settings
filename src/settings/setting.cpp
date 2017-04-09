@@ -9,6 +9,8 @@
 namespace pajlada {
 namespace settings {
 
+static constexpr unsigned MAX_ATTEMPTS = 10;
+
 rapidjson::Document *SettingsManager::document = nullptr;
 std::atomic<uint64_t> ISettingData::latestConnectionID = 0;
 
@@ -53,6 +55,24 @@ SettingsManager::load(const char *path)
     }
 
     return SettingsManager::loadFrom(manager->path.c_str());
+}
+
+template <typename Type>
+static inline void
+loadSettingsFromVector(std::vector<std::shared_ptr<SettingData<Type>>> &vec,
+                       unsigned &numSuccessful, unsigned &numFailed)
+{
+    for (auto it = std::begin(vec); it != std::end(vec);) {
+        if (SettingsManager::manager->loadSetting(*it)) {
+            // Setting successfully loaded
+            ++numSuccessful;
+            it = vec.erase(it);
+        } else {
+            // Setting failed to load
+            ++numFailed;
+            ++it;
+        }
+    }
 }
 
 bool
@@ -102,30 +122,37 @@ SettingsManager::loadFrom(const char *path)
     loaded = true;
 
     // Fill in any settings that registered before we called load
-    for (auto &setting : manager->objectSettings) {
-        if (manager->loadSetting(setting)) {
-        }
-    }
-    for (auto &setting : manager->intSettings) {
-        if (manager->loadSetting(setting)) {
-        }
-    }
-    for (auto &setting : manager->boolSettings) {
-        if (manager->loadSetting(setting)) {
-        }
-    }
-    for (auto &setting : manager->strSettings) {
-        if (manager->loadSetting(setting)) {
-        }
-    }
-    for (auto &setting : manager->doubleSettings) {
-        if (manager->loadSetting(setting)) {
-        }
-    }
-    for (auto &setting : manager->floatSettings) {
-        if (manager->loadSetting(setting)) {
-        }
-    }
+    // Make a copy of the lists of settings we want to load
+    unsigned numAttempts = 0;
+    unsigned numFailed = 0;
+    unsigned numSuccessful = 0;
+    auto objectSettings = manager->objectSettings;
+    auto arraySettings = manager->arraySettings;
+    auto intSettings = manager->intSettings;
+    auto floatSettings = manager->floatSettings;
+    auto doubleSettings = manager->doubleSettings;
+    auto strSettings = manager->strSettings;
+    auto boolSettings = manager->boolSettings;
+    do {
+        std::cout << "Attempt " << numAttempts + 1 << std::endl;
+        numFailed = 0;
+        numSuccessful = 0;
+        loadSettingsFromVector(objectSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(arraySettings, numSuccessful, numFailed);
+        loadSettingsFromVector(intSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(floatSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(doubleSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(strSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(boolSettings, numSuccessful, numFailed);
+        // Retry if:
+        // One or more settings failed to load
+        // AND
+        // One more more settings successfully loaded (otherwise there's no
+        // chance at resolution)
+        // AND
+        // We haven't bypassed the three tries
+    } while (++numAttempts < MAX_ATTEMPTS && numFailed > 0 &&
+             numSuccessful > 0);
 
     return true;
 }
@@ -155,6 +182,8 @@ SettingsManager::saveAs(const char *path)
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     document->Accept(writer);
+
+    std::cout << "save document" << std::endl;
 
     fs.write(buffer.GetString(), buffer.GetSize());
     if (!fs) {

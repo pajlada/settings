@@ -4,12 +4,16 @@ namespace pajlada {
 
 using namespace settings;
 
+#ifndef ONLY_MINI_TEST
 Setting<int> Foo::i1("rootSetting1", 1);
 Setting<int> Foo::i2("rootSetting2", 2);
 Setting<int> Foo::i3("rootSetting3", 3);
-Setting<std::string> Foo::s1("rootSetting4", "Default string");
+Setting<std::string> Foo::s1(
+    "rootSetting4",
+    "Default string");  // XXX(pajlada): Something is wrong with this
 
 Setting<float> Foo::f1("float1", 1.0101f);
+/*
 Setting<float> Foo::f2("float2", 1.0101010101f);
 Setting<float> Foo::f3("float3", 1.123456789f);
 Setting<float> Foo::f4("float4", 1.f);
@@ -31,9 +35,14 @@ Setting<bool> Foo::b4("bool4", false);
 Setting<bool> Foo::b5("bool5", true);
 Setting<bool> Foo::b6("bool6", false);
 Setting<bool> Foo::b7("bool7", true);
+*/
 
-Setting<void> Foo::root("root");
+Setting<settings::Object> Foo::root("root");
 Setting<int> Foo::rootInt1 = Setting<int>("i1", 1, &Foo::root);
+// the error happens here for some reason
+// these lines (i1 and i2) are the reason that the new array thing isn't saved
+// properly
 Setting<int> Foo::rootInt2 = Setting<int>("i2", 1, &Foo::root);
+#endif
 
 }  // namespace pajlada
