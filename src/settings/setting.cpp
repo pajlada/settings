@@ -2,7 +2,6 @@
 
 #include <rapidjson/prettywriter.h>
 
-#include <fstream>
 #include <iostream>
 #include <vector>
 
@@ -79,30 +78,39 @@ bool
 SettingsManager::loadFrom(const char *path)
 {
     // Open file
-    std::ifstream fs(path, std::ios::binary | std::ios::ate);
-    if (!fs) {
+    FILE *fh = fopen(path, "rb");
+    if (fh == nullptr) {
+        // Unable to open file at `path`
         return false;
     }
 
     // Read size of file
-    std::streamsize fileSize = fs.tellg();
-    fs.seekg(0, std::ios::beg);
+    fseek(fh, 0, SEEK_END);
+    auto fileSize = ftell(fh);
+    fseek(fh, 0, SEEK_SET);
 
     // Create vector of appropriate size
-    std::vector<char> fileBuffer(fileSize);
+    char *fileBuffer = new char[fileSize];
 
-    // Read file data into vector
-    fs.read(fileBuffer.data(), fileSize);
-    if (!fs) {
+    // Read file data into buffer
+    auto readBytes = fread(fileBuffer, 1, fileSize, fh);
+
+    if (readBytes != fileSize) {
+        // Error reading the buffer
+        fclose(fh);
+        delete[] fileBuffer;
+
         return false;
     }
 
     auto d = new rapidjson::Document;
 
-    d->Parse(fileBuffer.data(), fileSize);
+    d->Parse(fileBuffer, fileSize);
 
     // Close file
-    fs.close();
+
+    fclose(fh);
+    delete[] fileBuffer;
 
     // This restricts config files a bit. They NEED to have an object root
     if (!d->IsObject()) {
@@ -174,8 +182,9 @@ SettingsManager::saveAs(const char *path)
         return false;
     }
 
-    std::ofstream fs(path, std::ios::out | std::ios::trunc | std::ios::binary);
-    if (!fs) {
+    FILE *fh = fopen(path, "wb+");
+    if (fh == nullptr) {
+        // Unable to open file at `path`
         return false;
     }
 
@@ -185,12 +194,15 @@ SettingsManager::saveAs(const char *path)
 
     std::cout << "save document" << std::endl;
 
-    fs.write(buffer.GetString(), buffer.GetSize());
-    if (!fs) {
+    auto writtenBytes = fwrite(buffer.GetString(), 1, buffer.GetSize(), fh);
+
+    // Close file handle
+    fclose(fh);
+
+    if (writtenBytes != buffer.GetSize()) {
+        // Something went wrong with saving the file;
         return false;
     }
-
-    fs.close();
 
     return true;
 }

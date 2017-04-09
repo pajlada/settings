@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rapidjson/document.h>
+#include <rapidjson/pointer.h>
 
 #include <algorithm>
 #include <atomic>
@@ -46,7 +47,7 @@ public:
     {
     }
 
-    inline const uint64_t
+    inline uint64_t
     getConnectionID() const
     {
         return this->connectionID;
