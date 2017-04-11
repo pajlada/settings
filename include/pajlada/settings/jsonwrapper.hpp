@@ -4,7 +4,6 @@
 
 #include <rapidjson/document.h>
 
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -16,10 +15,8 @@ class SettingData;
 
 template <class JSONType>
 struct JSONWrapper {
-    static rapidjson::Value
-    create(const std::shared_ptr<SettingData<JSONType>> &);
-
-    static void setValue(rapidjson::Value *jsonValue, const JSONType &newValue);
+    static rapidjson::Value create(
+        const std::shared_ptr<SettingData<JSONType>> &);
 };
 
 }  // namespace setting

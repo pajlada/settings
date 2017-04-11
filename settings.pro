@@ -10,7 +10,6 @@ include(dependencies/rapidjson.pri)
 include(dependencies/signals.pri)
 
 SOURCES += src/main.cpp \
-    src/settings/setting.cpp \
     src/test/foo.cpp \
     src/test/channel.cpp \
     src/settings/settingdata.cpp \

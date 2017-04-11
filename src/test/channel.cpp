@@ -7,11 +7,11 @@ namespace test {
 using namespace settings;
 
 IndexedChannel::IndexedChannel(const unsigned &&_index,
-                               settings::Setting<settings::Array> *parent)
+                               const settings::Setting<settings::Array> &parent)
     : index(_index)
     , localRoot(_index, parent)
-    , xDIndex("index", _index, &this->localRoot)
-    , name("name", "Name not loaded", &this->localRoot)
+    , xDIndex("index", this->localRoot, _index)
+    , name("name", this->localRoot, "Name not loaded")
 {
 }
 
@@ -20,8 +20,8 @@ settings::Setting<settings::Object> Channel::globalRoot("channels");
 
 Channel::Channel(const std::string &_name)
     : name(_name)
-    , localRoot(name, &globalRoot)
-    , maxMessageLength("maxMessageLength", 240, &this->localRoot)
+    , localRoot(name, globalRoot)
+    , maxMessageLength("maxMessageLength", this->localRoot, 240)
 {
 }
 #endif

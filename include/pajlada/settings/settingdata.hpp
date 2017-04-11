@@ -1,10 +1,12 @@
 #pragma once
 
 #include "pajlada/settings/jsonwrapper.hpp"
+#include "pajlada/settings/settingmanager.hpp"
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
+#include <pajlada/signals/signal.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -24,25 +26,14 @@ class ISettingData
 public:
     ISettingData(const std::string &_key, Setting<Object> *_parent);
     ISettingData(unsigned _index, Setting<Array> *_parent);
+    ISettingData();
+
+    virtual ~ISettingData() = default;
 
     inline uint64_t
     getConnectionID() const
     {
         return this->connectionID;
-    }
-
-    virtual ~ISettingData() = default;
-
-    rapidjson::Value *
-    getJSONParent() const
-    {
-        return this->jsonParent;
-    }
-
-    rapidjson::Value *
-    getJSONValue() const
-    {
-        return this->jsonValue;
     }
 
     Setting<Object> *
@@ -57,50 +48,35 @@ public:
         return this->settingArrayParent;
     }
 
-    void
-    setJSONParent(rapidjson::Value *newParent)
-    {
-        this->jsonParent = newParent;
-    }
-
-    const std::string &
-    getKey() const
-    {
-        return this->key;
-    }
-
-    unsigned
-    getIndex() const
-    {
-        return this->index;
-    }
-
     inline bool
     isFilled() const
     {
         return this->filled;
     }
 
-    void
-    setJSONValue(rapidjson::Value *newValue)
-    {
-        this->jsonValue = newValue;
-    }
+    const std::string &getPath() const;
+    const std::string &getKey() const;
+    unsigned getIndex() const;
+
+    void setPath(const std::string &_path);
+    void setKey(const std::string &_key, const Setting<Object> &parent);
+    void setIndex(unsigned _index, const Setting<Array> &parent);
 
 private:
+    // Setting path (i.e. /a/b/c/3/d/e)
+    std::string path;
+
     // Setting key (i.e. "numThreads")
-    const std::string key;
+    std::string key;
 
     // Setting index (i.e. 2)
-    const unsigned index;
+    unsigned index;
 
 protected:
     // If the setting has been filled with any value other than the default
     // one
     bool filled = false;
 
-    rapidjson::Value *jsonParent = nullptr;
-    rapidjson::Value *jsonValue = nullptr;
     Setting<Object> *settingObjectParent;
     Setting<Array> *settingArrayParent;
 
@@ -109,58 +85,39 @@ protected:
 };
 
 template <typename Type>
-class SettingData : public ISettingData
+class SettingData : public ISettingData,
+                    public std::enable_shared_from_this<SettingData<Type>>
 {
+    // Default Value
+    SettingData(const Type &defaultValue)
+        : ISettingData()
+        , value(defaultValue)
+    {
+    }
+
 public:
-    // Key, Default Value, Object Parent
-    SettingData(const std::string &_key, const Type &defaultValue,
-                Setting<Object> *_parent)
-        : ISettingData(_key, _parent)
-        , data(defaultValue)
-    {
-    }
-
-    // Index, Default Value, Array Parent
-    SettingData(unsigned _index, const Type &defaultValue,
-                Setting<Array> *_parent)
-        : ISettingData(_index, _parent)
-        , data(defaultValue)
-    {
-    }
-
-    // Key, Object Parent
-    SettingData(const std::string &_key, Setting<Object> *_parent)
-        : ISettingData(_key, _parent)
-        , data()
-    {
-    }
-
-    // Index, Array Parent
-    SettingData(unsigned _index, Setting<Array> *_parent)
-        : ISettingData(_index, _parent)
-        , data()
-    {
-    }
-
     void
     setValue(const Type &newValue)
     {
-        this->data = newValue;
+        this->value = newValue;
 
         this->filled = true;
 
-        if (this->jsonValue != nullptr) {
-            JSONWrapper<Type>::setValue(this->jsonValue, newValue);
-        }
+        this->valueChanged.invoke(newValue);
     }
 
     Type
     getValue() const
     {
-        return this->data;
+        return this->value;
     }
 
-    Type data;
+    signals::Signal<const Type &> valueChanged;
+
+private:
+    Type value;
+
+    friend class Setting<Type>;
 };
 
 }  // namespace setting

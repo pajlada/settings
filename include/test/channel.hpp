@@ -9,7 +9,7 @@ class IndexedChannel
 {
 public:
     IndexedChannel(const unsigned &&_index,
-                   settings::Setting<settings::Array> *parent);
+                   const settings::Setting<settings::Array> &parent);
 
     unsigned index;
 

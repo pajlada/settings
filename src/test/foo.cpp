@@ -36,11 +36,11 @@ Setting<bool> Foo::b6("bool6", false);
 Setting<bool> Foo::b7("bool7", true);
 
 Setting<settings::Object> Foo::root("root");
-Setting<int> Foo::rootInt1 = Setting<int>("i1", 1, &Foo::root);
+Setting<int> Foo::rootInt1 = Setting<int>("i1", Foo::root, 1);
 // the error happens here for some reason
 // these lines (i1 and i2) are the reason that the new array thing isn't saved
 // properly
-Setting<int> Foo::rootInt2 = Setting<int>("i2", 1, &Foo::root);
+Setting<int> Foo::rootInt2 = Setting<int>("i2", Foo::root, 1);
 #endif
 
 }  // namespace pajlada

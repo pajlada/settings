@@ -7,18 +7,10 @@
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
 
-#include <algorithm>
-#include <atomic>
-#include <functional>
-#include <iostream>
 #include <memory>
-#include <vector>
 
 namespace pajlada {
 namespace settings {
-
-template <typename Type>
-class Setting;
 
 class ISetting
 {
@@ -35,19 +27,16 @@ template <typename Type>
 class Setting : public ISetting
 {
 public:
-    // Key, Default Value, Object Parent
-    Setting(const std::string &key, const Type &defaultValue = Type(),
-            Setting<Object> *parent = nullptr);
+    // Path, Default Value
+    Setting(const std::string &path, const Type &defaultValue = Type());
 
-    // Index, Default Value, Array Parent
-    Setting(unsigned index, const Type &defaultValue = Type(),
-            Setting<Array> *parent = nullptr);
+    // Key, Object Parent, Default Value
+    Setting(const std::string &key, const Setting<Object> &parent,
+            const Type &defaultValue = Type());
 
-    // Key, Object Parent
-    Setting(const std::string &key, Setting<Object> *parent);
-
-    // Index, Array Parent
-    Setting(unsigned index, Setting<Array> *parent);
+    // Index, Array Parent, Default Value
+    Setting(unsigned index, const Setting<Array> &parent,
+            const Type &defaultValue = Type());
 
     ~Setting();
 
@@ -105,10 +94,16 @@ public:
         return *this;
     }
 
+    const std::string &
+    getPath() const
+    {
+        return this->path;
+    }
+
     Setting &
     operator=(Type &&newValue) noexcept
     {
-        this->data->setValue(newValue);
+        this->data->setValue(std::move(newValue));
 
         return *this;
     }
@@ -119,49 +114,61 @@ public:
     }
 
 private:
+    void
+    registerSetting()
+    {
+        SettingManager::registerSetting(this->data);
+    }
+
+    void
+    unregisterSetting()
+    {
+        SettingManager::unregisterSetting(this->data);
+    }
+
+    std::string path;
+
     std::shared_ptr<SettingData<Type>> data;
 
     std::string name;
 };
 
-// Key, Default Value, Object Parent
+// Path, Default Value
 template <typename Type>
-Setting<Type>::Setting(const std::string &key, const Type &defaultValue,
-                       Setting<Object> *parent)
-    : data(new SettingData<Type>(key, defaultValue, parent))
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue)
+    : data(new SettingData<Type>(defaultValue))
 {
-    SettingManager::registerSetting(this->data);
+    this->data->setPath(path);
+
+    this->registerSetting();
 }
 
-// Index, Default Value, Array Parent
+// Key, Object Parent, Default Value
 template <typename Type>
-Setting<Type>::Setting(unsigned index, const Type &defaultValue,
-                       Setting<Array> *parent)
-    : data(new SettingData<Type>(index, defaultValue, parent))
+Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
+                       const Type &defaultValue)
+    : data(new SettingData<Type>(defaultValue))
 {
-    SettingManager::registerSetting(this->data);
+    this->data->setKey(key, parent);
+
+    this->registerSetting();
 }
 
-// Key, Object Parent
+// Index, Array Parent, Default Value
 template <typename Type>
-Setting<Type>::Setting(const std::string &key, Setting<Object> *parent)
-    : data(new SettingData<Type>(key, parent))
+Setting<Type>::Setting(unsigned index, const Setting<Array> &parent,
+                       const Type &defaultValue = Type())
+    : data(new SettingData<Type>(defaultValue))
 {
-    SettingManager::registerSetting(this->data);
-}
+    this->data->setIndex(index, parent);
 
-// Index, Array Parent
-template <typename Type>
-Setting<Type>::Setting(unsigned index, Setting<Array> *parent)
-    : data(new SettingData<Type>(index, parent))
-{
-    SettingManager::registerSetting(this->data);
+    this->registerSetting();
 }
 
 template <typename Type>
 Setting<Type>::~Setting()
 {
-    SettingManager::unregisterSetting(this->data);
+    this->unregisterSetting();
 }
 
 }  // namespace setting

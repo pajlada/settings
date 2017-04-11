@@ -15,18 +15,47 @@
     "double4": 5.1,
     "double5": 5.321,
     "double6": 500000.1,
+    "double7": 123.456,
     "bool1": false,
     "bool2": true,
     "bool3": false,
     "bool4": true,
     "bool5": false,
-    "root": {
-        "a": "b",
-        "i1": 3,
-        "i2": 2
-    },
-    "channels": {},
-    "double7": 123.456,
     "bool6": false,
-    "bool7": true
+    "bool7": true,
+    "root": {
+        "i1": 3,
+        "i2": 2,
+        "a": "b"
+    },
+    "channels": {
+        "hemirt": {
+            "maxMessageLength": 300
+        },
+        "pajlada": {
+            "maxMessageLength": 500
+        }
+    },
+    "channelsArray": [
+        {
+            "index": 0,
+            "name": "pajlada"
+        },
+        {
+            "index": 1,
+            "name": "hemirt"
+        },
+        {
+            "index": 2,
+            "name": "gempir"
+        },
+        {
+            "index": 3,
+            "name": "Name not loaded"
+        },
+        {
+            "index": 4,
+            "name": "From file FeelsGoodMan"
+        }
+    ]
 }

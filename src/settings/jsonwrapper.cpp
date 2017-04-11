@@ -17,7 +17,6 @@ JSONWrapper<Object>::create(const std::shared_ptr<SettingData<Object>> &setting)
     return v;
 }
 
-
 rapidjson::Value
 JSONWrapper<Array>::create(const std::shared_ptr<SettingData<Array>> &setting)
 {
@@ -38,24 +37,12 @@ JSONWrapper<int>::create(const std::shared_ptr<SettingData<int>> &setting)
     return v;
 }
 
-void
-JSONWrapper<int>::setValue(rapidjson::Value *jsonValue, const int &newValue)
-{
-    jsonValue->SetInt(newValue);
-}
-
 rapidjson::Value
 JSONWrapper<bool>::create(const std::shared_ptr<SettingData<bool>> &setting)
 {
     rapidjson::Value v;
     v.SetBool(setting->getValue());
     return v;
-}
-
-void
-JSONWrapper<bool>::setValue(rapidjson::Value *jsonValue, const bool &newValue)
-{
-    jsonValue->SetBool(newValue);
 }
 
 rapidjson::Value
@@ -66,25 +53,12 @@ JSONWrapper<float>::create(const std::shared_ptr<SettingData<float>> &setting)
     return v;
 }
 
-void
-JSONWrapper<float>::setValue(rapidjson::Value *jsonValue, const float &newValue)
-{
-    jsonValue->SetFloat(newValue);
-}
-
 rapidjson::Value
 JSONWrapper<double>::create(const std::shared_ptr<SettingData<double>> &setting)
 {
     rapidjson::Value v;
     v.SetDouble(setting->getValue());
     return v;
-}
-
-void
-JSONWrapper<double>::setValue(rapidjson::Value *jsonValue,
-                              const double &newValue)
-{
-    jsonValue->SetDouble(newValue);
 }
 
 rapidjson::Value
@@ -94,14 +68,6 @@ JSONWrapper<std::string>::create(
     rapidjson::Value v;
     v.SetString(rapidjson::StringRef(setting->getValue().c_str()));
     return v;
-}
-
-void
-JSONWrapper<std::string>::setValue(rapidjson::Value *jsonValue,
-                                   const std::string &newValue)
-{
-    jsonValue->SetString(newValue.c_str(),
-                         SettingManager::document->GetAllocator());
 }
 
 }  // namespace settings

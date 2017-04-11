@@ -1,30 +1,8 @@
 {
-    "channelsArray": [
-        {
-            "name": "pajlada",
-            "index": 0
-        },
-        {
-            "name": "hemirt",
-            "index": 1
-        },
-        {
-            "name": "gempir",
-            "index": 2
-        },
-        {
-            "name": "nightnacht",
-            "index": 3
-        }
-    ],
-    "root": {
-        "i1": 1,
-        "i2": 1
-    },
-    "channels": {},
     "rootSetting1": 1,
     "rootSetting2": 2,
     "rootSetting3": 3,
+    "rootSetting4": "Default string",
     "float1": 1.01010000705719,
     "float2": 1.0101009607315064,
     "float3": 1.1234568357467652,
@@ -38,12 +16,38 @@
     "double5": 0.0,
     "double6": -0.1,
     "double7": 123.456,
-    "rootSetting4": "P\u0003§!û\u0000\u0000p\u0002\u0000\u0000\u0000\u0000",
     "bool1": true,
     "bool2": false,
     "bool3": true,
     "bool4": false,
     "bool5": true,
     "bool6": false,
-    "bool7": true
+    "bool7": true,
+    "root": {
+        "i1": 1,
+        "i2": 1
+    },
+    "channels": null,
+    "channelsArray": [
+        {
+            "index": 0,
+            "name": "pajlada"
+        },
+        {
+            "index": 1,
+            "name": "hemirt"
+        },
+        {
+            "index": 2,
+            "name": "gempir"
+        },
+        {
+            "index": 3,
+            "name": "Name not loaded"
+        },
+        {
+            "index": 4,
+            "name": "From file FeelsGoodMan"
+        }
+    ]
 }

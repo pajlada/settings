@@ -2,6 +2,9 @@
 
 #include "pajlada/settings/jsonwrapper.hpp"
 
+#include <rapidjson/pointer.h>
+
+#include <cstdio>
 #include <vector>
 
 namespace pajlada {
@@ -14,7 +17,8 @@ class SettingManager
 {
 public:
     SettingManager();
-    ~SettingManager();
+
+    void prettyPrintDocument();
 
     std::string path = "settings.json";
 
@@ -29,25 +33,41 @@ public:
     static void
     registerSetting(std::shared_ptr<SettingData<Type>> setting)
     {
-        requireManager();
+        using namespace std;
+        const char *path = setting->getPath().c_str();
 
+        // Save initial value
+        // We might want to have this as a setting?
+        SettingManager::setValue<Type>(path, setting->getValue());
+
+        // Set up a signal which updates the rapidjson document with the new
+        // value when the SettingData value is updated
+
+        // file loaded with SettingManager, this callback will also fire. the
+        // only bad part about that is that the setValue method is called
+        // unnecessarily
+        setting->valueChanged.connect([path](const Type &newValue) {
+            SettingManager::setValue<Type>(path, newValue);  //
+        });
+
+        /*
         if (loaded) {
             // If settings are already loaded from a file, try to fill in
             // the
             // settings
-            manager->loadSetting(setting);
+            manager()->loadSetting(setting);
         }
+        */
 
+        // Add the shared_ptr to the relevant vector
+        // i.e. std::string SettingData is moved to strSettings
         SettingManager::localRegister(std::move(setting));
     }
-
-    static SettingManager *manager;
-
-    static bool loaded;
 
     static void setPath(const char *path);
 
     // Clear the loaded json settings
+    // XXX(pajlada): What should this actually do?
     static void clear();
 
     // Load from given path and set given path as the "default path" (or
@@ -76,39 +96,69 @@ public:
     std::vector<std::shared_ptr<SettingData<Object>>> objectSettings;
     std::vector<std::shared_ptr<SettingData<Array>>> arraySettings;
 
-    static rapidjson::Document *document;
-
     template <typename Type>
     static rapidjson::Value *getSettingParent(
         std::shared_ptr<SettingData<Type>> &setting);
 
     template <typename Type>
+    static void
+    setValue(const char *path, const Type &value)
+    {
+        rapidjson::Document &d = getDocument();
+        rapidjson::Pointer(path).Set(d, value);
+    }
+
+    template <>
+    static void
+    setValue<std::string>(const char *path, const std::string &value)
+    {
+        rapidjson::Document &d = getDocument();
+        rapidjson::Pointer(path).Set(d, value.c_str());
+    }
+
+    template <>
+    static void
+    setValue<Object>(const char *path, const Object &)
+    {
+        rapidjson::Document &d = getDocument();
+        rapidjson::Pointer(path).Create(d);
+    }
+
+    template <>
+    static void
+    setValue<Array>(const char *path, const Array &)
+    {
+        rapidjson::Document &d = getDocument();
+        rapidjson::Pointer(path).Create(d);
+    }
+
+    template <typename Type>
     bool
     loadSetting(std::shared_ptr<SettingData<Type>> setting)
     {
-        // Sanity check
-        assert(loaded == true);
+        // A setting should always have a path
+        assert(!setting->getPath().empty());
 
-        rapidjson::Value *parent = getSettingParent(setting);
+        return this->loadSettingFromPath(setting);
+    }
 
-        if (parent == nullptr) {
-            // Parent not loaded yet, re-do in second pass
+    template <typename Type>
+    bool
+    loadSettingFromPath(std::shared_ptr<SettingData<Type>> &setting)
+    {
+        const char *path = setting->getPath().c_str();
+        auto &document = getDocument();
+        auto value = rapidjson::Pointer(path).Get(document);
+        if (value == nullptr) {
             return false;
         }
 
-        setting->setJSONParent(parent);
+        this->setSetting(setting, *value);
 
-        if (parent->IsObject()) {
-            return this->loadSettingFromObject(setting, parent);
-        } else if (parent->IsArray()) {
-            return this->loadSettingFromArray(setting, parent);
-        }
-
-        // Parent must be either an object or an array
-        std::cerr << "Parent must be either an object or an array" << std::endl;
-        return false;
+        return true;
     }
 
+#if 0
     template <typename Type>
     bool
     loadSettingFromObject(std::shared_ptr<SettingData<Type>> setting,
@@ -155,13 +205,12 @@ public:
 
             parent->PushBack(createdValue.Move(), document->GetAllocator());
 
-            std::cout << "New capacity: " << parent->Size() << std::endl;
-
             setting->setJSONValue(&(*parent)[index]);
         }
 
         return true;
     }
+#endif
 
     template <typename Type>
     bool setSetting(std::shared_ptr<SettingData<Type>> setting,
@@ -185,15 +234,28 @@ private:
                 static_cast<uint64_t>(testSaveMethod)) != 0;
     }
 
-    static void
-    requireManager()
+    static SettingManager *
+    manager()
     {
-        if (manager == nullptr) {
-            manager = new SettingManager;
-        }
+        static SettingManager *m = new SettingManager;
+
+        return m;
     }
 
+    ~SettingManager();
+
+    rapidjson::Document document;
+
+    static rapidjson::Document &getDocument();
+
 private:
+    // stupid helper method
+    static const char *
+    getPath()
+    {
+        return manager()->path.c_str();
+    }
+
     template <class Vector, typename Type>
     static void
     removeSettingFrom(Vector &vec,
@@ -218,28 +280,28 @@ private:
     static void
     localRegister<Array>(std::shared_ptr<SettingData<Array>> setting)
     {
-        manager->arraySettings.push_back(setting);
+        manager()->arraySettings.push_back(setting);
     }
 
     template <>
     static void
     localRegister<Object>(std::shared_ptr<SettingData<Object>> setting)
     {
-        manager->objectSettings.push_back(setting);
+        manager()->objectSettings.push_back(setting);
     }
 
     template <>
     static void
     localRegister<bool>(std::shared_ptr<SettingData<bool>> setting)
     {
-        manager->boolSettings.push_back(setting);
+        manager()->boolSettings.push_back(setting);
     }
 
     template <>
     static void
     localRegister<int>(std::shared_ptr<SettingData<int>> setting)
     {
-        manager->intSettings.push_back(setting);
+        manager()->intSettings.push_back(setting);
     }
 
     template <>
@@ -247,21 +309,21 @@ private:
     localRegister<std::string>(
         std::shared_ptr<SettingData<std::string>> setting)
     {
-        manager->strSettings.push_back(setting);
+        manager()->strSettings.push_back(setting);
     }
 
     template <>
     static void
     localRegister<float>(std::shared_ptr<SettingData<float>> setting)
     {
-        manager->floatSettings.push_back(setting);
+        manager()->floatSettings.push_back(setting);
     }
 
     template <>
     static void
     localRegister<double>(std::shared_ptr<SettingData<double>> setting)
     {
-        manager->doubleSettings.push_back(setting);
+        manager()->doubleSettings.push_back(setting);
     }
 
     template <typename Type>
@@ -276,28 +338,28 @@ private:
     static void
     localUnregister<Array>(const std::shared_ptr<SettingData<Array>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->arraySettings, setting);
+        SettingManager::removeSettingFrom(manager()->arraySettings, setting);
     }
 
     template <>
     static void
     localUnregister<Object>(const std::shared_ptr<SettingData<Object>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->objectSettings, setting);
+        SettingManager::removeSettingFrom(manager()->objectSettings, setting);
     }
 
     template <>
     static void
     localUnregister<bool>(const std::shared_ptr<SettingData<bool>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->boolSettings, setting);
+        SettingManager::removeSettingFrom(manager()->boolSettings, setting);
     }
 
     template <>
     static void
     localUnregister<int>(const std::shared_ptr<SettingData<int>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->intSettings, setting);
+        SettingManager::removeSettingFrom(manager()->intSettings, setting);
     }
 
     template <>
@@ -305,21 +367,21 @@ private:
     localUnregister<std::string>(
         const std::shared_ptr<SettingData<std::string>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->strSettings, setting);
+        SettingManager::removeSettingFrom(manager()->strSettings, setting);
     }
 
     template <>
     static void
     localUnregister<float>(const std::shared_ptr<SettingData<float>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->floatSettings, setting);
+        SettingManager::removeSettingFrom(manager()->floatSettings, setting);
     }
 
     template <>
     static void
     localUnregister<double>(const std::shared_ptr<SettingData<double>> &setting)
     {
-        SettingManager::removeSettingFrom(manager->doubleSettings, setting);
+        SettingManager::removeSettingFrom(manager()->doubleSettings, setting);
     }
 };
 
