@@ -3,6 +3,10 @@
 debug/
 release/
 
+# save files
+files/test2.json
+files/test3.json
+
 ## Generated
 # C++ objects and libs
 
