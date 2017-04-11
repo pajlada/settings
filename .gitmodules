@@ -1,0 +1,3 @@
+[submodule "external/signals"]
+	path = external/signals
+	url = https://github.com/pajlada/signals

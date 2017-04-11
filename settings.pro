@@ -7,6 +7,7 @@ INCLUDEPATH += ./include
 # DEFINES += ONLY_MINI_TEST
 
 include(dependencies/rapidjson.pri)
+include(dependencies/signals.pri)
 
 SOURCES += src/main.cpp \
     src/settings/setting.cpp \
