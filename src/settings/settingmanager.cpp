@@ -69,7 +69,7 @@ SettingManager::load(const char *path)
 template <typename Type>
 static inline void
 loadSettingsFromVector(SettingManager *manager,
-                       vector<shared_ptr<SettingData<Type>>> &vec,
+                       vector<shared_ptr<detail::SettingData<Type>>> &vec,
                        unsigned &numSuccessful, unsigned &numFailed)
 {
     for (auto it = begin(vec); it != end(vec);) {
@@ -316,7 +316,7 @@ SettingManager::saveAs(const char *path)
 
 template <>
 bool
-SettingManager::setSetting<Object>(shared_ptr<SettingData<Object>>,
+SettingManager::setSetting<Object>(shared_ptr<detail::SettingData<Object>>,
                                    const rapidjson::Value &)
 {
     // Do nothing
@@ -326,7 +326,7 @@ SettingManager::setSetting<Object>(shared_ptr<SettingData<Object>>,
 
 template <>
 bool
-SettingManager::setSetting<Array>(shared_ptr<SettingData<Array>>,
+SettingManager::setSetting<Array>(shared_ptr<detail::SettingData<Array>>,
                                   const rapidjson::Value &)
 {
     // Do nothing
@@ -336,8 +336,9 @@ SettingManager::setSetting<Array>(shared_ptr<SettingData<Array>>,
 
 template <>
 bool
-SettingManager::setSetting<float>(shared_ptr<SettingData<float>> setting,
-                                  const rapidjson::Value &value)
+SettingManager::setSetting<float>(
+    shared_ptr<detail::SettingData<float>> setting,
+    const rapidjson::Value &value)
 {
     auto type = value.GetType();
 
@@ -361,8 +362,9 @@ SettingManager::setSetting<float>(shared_ptr<SettingData<float>> setting,
 
 template <>
 bool
-SettingManager::setSetting<double>(shared_ptr<SettingData<double>> setting,
-                                   const rapidjson::Value &value)
+SettingManager::setSetting<double>(
+    shared_ptr<detail::SettingData<double>> setting,
+    const rapidjson::Value &value)
 {
     auto type = value.GetType();
 
@@ -383,8 +385,9 @@ SettingManager::setSetting<double>(shared_ptr<SettingData<double>> setting,
 
 template <>
 bool
-SettingManager::setSetting<string>(shared_ptr<SettingData<string>> setting,
-                                   const rapidjson::Value &value)
+SettingManager::setSetting<string>(
+    shared_ptr<detail::SettingData<string>> setting,
+    const rapidjson::Value &value)
 {
     auto type = value.GetType();
 
@@ -400,7 +403,7 @@ SettingManager::setSetting<string>(shared_ptr<SettingData<string>> setting,
 
 template <>
 bool
-SettingManager::setSetting<bool>(shared_ptr<SettingData<bool>> setting,
+SettingManager::setSetting<bool>(shared_ptr<detail::SettingData<bool>> setting,
                                  const rapidjson::Value &value)
 {
     auto type = value.GetType();
@@ -425,7 +428,7 @@ SettingManager::setSetting<bool>(shared_ptr<SettingData<bool>> setting,
 
 template <>
 bool
-SettingManager::setSetting<int>(shared_ptr<SettingData<int>> setting,
+SettingManager::setSetting<int>(shared_ptr<detail::SettingData<int>> setting,
                                 const rapidjson::Value &value)
 {
     auto type = value.GetType();
@@ -447,7 +450,7 @@ SettingManager::setSetting<int>(shared_ptr<SettingData<int>> setting,
 
 template <typename Type>
 rapidjson::Value *
-SettingManager::getSettingParent(shared_ptr<SettingData<Type>> &setting)
+SettingManager::getSettingParent(shared_ptr<detail::SettingData<Type>> &setting)
 {
     auto settingObjParent = setting->getSettingObjectParent();
     auto settingArrParent = setting->getSettingArrayParent();

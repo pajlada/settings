@@ -8,7 +8,6 @@
 #include <rapidjson/pointer.h>
 #include <pajlada/signals/signal.hpp>
 
-#include <algorithm>
 #include <atomic>
 #include <functional>
 #include <iostream>
@@ -20,6 +19,8 @@ namespace settings {
 
 template <typename Type>
 class Setting;
+
+namespace detail {
 
 class ISettingData
 {
@@ -120,5 +121,6 @@ private:
     friend class Setting<Type>;
 };
 
+}  // namespace detail
 }  // namespace setting
 }  // namespace pajlada

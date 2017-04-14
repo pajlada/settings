@@ -1,10 +1,14 @@
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/setting.hpp"
 
+#include <algorithm>
+#include <string>
+
 using namespace std;
 
 namespace pajlada {
 namespace settings {
+namespace detail {
 
 atomic<uint64_t> ISettingData::latestConnectionID = 0;
 
@@ -86,5 +90,6 @@ ISettingData::setIndex(unsigned _index, const Setting<Array> &parent)
     this->path = data->getPath() + "/" + to_string(_index);
 }
 
+}  // namespace detail
 }  // namespace settings
 }  // namespace pajlada

@@ -13,6 +13,8 @@
 namespace pajlada {
 namespace settings {
 
+namespace detail {
+
 class ISetting
 {
 public:
@@ -24,8 +26,10 @@ private:
     std::string description;
 };
 
+}  // namespace detail
+
 template <typename Type>
-class Setting : public ISetting
+class Setting : public detail::ISetting
 {
 public:
     // Path, Default Value
@@ -85,7 +89,7 @@ public:
     }
 
 private:
-    std::shared_ptr<SettingData<Type>>
+    std::shared_ptr<detail::SettingData<Type>>
     getData() const
     {
         return this->data;
@@ -103,7 +107,7 @@ private:
         SettingManager::unregisterSetting(this->data);
     }
 
-    std::shared_ptr<SettingData<Type>> data;
+    std::shared_ptr<detail::SettingData<Type>> data;
 
 public:
     signals::Signal<const Type &> &valueChanged;
@@ -111,13 +115,13 @@ public:
 private:
     std::string name;
 
-    friend class ISettingData;
+    friend class detail::ISettingData;
 };
 
 // Path, Default Value
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, const Type &defaultValue)
-    : data(new SettingData<Type>(defaultValue))
+    : data(new detail::SettingData<Type>(defaultValue))
     , valueChanged(data->valueChanged)
 {
     this->data->setPath(path);
@@ -129,7 +133,7 @@ Setting<Type>::Setting(const std::string &path, const Type &defaultValue)
 template <typename Type>
 Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
                        const Type &defaultValue)
-    : data(new SettingData<Type>(defaultValue))
+    : data(new detail::SettingData<Type>(defaultValue))
     , valueChanged(data->valueChanged)
 {
     this->data->setKey(key, parent);
@@ -141,7 +145,7 @@ Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
 template <typename Type>
 Setting<Type>::Setting(unsigned index, const Setting<Array> &parent,
                        const Type &defaultValue = Type())
-    : data(new SettingData<Type>(defaultValue))
+    : data(new detail::SettingData<Type>(defaultValue))
     , valueChanged(data->valueChanged)
 {
     this->data->setIndex(index, parent);

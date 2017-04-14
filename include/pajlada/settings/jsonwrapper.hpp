@@ -5,10 +5,10 @@
 #include <rapidjson/document.h>
 
 #include <memory>
-#include <string>
 
 namespace pajlada {
 namespace settings {
+namespace detail {
 
 template <typename Type>
 class SettingData;
@@ -19,5 +19,6 @@ struct JSONWrapper {
         const std::shared_ptr<SettingData<JSONType>> &);
 };
 
-}  // namespace setting
+}  // namespace detail
+}  // namespace settings
 }  // namespace pajlada

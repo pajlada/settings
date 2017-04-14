@@ -4,14 +4,19 @@
 
 #include <rapidjson/pointer.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <vector>
 
 namespace pajlada {
 namespace settings {
 
+namespace detail {
+
 template <typename Type>
 class SettingData;
+
+}  // namespace detail
 
 class SettingManager
 {
@@ -22,14 +27,14 @@ public:
 
     template <typename Type>
     static void
-    unregisterSetting(const std::shared_ptr<SettingData<Type>> &setting)
+    unregisterSetting(const std::shared_ptr<detail::SettingData<Type>> &setting)
     {
         SettingManager::localUnregister(setting);
     }
 
     template <typename Type>
     static void
-    registerSetting(std::shared_ptr<SettingData<Type>> setting)
+    registerSetting(std::shared_ptr<detail::SettingData<Type>> setting)
     {
         using namespace std;
         const char *path = setting->getPath().c_str();
@@ -86,17 +91,17 @@ public:
     // Save to given path
     static bool saveAs(const char *filePath);
 
-    std::vector<std::shared_ptr<SettingData<int>>> intSettings;
-    std::vector<std::shared_ptr<SettingData<bool>>> boolSettings;
-    std::vector<std::shared_ptr<SettingData<std::string>>> strSettings;
-    std::vector<std::shared_ptr<SettingData<double>>> doubleSettings;
-    std::vector<std::shared_ptr<SettingData<float>>> floatSettings;
-    std::vector<std::shared_ptr<SettingData<Object>>> objectSettings;
-    std::vector<std::shared_ptr<SettingData<Array>>> arraySettings;
+    std::vector<std::shared_ptr<detail::SettingData<int>>> intSettings;
+    std::vector<std::shared_ptr<detail::SettingData<bool>>> boolSettings;
+    std::vector<std::shared_ptr<detail::SettingData<std::string>>> strSettings;
+    std::vector<std::shared_ptr<detail::SettingData<double>>> doubleSettings;
+    std::vector<std::shared_ptr<detail::SettingData<float>>> floatSettings;
+    std::vector<std::shared_ptr<detail::SettingData<Object>>> objectSettings;
+    std::vector<std::shared_ptr<detail::SettingData<Array>>> arraySettings;
 
     template <typename Type>
     static rapidjson::Value *getSettingParent(
-        std::shared_ptr<SettingData<Type>> &setting);
+        std::shared_ptr<detail::SettingData<Type>> &setting);
 
     template <typename Type>
     static void
@@ -132,7 +137,7 @@ public:
 
     template <typename Type>
     bool
-    loadSetting(std::shared_ptr<SettingData<Type>> setting)
+    loadSetting(std::shared_ptr<detail::SettingData<Type>> setting)
     {
         // A setting should always have a path
         assert(!setting->getPath().empty());
@@ -142,7 +147,7 @@ public:
 
     template <typename Type>
     bool
-    loadSettingFromPath(std::shared_ptr<SettingData<Type>> &setting)
+    loadSettingFromPath(std::shared_ptr<detail::SettingData<Type>> &setting)
     {
         const char *path = setting->getPath().c_str();
         auto value = rapidjson::Pointer(path).Get(this->document);
@@ -156,7 +161,7 @@ public:
     }
 
     template <typename Type>
-    bool setSetting(std::shared_ptr<SettingData<Type>> setting,
+    bool setSetting(std::shared_ptr<detail::SettingData<Type>> setting,
                     const rapidjson::Value &value);
 
     enum class SaveMethod : uint64_t {
@@ -202,7 +207,7 @@ private:
     template <class Vector, typename Type>
     static void
     removeSettingFrom(Vector &vec,
-                      const std::shared_ptr<SettingData<Type>> &setting)
+                      const std::shared_ptr<detail::SettingData<Type>> &setting)
     {
         vec.erase(std::remove_if(std::begin(vec), std::end(vec),
                                  [setting](const auto &item) {
@@ -214,35 +219,35 @@ private:
 
     template <typename Type>
     static void
-    localRegister(std::shared_ptr<SettingData<Type>> setting)
+    localRegister(std::shared_ptr<detail::SettingData<Type>> setting)
     {
         static_assert(false, "Unimplemented localRegister for setting type");
     }
 
     template <>
     static void
-    localRegister<Array>(std::shared_ptr<SettingData<Array>> setting)
+    localRegister<Array>(std::shared_ptr<detail::SettingData<Array>> setting)
     {
         manager()->arraySettings.push_back(setting);
     }
 
     template <>
     static void
-    localRegister<Object>(std::shared_ptr<SettingData<Object>> setting)
+    localRegister<Object>(std::shared_ptr<detail::SettingData<Object>> setting)
     {
         manager()->objectSettings.push_back(setting);
     }
 
     template <>
     static void
-    localRegister<bool>(std::shared_ptr<SettingData<bool>> setting)
+    localRegister<bool>(std::shared_ptr<detail::SettingData<bool>> setting)
     {
         manager()->boolSettings.push_back(setting);
     }
 
     template <>
     static void
-    localRegister<int>(std::shared_ptr<SettingData<int>> setting)
+    localRegister<int>(std::shared_ptr<detail::SettingData<int>> setting)
     {
         manager()->intSettings.push_back(setting);
     }
@@ -250,28 +255,28 @@ private:
     template <>
     static void
     localRegister<std::string>(
-        std::shared_ptr<SettingData<std::string>> setting)
+        std::shared_ptr<detail::SettingData<std::string>> setting)
     {
         manager()->strSettings.push_back(setting);
     }
 
     template <>
     static void
-    localRegister<float>(std::shared_ptr<SettingData<float>> setting)
+    localRegister<float>(std::shared_ptr<detail::SettingData<float>> setting)
     {
         manager()->floatSettings.push_back(setting);
     }
 
     template <>
     static void
-    localRegister<double>(std::shared_ptr<SettingData<double>> setting)
+    localRegister<double>(std::shared_ptr<detail::SettingData<double>> setting)
     {
         manager()->doubleSettings.push_back(setting);
     }
 
     template <typename Type>
     static void
-    localUnregister(const std::shared_ptr<SettingData<Type>> &setting)
+    localUnregister(const std::shared_ptr<detail::SettingData<Type>> &setting)
     {
         static_assert(false, "Unimplemented localUnregister for setting type");
         static bool const value = Type::value;
@@ -279,28 +284,32 @@ private:
 
     template <>
     static void
-    localUnregister<Array>(const std::shared_ptr<SettingData<Array>> &setting)
+    localUnregister<Array>(
+        const std::shared_ptr<detail::SettingData<Array>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->arraySettings, setting);
     }
 
     template <>
     static void
-    localUnregister<Object>(const std::shared_ptr<SettingData<Object>> &setting)
+    localUnregister<Object>(
+        const std::shared_ptr<detail::SettingData<Object>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->objectSettings, setting);
     }
 
     template <>
     static void
-    localUnregister<bool>(const std::shared_ptr<SettingData<bool>> &setting)
+    localUnregister<bool>(
+        const std::shared_ptr<detail::SettingData<bool>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->boolSettings, setting);
     }
 
     template <>
     static void
-    localUnregister<int>(const std::shared_ptr<SettingData<int>> &setting)
+    localUnregister<int>(
+        const std::shared_ptr<detail::SettingData<int>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->intSettings, setting);
     }
@@ -308,21 +317,23 @@ private:
     template <>
     static void
     localUnregister<std::string>(
-        const std::shared_ptr<SettingData<std::string>> &setting)
+        const std::shared_ptr<detail::SettingData<std::string>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->strSettings, setting);
     }
 
     template <>
     static void
-    localUnregister<float>(const std::shared_ptr<SettingData<float>> &setting)
+    localUnregister<float>(
+        const std::shared_ptr<detail::SettingData<float>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->floatSettings, setting);
     }
 
     template <>
     static void
-    localUnregister<double>(const std::shared_ptr<SettingData<double>> &setting)
+    localUnregister<double>(
+        const std::shared_ptr<detail::SettingData<double>> &setting)
     {
         SettingManager::removeSettingFrom(manager()->doubleSettings, setting);
     }
