@@ -16,6 +16,30 @@ using namespace pajlada;
 using namespace pajlada::settings;
 using namespace pajlada::test;
 
+TEST_CASE("Signals", "[settings]")
+{
+    Channel ch("xD");
+
+    int maxMessageLength = 0;
+
+    ch.maxMessageLength.valueChanged.connect(
+        [&maxMessageLength](const int &newValue) {
+            maxMessageLength = newValue;  //
+        });
+
+    ch.maxMessageLength = 1;
+    REQUIRE(maxMessageLength == 1);
+
+    ch.maxMessageLength = 2;
+    REQUIRE(maxMessageLength == 2);
+
+    ch.maxMessageLength = 3;
+    REQUIRE(maxMessageLength == 3);
+
+    ch.maxMessageLength = 4;
+    REQUIRE(maxMessageLength == 4);
+}
+
 TEST_CASE("ChannelManager", "[settings]")
 {
     ChannelManager manager;
@@ -26,19 +50,11 @@ TEST_CASE("ChannelManager", "[settings]")
         REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
     }
 
-    /*
-    for (auto i = 4; i < pajlada::test::NUM_CHANNELS; ++i) {
-        manager.channels.at(i).name = "From file FeelsGoodMan BEFORE LOAD";
-        manager.channels.at(i).xDIndex = i;
-    }
-    */
-
     REQUIRE(SettingManager::loadFrom("files/channelmanager.json"));
 
     REQUIRE(manager.channels.at(0).name.getValue() == "pajlada");
     REQUIRE(manager.channels.at(1).name.getValue() == "hemirt");
     REQUIRE(manager.channels.at(2).name.getValue() == "gempir");
-    // REQUIRE(manager.channels.at(3).name.getValue() == "nightnacht");
 
     // Last channel should always be unset
     REQUIRE(
@@ -47,7 +63,6 @@ TEST_CASE("ChannelManager", "[settings]")
 
     for (auto i = 4; i < pajlada::test::NUM_CHANNELS; ++i) {
         manager.channels.at(i).name = "From file FeelsGoodMan";
-        //manager.channels.at(i).xDIndex = i;
     }
 
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);

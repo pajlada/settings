@@ -6,6 +6,7 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
+#include <pajlada/signals/signal.hpp>
 
 #include <memory>
 
@@ -130,6 +131,10 @@ private:
 
     std::shared_ptr<SettingData<Type>> data;
 
+public:
+    signals::Signal<const Type &> &valueChanged;
+
+private:
     std::string name;
 };
 
@@ -137,6 +142,7 @@ private:
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, const Type &defaultValue)
     : data(new SettingData<Type>(defaultValue))
+    , valueChanged(data->valueChanged)
 {
     this->data->setPath(path);
 
@@ -148,6 +154,7 @@ template <typename Type>
 Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
                        const Type &defaultValue)
     : data(new SettingData<Type>(defaultValue))
+    , valueChanged(data->valueChanged)
 {
     this->data->setKey(key, parent);
 
@@ -159,6 +166,7 @@ template <typename Type>
 Setting<Type>::Setting(unsigned index, const Setting<Array> &parent,
                        const Type &defaultValue = Type())
     : data(new SettingData<Type>(defaultValue))
+    , valueChanged(data->valueChanged)
 {
     this->data->setIndex(index, parent);
 
