@@ -13,8 +13,7 @@ SOURCES += src/main.cpp \
     src/test/foo.cpp \
     src/test/channel.cpp \
     src/settings/settingdata.cpp \
-    src/settings/settingmanager.cpp \
-    src/settings/jsonwrapper.cpp
+    src/settings/settingmanager.cpp
 
 HEADERS += \
     include/pajlada/settings/setting.hpp \
@@ -25,8 +24,7 @@ HEADERS += \
     include/pajlada/settings/settingdata.hpp \
     include/pajlada/settings/settingmanager.hpp \
     include/pajlada/settings/types.hpp \
-    include/pajlada/settings/types.hpp \
-    include/pajlada/settings/jsonwrapper.hpp
+    include/pajlada/settings/types.hpp
 
 win32-msvc* {
     QMAKE_CXXFLAGS_WARN_ON = /W4 /wd4996

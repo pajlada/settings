@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pajlada/settings/jsonwrapper.hpp"
 #include "pajlada/settings/settingmanager.hpp"
 #include "pajlada/settings/types.hpp"
 

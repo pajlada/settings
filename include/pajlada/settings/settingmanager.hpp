@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pajlada/settings/jsonwrapper.hpp"
+#include "pajlada/settings/types.hpp"
 
 #include <rapidjson/pointer.h>
 
@@ -25,6 +25,10 @@ public:
 
     // Print current document json data prettily
     void prettyPrintDocument();
+
+private:
+    template <typename Type>
+    friend class Setting;
 
     template <typename Type>
     static void
@@ -59,6 +63,7 @@ public:
         SettingManager::localRegister(std::move(setting));
     }
 
+public:
     static void setPath(const char *filePath);
 
     // Clear the loaded json settings
