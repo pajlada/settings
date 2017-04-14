@@ -13,17 +13,5 @@ struct Object {
 struct Array {
 };
 
-static std::ostream &
-operator<<(std::ostream &os, const Object &)
-{
-    return os << "{}";
-}
-
-static std::ostream &
-operator<<(std::ostream &os, const Array &)
-{
-    return os << "[]";
-}
-
 }  // namespace settings
 }  // namespace pajlada

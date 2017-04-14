@@ -47,7 +47,7 @@ SettingManager::prettyPrintDocument()
 void
 SettingManager::setPath(const char *path)
 {
-    manager()->path = path;
+    manager()->filePath = path;
 }
 
 void

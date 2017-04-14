@@ -49,36 +49,12 @@ public:
         return *this;
     }
 
-    std::shared_ptr<SettingData<Type>>
-    getData() const
-    {
-        return this->data;
-    }
-
-    const std::string &
-    getKey() const
-    {
-        return this->data->getKey();
-    }
-
-    const std::string &
-    getName() const
-    {
-        return this->name;
-    }
-
     const Type
     getValue() const
     {
         assert(this->data != nullptr);
 
         return this->data->getValue();
-    }
-
-    const Type
-    get() const
-    {
-        return this->getValue();
     }
 
     void
@@ -95,12 +71,6 @@ public:
         return *this;
     }
 
-    const std::string &
-    getPath() const
-    {
-        return this->path;
-    }
-
     Setting &
     operator=(Type &&newValue) noexcept
     {
@@ -115,6 +85,12 @@ public:
     }
 
 private:
+    std::shared_ptr<SettingData<Type>>
+    getData() const
+    {
+        return this->data;
+    }
+
     void
     registerSetting()
     {
@@ -127,8 +103,6 @@ private:
         SettingManager::unregisterSetting(this->data);
     }
 
-    std::string path;
-
     std::shared_ptr<SettingData<Type>> data;
 
 public:
@@ -136,6 +110,8 @@ public:
 
 private:
     std::string name;
+
+    friend class ISettingData;
 };
 
 // Path, Default Value

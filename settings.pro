@@ -27,3 +27,8 @@ HEADERS += \
     include/pajlada/settings/types.hpp \
     include/pajlada/settings/types.hpp \
     include/pajlada/settings/jsonwrapper.hpp
+
+win32-msvc* {
+    QMAKE_CXXFLAGS_WARN_ON = /W4 /wd4996
+    QMAKE_CXXFLAGS_WARN_ON += /wd4996 # Ignore "unsafe" warnings
+}

@@ -20,8 +20,6 @@ public:
 
     void prettyPrintDocument();
 
-    std::string path = "settings.json";
-
     template <typename Type>
     static void
     unregisterSetting(const std::shared_ptr<SettingData<Type>> &setting)
@@ -64,7 +62,7 @@ public:
         SettingManager::localRegister(std::move(setting));
     }
 
-    static void setPath(const char *path);
+    static void setPath(const char *filePath);
 
     // Clear the loaded json settings
     // XXX(pajlada): What should this actually do?
@@ -73,9 +71,9 @@ public:
     // Load from given path and set given path as the "default path" (or
     // load
     // from default path if nullptr is sent)
-    static bool load(const char *path = nullptr);
+    static bool load(const char *filePath = nullptr);
     // Load from given path
-    static bool loadFrom(const char *path);
+    static bool loadFrom(const char *filePath);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your
@@ -84,9 +82,9 @@ public:
     // Save to given path and set path as the default path (or save from
     // default
     // path is nullptr is sent
-    static bool save(const char *path = nullptr);
+    static bool save(const char *filePath = nullptr);
     // Save to given path
-    static bool saveAs(const char *path);
+    static bool saveAs(const char *filePath);
 
     std::vector<std::shared_ptr<SettingData<int>>> intSettings;
     std::vector<std::shared_ptr<SettingData<bool>>> boolSettings;
@@ -147,8 +145,7 @@ public:
     loadSettingFromPath(std::shared_ptr<SettingData<Type>> &setting)
     {
         const char *path = setting->getPath().c_str();
-        auto &document = getDocument();
-        auto value = rapidjson::Pointer(path).Get(document);
+        auto value = rapidjson::Pointer(path).Get(this->document);
         if (value == nullptr) {
             return false;
         }
@@ -157,60 +154,6 @@ public:
 
         return true;
     }
-
-#if 0
-    template <typename Type>
-    bool
-    loadSettingFromObject(std::shared_ptr<SettingData<Type>> setting,
-                          rapidjson::Value *parent)
-    {
-        const char *settingKey = setting->getKey().c_str();
-
-        if (parent->HasMember(settingKey)) {
-            const rapidjson::Value &settingValue = (*parent)[settingKey];
-
-            setting->setJSONValue(
-                &const_cast<rapidjson::Value &>(settingValue));
-
-            this->setSetting(setting, settingValue);
-        } else {
-            rapidjson::Value key(settingKey, document->GetAllocator());
-            rapidjson::Value createdValue = JSONWrapper<Type>::create(setting);
-
-            parent->AddMember(key, createdValue, document->GetAllocator());
-
-            setting->setJSONValue(&(*parent)[settingKey]);
-        }
-
-        return true;
-    }
-
-    template <typename Type>
-    bool
-    loadSettingFromArray(std::shared_ptr<SettingData<Type>> setting,
-                         rapidjson::Value *parent)
-    {
-        const unsigned index = setting->getIndex();
-
-        if (index < parent->Size()) {
-            rapidjson::Value &settingValue = (*parent)[index];
-
-            setting->setJSONValue(&settingValue);
-
-            this->setSetting(setting, settingValue);
-        } else if (index == parent->Size()) {
-            // Just out of reach, create new object
-            rapidjson::Value createdValue = JSONWrapper<Type>::create(setting);
-            // rapidjson::Value createdValue("xd", document->GetAllocator());
-
-            parent->PushBack(createdValue.Move(), document->GetAllocator());
-
-            setting->setJSONValue(&(*parent)[index]);
-        }
-
-        return true;
-    }
-#endif
 
     template <typename Type>
     bool setSetting(std::shared_ptr<SettingData<Type>> setting,
@@ -245,15 +188,15 @@ private:
     ~SettingManager();
 
     rapidjson::Document document;
+    std::string filePath = "settings.json";
 
     static rapidjson::Document &getDocument();
 
-private:
     // stupid helper method
     static const char *
     getPath()
     {
-        return manager()->path.c_str();
+        return manager()->filePath.c_str();
     }
 
     template <class Vector, typename Type>
