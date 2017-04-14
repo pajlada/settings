@@ -10,32 +10,10 @@ namespace pajlada {
 namespace settings {
 namespace detail {
 
-atomic<uint64_t> ISettingData::latestConnectionID = 0;
-
-ISettingData::ISettingData(const string &_key, Setting<Object> *_parent)
-    : key(_key)
-    , index()
-    , settingObjectParent(_parent)
-    , settingArrayParent(nullptr)
-    , connectionID(++this->latestConnectionID)
-{
-}
-
-ISettingData::ISettingData(unsigned _index, Setting<Array> *_parent)
-    : key()
-    , index(_index)
-    , settingObjectParent(nullptr)
-    , settingArrayParent(_parent)
-    , connectionID(++this->latestConnectionID)
-{
-}
+static atomic<uint64_t> latestConnectionID = 0;
 
 ISettingData::ISettingData()
-    : key()
-    , index()
-    , settingObjectParent()
-    , settingArrayParent()
-    , connectionID(++this->latestConnectionID)
+    : connectionID(++latestConnectionID)
 {
 }
 
@@ -43,18 +21,6 @@ const string &
 ISettingData::getPath() const
 {
     return this->path;
-}
-
-const string &
-ISettingData::getKey() const
-{
-    return this->key;
-}
-
-unsigned
-ISettingData::getIndex() const
-{
-    return this->index;
 }
 
 void
@@ -73,8 +39,6 @@ ISettingData::setPath(const string &_path)
 void
 ISettingData::setKey(const string &_key, const Setting<Object> &parent)
 {
-    this->key = _key;
-
     auto data = parent.getData();
 
     this->path = data->getPath() + "/" + _key;
@@ -83,8 +47,6 @@ ISettingData::setKey(const string &_key, const Setting<Object> &parent)
 void
 ISettingData::setIndex(unsigned _index, const Setting<Array> &parent)
 {
-    this->index = _index;
-
     auto data = parent.getData();
 
     this->path = data->getPath() + "/" + to_string(_index);
