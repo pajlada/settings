@@ -5,7 +5,7 @@
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
-#include <cstdio>
+#include <memory>
 #include <vector>
 
 namespace pajlada {
@@ -23,6 +23,7 @@ class SettingManager
 public:
     SettingManager();
 
+    // Print current document json data prettily
     void prettyPrintDocument();
 
     template <typename Type>
@@ -53,15 +54,6 @@ public:
             SettingManager::setValue<Type>(path, newValue);  //
         });
 
-        /*
-        if (loaded) {
-            // If settings are already loaded from a file, try to fill in
-            // the
-            // settings
-            manager()->loadSetting(setting);
-        }
-        */
-
         // Add the shared_ptr to the relevant vector
         // i.e. std::string SettingData is moved to strSettings
         SettingManager::localRegister(std::move(setting));
@@ -73,35 +65,20 @@ public:
     // XXX(pajlada): What should this actually do?
     static void clear();
 
-    // Load from given path and set given path as the "default path" (or
-    // load
+    // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
     static bool load(const char *filePath = nullptr);
     // Load from given path
     static bool loadFrom(const char *filePath);
 
     // Force a settings save
-    // It is recommended to run this every now and then unless your
-    // application
+    // It is recommended to run this every now and then unless your application
     // is crash free
-    // Save to given path and set path as the default path (or save from
-    // default
-    // path is nullptr is sent
+    // Save to given path and set path as the default path (or save from default
+    // path if filePath is a nullptr)
     static bool save(const char *filePath = nullptr);
     // Save to given path
     static bool saveAs(const char *filePath);
-
-    std::vector<std::shared_ptr<detail::SettingData<int>>> intSettings;
-    std::vector<std::shared_ptr<detail::SettingData<bool>>> boolSettings;
-    std::vector<std::shared_ptr<detail::SettingData<std::string>>> strSettings;
-    std::vector<std::shared_ptr<detail::SettingData<double>>> doubleSettings;
-    std::vector<std::shared_ptr<detail::SettingData<float>>> floatSettings;
-    std::vector<std::shared_ptr<detail::SettingData<Object>>> objectSettings;
-    std::vector<std::shared_ptr<detail::SettingData<Array>>> arraySettings;
-
-    template <typename Type>
-    static rapidjson::Value *getSettingParent(
-        std::shared_ptr<detail::SettingData<Type>> &setting);
 
     template <typename Type>
     static void
@@ -195,14 +172,15 @@ private:
     rapidjson::Document document;
     std::string filePath = "settings.json";
 
-    static rapidjson::Document &getDocument();
+    std::vector<std::shared_ptr<detail::SettingData<int>>> intSettings;
+    std::vector<std::shared_ptr<detail::SettingData<bool>>> boolSettings;
+    std::vector<std::shared_ptr<detail::SettingData<std::string>>> strSettings;
+    std::vector<std::shared_ptr<detail::SettingData<double>>> doubleSettings;
+    std::vector<std::shared_ptr<detail::SettingData<float>>> floatSettings;
+    std::vector<std::shared_ptr<detail::SettingData<Object>>> objectSettings;
+    std::vector<std::shared_ptr<detail::SettingData<Array>>> arraySettings;
 
-    // stupid helper method
-    static const char *
-    getPath()
-    {
-        return manager()->filePath.c_str();
-    }
+    static rapidjson::Document &getDocument();
 
     template <class Vector, typename Type>
     static void

@@ -63,7 +63,7 @@ SettingManager::load(const char *path)
         setPath(path);
     }
 
-    return SettingManager::loadFrom(getPath());
+    return SettingManager::loadFrom(manager()->filePath.c_str());
 }
 
 template <typename Type>
@@ -285,7 +285,7 @@ SettingManager::save(const char *path)
         setPath(path);
     }
 
-    return SettingManager::saveAs(getPath());
+    return SettingManager::saveAs(manager()->filePath.c_str());
 }
 
 bool
@@ -446,40 +446,6 @@ SettingManager::setSetting<int>(shared_ptr<detail::SettingData<int>> setting,
     }
 
     return false;
-}
-
-template <typename Type>
-rapidjson::Value *
-SettingManager::getSettingParent(shared_ptr<detail::SettingData<Type>> &setting)
-{
-    auto settingObjParent = setting->getSettingObjectParent();
-    auto settingArrParent = setting->getSettingArrayParent();
-
-    if (settingObjParent == nullptr && settingArrParent == nullptr) {
-        // No parent set
-        return SettingManager::document;
-    }
-
-    if (settingObjParent != nullptr) {
-        // Has the setting parent been loaded/created yet? (does it have a
-        // jsonValue yet?)
-        auto parentData = settingObjParent->getData();
-
-        if (parentData->getJSONValue() != nullptr) {
-            return parentData->getJSONValue();
-        }
-    } else if (settingArrParent != nullptr) {
-        // Has the setting parent been loaded/created yet? (does it have a
-        // jsonValue yet?)
-        auto parentData = settingArrParent->getData();
-
-        if (parentData->getJSONValue() != nullptr) {
-            return parentData->getJSONValue();
-        }
-    }
-
-    // returning nullptr means that we should give this another pass
-    return nullptr;
 }
 
 rapidjson::Document &
