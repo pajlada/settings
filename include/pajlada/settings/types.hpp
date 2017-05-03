@@ -3,7 +3,7 @@
 #include <ostream>
 
 namespace pajlada {
-namespace settings {
+namespace Settings {
 
 // Custom "JSON Object {}" type
 struct Object {
@@ -13,5 +13,5 @@ struct Object {
 struct Array {
 };
 
-}  // namespace settings
+}  // namespace Settings
 }  // namespace pajlada

@@ -4,10 +4,10 @@
 namespace pajlada {
 namespace test {
 
-using namespace settings;
+using namespace Settings;
 
 IndexedChannel::IndexedChannel(const unsigned &&_index,
-                               const settings::Setting<settings::Array> &parent)
+                               const Settings::Setting<Settings::Array> &parent)
     : index(_index)
     , localRoot(_index, parent)
     , xDIndex("index", this->localRoot, _index)
@@ -16,7 +16,7 @@ IndexedChannel::IndexedChannel(const unsigned &&_index,
 }
 
 #ifndef ONLY_MINI_TEST
-settings::Setting<settings::Object> Channel::globalRoot("channels");
+Settings::Setting<Settings::Object> Channel::globalRoot("channels");
 
 Channel::Channel(const std::string &_name)
     : name(_name)

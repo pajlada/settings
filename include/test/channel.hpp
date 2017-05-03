@@ -9,13 +9,13 @@ class IndexedChannel
 {
 public:
     IndexedChannel(const unsigned &&_index,
-                   const settings::Setting<settings::Array> &parent);
+                   const Settings::Setting<Settings::Array> &parent);
 
     unsigned index;
 
-    settings::Setting<settings::Object> localRoot;
-    settings::Setting<int> xDIndex;
-    settings::Setting<std::string> name;
+    Settings::Setting<Settings::Object> localRoot;
+    Settings::Setting<int> xDIndex;
+    Settings::Setting<std::string> name;
 };
 
 #ifndef ONLY_MINI_TEST
@@ -27,9 +27,9 @@ public:
     unsigned index;
     std::string name;
 
-    static settings::Setting<settings::Object> globalRoot;
-    settings::Setting<settings::Object> localRoot;
-    settings::Setting<int> maxMessageLength;
+    static Settings::Setting<Settings::Object> globalRoot;
+    Settings::Setting<Settings::Object> localRoot;
+    Settings::Setting<int> maxMessageLength;
 };
 #endif
 

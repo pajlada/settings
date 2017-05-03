@@ -7,7 +7,7 @@
 using namespace std;
 
 namespace pajlada {
-namespace settings {
+namespace Settings {
 namespace detail {
 
 static atomic<uint64_t> latestConnectionID = 0;
@@ -53,5 +53,5 @@ ISettingData::setIndex(unsigned _index, const Setting<Array> &parent)
 }
 
 }  // namespace detail
-}  // namespace settings
+}  // namespace Settings
 }  // namespace pajlada

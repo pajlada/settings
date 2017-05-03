@@ -70,7 +70,7 @@ public:
     {
     }
 
-    settings::Setting<settings::Array> root;
+    Settings::Setting<Settings::Array> root;
     std::array<IndexedChannel, NUM_CHANNELS> channels;
 };
 

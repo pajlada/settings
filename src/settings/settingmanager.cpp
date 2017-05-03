@@ -8,7 +8,7 @@
 using namespace std;
 
 namespace pajlada {
-namespace settings {
+namespace Settings {
 
 static constexpr unsigned MAX_ATTEMPTS = 10;
 
@@ -454,5 +454,5 @@ SettingManager::getDocument()
     return manager()->document;
 }
 
-}  // namespace settings
+}  // namespace Settings
 }  // namespace pajlada

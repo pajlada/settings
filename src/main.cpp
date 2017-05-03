@@ -13,7 +13,7 @@
 #include <iostream>
 
 using namespace pajlada;
-using namespace pajlada::settings;
+using namespace pajlada::Settings;
 using namespace pajlada::test;
 
 TEST_CASE("Signals", "[settings]")

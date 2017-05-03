@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace pajlada {
-namespace settings {
+namespace Settings {
 
 namespace detail {
 

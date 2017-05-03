@@ -17,11 +17,11 @@ Store settings in each relevant class (static and non-static)
 class ServerManager {
     ...
 
-    static pajlada::settings::Setting serverPort;
+    static pajlada::Settings::Setting serverPort;
 }
 
 // servermanager.cpp
-pajlada::settings::Setting ServerManager::serverPort(new SettingData("serverPort", 1337 /* default port */)->setDescription("Port that the server will be hosted on"));
+pajlada::Settings::Setting ServerManager::serverPort(new SettingData("serverPort", 1337 /* default port */)->setDescription("Port that the server will be hosted on"));
 ```
 
 OR
@@ -37,6 +37,6 @@ class Server {
 
     }
 
-    pajlada::settings::Setting serverPort;
+    pajlada::Settings::Setting serverPort;
 }
 ```

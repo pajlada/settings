@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace pajlada {
-namespace settings {
+namespace Settings {
 
 template <typename Type>
 class Setting;
