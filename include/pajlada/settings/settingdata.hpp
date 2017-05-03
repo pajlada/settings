@@ -79,7 +79,7 @@ public:
         return this->value;
     }
 
-    signals::Signal<const Type &> valueChanged;
+    Signals::Signal<const Type &> valueChanged;
 
 private:
     Type value;

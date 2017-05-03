@@ -110,7 +110,7 @@ private:
     std::shared_ptr<detail::SettingData<Type>> data;
 
 public:
-    signals::Signal<const Type &> &valueChanged;
+    Signals::Signal<const Type &> &valueChanged;
 
 private:
     std::string name;
