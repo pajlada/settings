@@ -7,6 +7,9 @@ release/
 files/test2.json
 files/test3.json
 
+# ignore binary
+settings
+
 ## Generated
 # C++ objects and libs
 
