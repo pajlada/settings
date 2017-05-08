@@ -144,7 +144,7 @@ Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
 // Index, Array Parent, Default Value
 template <typename Type>
 Setting<Type>::Setting(unsigned index, const Setting<Array> &parent,
-                       const Type &defaultValue = Type())
+                       const Type &defaultValue)
     : data(new detail::SettingData<Type>(defaultValue))
     , valueChanged(data->valueChanged)
 {
@@ -159,5 +159,5 @@ Setting<Type>::~Setting()
     this->unregisterSetting();
 }
 
-}  // namespace setting
+}  // namespace Settings
 }  // namespace pajlada

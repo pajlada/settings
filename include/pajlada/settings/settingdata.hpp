@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pajlada/settings/settingmanager.hpp"
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
@@ -88,5 +87,5 @@ private:
 };
 
 }  // namespace detail
-}  // namespace setting
+}  // namespace Settings
 }  // namespace pajlada

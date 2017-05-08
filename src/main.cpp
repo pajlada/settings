@@ -46,7 +46,7 @@ TEST_CASE("ChannelManager", "[settings]")
 
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 
-    for (auto i = 0; i < manager.channels.size(); ++i) {
+    for (size_t i = 0; i < manager.channels.size(); ++i) {
         REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
     }
 

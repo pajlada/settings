@@ -16,6 +16,16 @@ namespace detail {
 template <typename Type>
 class SettingData;
 
+template <typename Type>
+void setValue(const char *path, const Type &value);
+
+template <>
+void setValue(const char *path, const Array &value);
+template <>
+void setValue(const char *path, const Object &value);
+template <>
+void setValue(const char *path, const std::string &value);
+
 }  // namespace detail
 
 class SettingManager
@@ -46,7 +56,7 @@ private:
 
         // Save initial value
         // We might want to have this as a setting?
-        SettingManager::setValue<Type>(path, setting->getValue());
+        detail::setValue<Type>(path, setting->getValue());
 
         // Set up a signal which updates the rapidjson document with the new
         // value when the SettingData value is updated
@@ -55,7 +65,7 @@ private:
         // only bad part about that is that the setValue method is called
         // unnecessarily
         setting->valueChanged.connect([path](const Type &newValue) {
-            SettingManager::setValue<Type>(path, newValue);  //
+            detail::setValue<Type>(path, newValue);  //
         });
 
         // Add the shared_ptr to the relevant vector
@@ -84,38 +94,6 @@ public:
     static bool save(const char *filePath = nullptr);
     // Save to given path
     static bool saveAs(const char *filePath);
-
-    template <typename Type>
-    static void
-    setValue(const char *path, const Type &value)
-    {
-        rapidjson::Document &d = getDocument();
-        rapidjson::Pointer(path).Set(d, value);
-    }
-
-    template <>
-    static void
-    setValue<std::string>(const char *path, const std::string &value)
-    {
-        rapidjson::Document &d = getDocument();
-        rapidjson::Pointer(path).Set(d, value.c_str());
-    }
-
-    template <>
-    static void
-    setValue<Object>(const char *path, const Object &)
-    {
-        rapidjson::Document &d = getDocument();
-        rapidjson::Pointer(path).Create(d);
-    }
-
-    template <>
-    static void
-    setValue<Array>(const char *path, const Array &)
-    {
-        rapidjson::Document &d = getDocument();
-        rapidjson::Pointer(path).Create(d);
-    }
 
     template <typename Type>
     bool
@@ -185,8 +163,10 @@ private:
     std::vector<std::shared_ptr<detail::SettingData<Object>>> objectSettings;
     std::vector<std::shared_ptr<detail::SettingData<Array>>> arraySettings;
 
+public:
     static rapidjson::Document &getDocument();
 
+private:
     template <class Vector, typename Type>
     static void
     removeSettingFrom(Vector &vec,
@@ -201,126 +181,25 @@ private:
     }
 
     template <typename Type>
-    static void
-    localRegister(std::shared_ptr<detail::SettingData<Type>> setting)
-    {
-        static_assert(false, "Unimplemented localRegister for setting type");
-    }
-
-    template <>
-    static void
-    localRegister<Array>(std::shared_ptr<detail::SettingData<Array>> setting)
-    {
-        manager()->arraySettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<Object>(std::shared_ptr<detail::SettingData<Object>> setting)
-    {
-        manager()->objectSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<bool>(std::shared_ptr<detail::SettingData<bool>> setting)
-    {
-        manager()->boolSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<int>(std::shared_ptr<detail::SettingData<int>> setting)
-    {
-        manager()->intSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<std::string>(
-        std::shared_ptr<detail::SettingData<std::string>> setting)
-    {
-        manager()->strSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<float>(std::shared_ptr<detail::SettingData<float>> setting)
-    {
-        manager()->floatSettings.push_back(setting);
-    }
-
-    template <>
-    static void
-    localRegister<double>(std::shared_ptr<detail::SettingData<double>> setting)
-    {
-        manager()->doubleSettings.push_back(setting);
-    }
+    static void localRegister(
+        std::shared_ptr<detail::SettingData<Type>> setting);
 
     template <typename Type>
-    static void
-    localUnregister(const std::shared_ptr<detail::SettingData<Type>> &setting)
-    {
-        static_assert(false, "Unimplemented localUnregister for setting type");
-        static bool const value = Type::value;
-    }
-
-    template <>
-    static void
-    localUnregister<Array>(
-        const std::shared_ptr<detail::SettingData<Array>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->arraySettings, setting);
-    }
-
-    template <>
-    static void
-    localUnregister<Object>(
-        const std::shared_ptr<detail::SettingData<Object>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->objectSettings, setting);
-    }
-
-    template <>
-    static void
-    localUnregister<bool>(
-        const std::shared_ptr<detail::SettingData<bool>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->boolSettings, setting);
-    }
-
-    template <>
-    static void
-    localUnregister<int>(
-        const std::shared_ptr<detail::SettingData<int>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->intSettings, setting);
-    }
-
-    template <>
-    static void
-    localUnregister<std::string>(
-        const std::shared_ptr<detail::SettingData<std::string>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->strSettings, setting);
-    }
-
-    template <>
-    static void
-    localUnregister<float>(
-        const std::shared_ptr<detail::SettingData<float>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->floatSettings, setting);
-    }
-
-    template <>
-    static void
-    localUnregister<double>(
-        const std::shared_ptr<detail::SettingData<double>> &setting)
-    {
-        SettingManager::removeSettingFrom(manager()->doubleSettings, setting);
-    }
+    static void localUnregister(
+        const std::shared_ptr<detail::SettingData<Type>> &setting);
 };
 
-}  // namespace setting
+namespace detail {
+
+template <typename Type>
+void
+setValue(const char *path, const Type &value)
+{
+    rapidjson::Document &d = SettingManager::getDocument();
+    rapidjson::Pointer(path).Set(d, value);
+}
+
+}  // namespace detail
+
+}  // namespace Settings
 }  // namespace pajlada

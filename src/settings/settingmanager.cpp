@@ -199,6 +199,10 @@ SettingManager::loadFrom(const char *path)
     // Read size of file
     fseek(fh, 0, SEEK_END);
     auto fileSize = ftell(fh);
+    if (fileSize == -1L) {
+        // An error occured when ftelling
+        return false;
+    }
     fseek(fh, 0, SEEK_SET);
 
     // Create vector of appropriate size
@@ -207,7 +211,7 @@ SettingManager::loadFrom(const char *path)
     // Read file data into buffer
     auto readBytes = fread(fileBuffer, 1, fileSize, fh);
 
-    if (readBytes != fileSize) {
+    if (readBytes != static_cast<std::size_t>(fileSize)) {
         // Error reading the buffer
         fclose(fh);
         delete[] fileBuffer;
@@ -355,6 +359,11 @@ SettingManager::setSetting<float>(
                 return true;
             }
         } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
     }
 
     return false;
@@ -378,6 +387,11 @@ SettingManager::setSetting<double>(
                 return true;
             }
         } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
     }
 
     return false;
@@ -395,6 +409,11 @@ SettingManager::setSetting<string>(
         case rapidjson::Type::kStringType: {
             setting->setValue(value.GetString());
             return true;
+        } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
         } break;
     }
 
@@ -421,6 +440,11 @@ SettingManager::setSetting<bool>(shared_ptr<detail::SettingData<bool>> setting,
                 return true;
             }
         } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
     }
 
     return false;
@@ -443,6 +467,11 @@ SettingManager::setSetting<int>(shared_ptr<detail::SettingData<int>> setting,
                 return true;
             }
         } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
     }
 
     return false;
@@ -453,6 +482,146 @@ SettingManager::getDocument()
 {
     return manager()->document;
 }
+
+template <>
+void
+SettingManager::localRegister<Array>(
+    std::shared_ptr<detail::SettingData<Array>> setting)
+{
+    manager()->arraySettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localRegister<Object>(
+    std::shared_ptr<detail::SettingData<Object>> setting)
+{
+    manager()->objectSettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localRegister<bool>(
+    std::shared_ptr<detail::SettingData<bool>> setting)
+{
+    manager()->boolSettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localRegister<int>(
+    std::shared_ptr<detail::SettingData<int>> setting)
+{
+    manager()->intSettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localRegister<std::string>(
+    std::shared_ptr<detail::SettingData<std::string>> setting)
+{
+    manager()->strSettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localRegister<float>(
+    std::shared_ptr<detail::SettingData<float>> setting)
+{
+    manager()->floatSettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localRegister<double>(
+    std::shared_ptr<detail::SettingData<double>> setting)
+{
+    manager()->doubleSettings.push_back(setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<Array>(
+    const std::shared_ptr<detail::SettingData<Array>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->arraySettings, setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<Object>(
+    const std::shared_ptr<detail::SettingData<Object>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->objectSettings, setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<bool>(
+    const std::shared_ptr<detail::SettingData<bool>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->boolSettings, setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<int>(
+    const std::shared_ptr<detail::SettingData<int>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->intSettings, setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<std::string>(
+    const std::shared_ptr<detail::SettingData<std::string>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->strSettings, setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<float>(
+    const std::shared_ptr<detail::SettingData<float>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->floatSettings, setting);
+}
+
+template <>
+void
+SettingManager::localUnregister<double>(
+    const std::shared_ptr<detail::SettingData<double>> &setting)
+{
+    SettingManager::removeSettingFrom(manager()->doubleSettings, setting);
+}
+
+namespace detail {
+
+template <>
+void
+setValue(const char *path, const std::string &value)
+{
+    rapidjson::Document &d = SettingManager::getDocument();
+    rapidjson::Pointer(path).Set(d, value.c_str());
+}
+
+template <>
+void
+setValue(const char *path, const Object &)
+{
+    rapidjson::Document &d = SettingManager::getDocument();
+    rapidjson::Pointer(path).Create(d);
+}
+
+template <>
+void
+setValue(const char *path, const Array &)
+{
+    rapidjson::Document &d = SettingManager::getDocument();
+    rapidjson::Pointer(path).Create(d);
+}
+
+}  // namespace detail
 
 }  // namespace Settings
 }  // namespace pajlada

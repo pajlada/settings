@@ -10,7 +10,7 @@ namespace pajlada {
 namespace Settings {
 namespace detail {
 
-static atomic<uint64_t> latestConnectionID = 0;
+static atomic<uint64_t> latestConnectionID;
 
 ISettingData::ISettingData()
     : connectionID(++latestConnectionID)
