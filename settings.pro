@@ -2,6 +2,10 @@ TEMPLATE = app
 CONFIG += c++14 console
 CONFIG -= qt app_bundle
 
+linux {
+    QMAKE_CXXFLAGS += --std=c++14
+}
+
 INCLUDEPATH += ./include
 
 # DEFINES += ONLY_MINI_TEST
@@ -29,4 +33,8 @@ HEADERS += \
 win32-msvc* {
     QMAKE_CXXFLAGS_WARN_ON = /W4 /wd4996
     QMAKE_CXXFLAGS_WARN_ON += /wd4996 # Ignore "unsafe" warnings
+}
+
+linux {
+QMAKE_CXXFLAGS_WARN_ON = -Wall
 }
