@@ -17,6 +17,9 @@ template <typename Type>
 class SettingData;
 
 template <typename Type>
+void setValueSoft(const char *path, const Type &value);
+
+template <typename Type>
 void setValue(const char *path, const Type &value);
 
 template <>
@@ -56,7 +59,7 @@ private:
 
         // Save initial value
         // We might want to have this as a setting?
-        detail::setValue<Type>(path, setting->getValue());
+        detail::setValueSoft<Type>(path, setting->getValue());
 
         // Set up a signal which updates the rapidjson document with the new
         // value when the SettingData value is updated
@@ -67,6 +70,8 @@ private:
         setting->valueChanged.connect([path](const Type &newValue) {
             detail::setValue<Type>(path, newValue);  //
         });
+
+        SettingManager::manager()->loadSetting(setting);
 
         // Add the shared_ptr to the relevant vector
         // i.e. std::string SettingData is moved to strSettings
@@ -97,7 +102,7 @@ public:
 
     template <typename Type>
     bool
-    loadSetting(std::shared_ptr<detail::SettingData<Type>> setting)
+    loadSetting(std::shared_ptr<detail::SettingData<Type>> &setting)
     {
         // A setting should always have a path
         assert(!setting->getPath().empty());
@@ -190,6 +195,18 @@ private:
 };
 
 namespace detail {
+
+// Only set the value if it doesn't already exist
+template <typename Type>
+void
+setValueSoft(const char *path, const Type &value)
+{
+    // Check if value exists
+    auto jsonValue = rapidjson::Pointer(path).Get(SettingManager::getDocument());
+    if (jsonValue == nullptr) {
+        setValue(path, value);
+    }
+}
 
 template <typename Type>
 void
