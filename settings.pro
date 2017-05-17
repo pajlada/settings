@@ -36,5 +36,5 @@ win32-msvc* {
 }
 
 linux {
-QMAKE_CXXFLAGS_WARN_ON = -Wall
+    QMAKE_CXXFLAGS_WARN_ON = -Wall
 }
