@@ -32,3 +32,31 @@ win32-msvc* {
 linux {
     QMAKE_CXXFLAGS_WARN_ON = -Wall
 }
+
+# Add sanitizer flags
+asan {
+    # Address Sanitizer
+    QMAKE_CXXFLAGS += -g -fsanitize=address -fPIE -fno-omit-frame-pointer -O1
+    QMAKE_CFLAGS   += -g -fsanitize=address -fPIE -fno-omit-frame-pointer -O1
+    QMAKE_LFLAGS += -fsanitize=address -pie
+
+    message("Address Sanitizer enabled")
+}
+
+msan {
+    # Memory Sanitizer
+    QMAKE_CXXFLAGS += -g -fsanitize=memory -fPIE -fsanitize-memory-track-origins -fno-omit-frame-pointer -O2
+    QMAKE_CFLAGS   += -g -fsanitize=memory -fPIE -fsanitize-memory-track-origins -fno-omit-frame-pointer -O2
+    QMAKE_LFLAGS += -fsanitize=memory -pie
+
+    message("Memory Sanitizer enabled")
+}
+
+tsan {
+    # Thread Sanitizer
+    QMAKE_CXXFLAGS += -g -fsanitize=thread -fPIE -fno-omit-frame-pointer -O1
+    QMAKE_CFLAGS   += -g -fsanitize=thread -fPIE -fno-omit-frame-pointer -O1
+    QMAKE_LFLAGS += -fsanitize=thread -pie
+
+    message("Thread Sanitizer enabled")
+}
