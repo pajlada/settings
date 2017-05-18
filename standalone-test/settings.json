@@ -5,7 +5,9 @@
                 "name": "LUL"
             },
             "c_2": {
-                "name": "ZULUL"
+                "name": "ZULUL",
+                "alias": "",
+                "f": null
             }
         }
     }
