@@ -17,23 +17,51 @@ template <typename Type>
 class SettingData;
 
 template <typename Type>
-void setValueSoft(const char *path, const Type &value);
+void setValueSoft(rapidjson::Document &document, const char *path,
+                  const Type &value);
 
 template <typename Type>
-void setValue(const char *path, const Type &value);
+void setValue(rapidjson::Document &document, const char *path,
+              const Type &value);
 
 template <>
-void setValue(const char *path, const Array &value);
+void setValue<std::string>(rapidjson::Document &document, const char *path,
+                           const std::string &value);
+
 template <>
-void setValue(const char *path, const Object &value);
+void setValue<Object>(rapidjson::Document &document, const char *path,
+                      const Object &value);
+
 template <>
-void setValue(const char *path, const std::string &value);
+void setValue<Array>(rapidjson::Document &document, const char *path,
+                     const Array &value);
+
+template <typename Type>
+bool setSetting(std::shared_ptr<SettingData<Type>> setting,
+                const rapidjson::Value &value);
+
+template <typename Type>
+bool loadSetting(rapidjson::Document &document,
+                 std::shared_ptr<SettingData<Type>> &setting);
+
+template <typename Type>
+bool loadSettingFromPath(rapidjson::Document &document,
+                         std::shared_ptr<SettingData<Type>> &setting);
 
 }  // namespace detail
 
 class SettingManager
 {
 public:
+    enum class LoadError {
+        NoError,
+        CannotOpenFile,
+        FileHandleError,
+        FileReadError,
+        FileSeekError,
+        JSONParseError,
+    };
+
     SettingManager();
 
     // Print current document json data prettily
@@ -57,9 +85,11 @@ private:
         using namespace std;
         const char *path = setting->getPath().c_str();
 
+        rapidjson::Document &d = SettingManager::getDocument();
+
         // Save initial value
         // We might want to have this as a setting?
-        detail::setValueSoft<Type>(path, setting->getValue());
+        detail::setValueSoft<Type>(d, path, setting->getValue());
 
         // Set up a signal which updates the rapidjson document with the new
         // value when the SettingData value is updated
@@ -68,10 +98,11 @@ private:
         // only bad part about that is that the setValue method is called
         // unnecessarily
         setting->valueChanged.connect([path](const Type &newValue) {
-            detail::setValue<Type>(path, newValue);  //
+            detail::setValue<Type>(SettingManager::getDocument(), path,
+                                   newValue);  //
         });
 
-        SettingManager::manager()->loadSetting(setting);
+        detail::loadSetting(SettingManager::getDocument(), setting);
 
         // Add the shared_ptr to the relevant vector
         // i.e. std::string SettingData is moved to strSettings
@@ -87,9 +118,9 @@ public:
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    static bool load(const char *filePath = nullptr);
+    static LoadError load(const char *filePath = nullptr);
     // Load from given path
-    static bool loadFrom(const char *filePath);
+    static LoadError loadFrom(const char *filePath);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your application
@@ -99,35 +130,6 @@ public:
     static bool save(const char *filePath = nullptr);
     // Save to given path
     static bool saveAs(const char *filePath);
-
-    template <typename Type>
-    bool
-    loadSetting(std::shared_ptr<detail::SettingData<Type>> &setting)
-    {
-        // A setting should always have a path
-        assert(!setting->getPath().empty());
-
-        return this->loadSettingFromPath(setting);
-    }
-
-    template <typename Type>
-    bool
-    loadSettingFromPath(std::shared_ptr<detail::SettingData<Type>> &setting)
-    {
-        const char *path = setting->getPath().c_str();
-        auto value = rapidjson::Pointer(path).Get(this->document);
-        if (value == nullptr) {
-            return false;
-        }
-
-        this->setSetting(setting, *value);
-
-        return true;
-    }
-
-    template <typename Type>
-    bool setSetting(std::shared_ptr<detail::SettingData<Type>> setting,
-                    const rapidjson::Value &value);
 
     enum class SaveMethod : uint64_t {
         SaveOnExitFlag = (1ull << 1ull),
@@ -199,21 +201,19 @@ namespace detail {
 // Only set the value if it doesn't already exist
 template <typename Type>
 void
-setValueSoft(const char *path, const Type &value)
+setValueSoft(rapidjson::Document &document, const char *path, const Type &value)
 {
     // Check if value exists
-    auto jsonValue = rapidjson::Pointer(path).Get(SettingManager::getDocument());
-    if (jsonValue == nullptr) {
-        setValue(path, value);
+    if (rapidjson::Pointer(path).Get(document) == nullptr) {
+        setValue(document, path, value);
     }
 }
 
 template <typename Type>
 void
-setValue(const char *path, const Type &value)
+setValue(rapidjson::Document &document, const char *path, const Type &value)
 {
-    rapidjson::Document &d = SettingManager::getDocument();
-    rapidjson::Pointer(path).Set(d, value);
+    rapidjson::Pointer(path).Set(document, value);
 }
 
 }  // namespace detail

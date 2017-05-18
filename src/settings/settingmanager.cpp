@@ -56,7 +56,7 @@ SettingManager::clear()
     // TODO: what should clear do?
 }
 
-bool
+SettingManager::LoadError
 SettingManager::load(const char *path)
 {
     if (path != nullptr) {
@@ -68,12 +68,12 @@ SettingManager::load(const char *path)
 
 template <typename Type>
 static inline void
-loadSettingsFromVector(SettingManager *manager,
+loadSettingsFromVector(rapidjson::Document &document,
                        vector<shared_ptr<detail::SettingData<Type>>> &vec,
                        unsigned &numSuccessful, unsigned &numFailed)
 {
     for (auto it = begin(vec); it != end(vec);) {
-        if (manager->loadSetting(*it)) {
+        if (detail::loadSetting(document, *it)) {
             // Setting successfully loaded
             ++numSuccessful;
             it = vec.erase(it);
@@ -186,27 +186,40 @@ mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
     }
 }
 
-bool
+SettingManager::LoadError
 SettingManager::loadFrom(const char *path)
 {
+    /*
+    std::ifstream in(path, ios::in|ios::binary|ios::ate);
+    std::vector<char> data((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    */
     // Open file
     FILE *fh = fopen(path, "rb");
     if (fh == nullptr) {
         // Unable to open file at `path`
-        return false;
+        return LoadError::CannotOpenFile;
     }
 
     // Read size of file
-    fseek(fh, 0, SEEK_END);
-    auto fileSize = ftell(fh);
+    if (fseeko(fh, 0, SEEK_END) != 0) {
+        return LoadError::FileSeekError;
+    }
+
+    auto fileSize = ftello(fh);
     if (fileSize == -1L) {
         // An error occured when ftelling
-        return false;
+        return LoadError::FileHandleError;
     }
-    fseek(fh, 0, SEEK_SET);
+    fseeko(fh, 0, SEEK_SET);
+
+    if (fileSize == 0) {
+        // Nothing to load
+        return LoadError::NoError;
+    }
 
     // Create vector of appropriate size
     char *fileBuffer = new char[fileSize];
+    // char *fileBuffer = (char*)malloc(fileSize);
 
     // Read file data into buffer
     auto readBytes = fread(fileBuffer, 1, fileSize, fh);
@@ -216,29 +229,32 @@ SettingManager::loadFrom(const char *path)
         fclose(fh);
         delete[] fileBuffer;
 
-        return false;
+        return LoadError::FileReadError;
     }
 
-    rapidjson::Document d;
+    // printf("File buffer: '%s'\n", fileBuffer);
 
-    d.Parse(fileBuffer, fileSize);
 
     // Close file
 
     fclose(fh);
-    delete[] fileBuffer;
+    // delete[] fileBuffer;
 
     // This restricts config files a bit. They NEED to have an object root
+    /*
     if (!d.IsObject()) {
-        return false;
+        return LoadError::JSONParseError;
     }
+    */
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
     auto &document = manager()->document;
 
+    document.Parse(fileBuffer, fileSize);
+
     // Perform deep merge of objects
-    mergeObjects(document, d, document.GetAllocator());
+    // mergeObjects(document, d, document.GetAllocator());
 
     // Fill in any settings that registered before we called load
     // Make a copy of the lists of settings we want to load
@@ -255,19 +271,17 @@ SettingManager::loadFrom(const char *path)
     do {
         numFailed = 0;
         numSuccessful = 0;
-        loadSettingsFromVector(manager(), objectSettings, numSuccessful,
+        loadSettingsFromVector(document, objectSettings, numSuccessful,
                                numFailed);
-        loadSettingsFromVector(manager(), arraySettings, numSuccessful,
+        loadSettingsFromVector(document, arraySettings, numSuccessful,
                                numFailed);
-        loadSettingsFromVector(manager(), intSettings, numSuccessful,
+        loadSettingsFromVector(document, intSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(document, floatSettings, numSuccessful,
                                numFailed);
-        loadSettingsFromVector(manager(), floatSettings, numSuccessful,
+        loadSettingsFromVector(document, doubleSettings, numSuccessful,
                                numFailed);
-        loadSettingsFromVector(manager(), doubleSettings, numSuccessful,
-                               numFailed);
-        loadSettingsFromVector(manager(), strSettings, numSuccessful,
-                               numFailed);
-        loadSettingsFromVector(manager(), boolSettings, numSuccessful,
+        loadSettingsFromVector(document, strSettings, numSuccessful, numFailed);
+        loadSettingsFromVector(document, boolSettings, numSuccessful,
                                numFailed);
         // Retry if:
         // One or more settings failed to load
@@ -279,7 +293,7 @@ SettingManager::loadFrom(const char *path)
     } while (++numAttempts < MAX_ATTEMPTS && numFailed > 0 &&
              numSuccessful > 0);
 
-    return true;
+    return LoadError::NoError;
 }
 
 bool
@@ -316,165 +330,6 @@ SettingManager::saveAs(const char *path)
     }
 
     return true;
-}
-
-template <>
-bool
-SettingManager::setSetting<Object>(shared_ptr<detail::SettingData<Object>>,
-                                   const rapidjson::Value &)
-{
-    // Do nothing
-    // Void = object type
-    return true;
-}
-
-template <>
-bool
-SettingManager::setSetting<Array>(shared_ptr<detail::SettingData<Array>>,
-                                  const rapidjson::Value &)
-{
-    // Do nothing
-    // Void = object type
-    return true;
-}
-
-template <>
-bool
-SettingManager::setSetting<float>(
-    shared_ptr<detail::SettingData<float>> setting,
-    const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kNumberType: {
-            if (value.IsDouble()) {
-                setting->setValue(static_cast<float>(value.GetDouble()));
-                return true;
-            } else if (value.IsFloat()) {
-                setting->setValue(value.GetFloat());
-                return true;
-            } else if (value.IsInt()) {
-                setting->setValue(static_cast<float>(value.GetInt()));
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-SettingManager::setSetting<double>(
-    shared_ptr<detail::SettingData<double>> setting,
-    const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kNumberType: {
-            if (value.IsDouble()) {
-                setting->setValue(value.GetDouble());
-                return true;
-            } else if (value.IsInt()) {
-                setting->setValue(value.GetInt());
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-SettingManager::setSetting<string>(
-    shared_ptr<detail::SettingData<string>> setting,
-    const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kStringType: {
-            setting->setValue(value.GetString());
-            return true;
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-SettingManager::setSetting<bool>(shared_ptr<detail::SettingData<bool>> setting,
-                                 const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kTrueType:
-        case rapidjson::Type::kFalseType: {
-            setting->setValue(value.GetBool());
-            return true;
-        } break;
-
-        case rapidjson::Type::kNumberType: {
-            if (value.IsInt()) {
-                setting->setValue(value.GetInt() == 1);
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-SettingManager::setSetting<int>(shared_ptr<detail::SettingData<int>> setting,
-                                const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kNumberType: {
-            if (value.IsDouble()) {
-                setting->setValue(static_cast<int>(value.GetDouble()));
-                return true;
-            } else if (value.IsInt()) {
-                setting->setValue(value.GetInt());
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
 }
 
 rapidjson::Document &
@@ -599,26 +454,233 @@ namespace detail {
 
 template <>
 void
-setValue(const char *path, const std::string &value)
+setValueSoft(rapidjson::Document &document, const char *path, const Object &)
 {
-    rapidjson::Document &d = SettingManager::getDocument();
-    rapidjson::Pointer(path).Set(d, value.c_str());
+    // XXX: not sure if this is soft enough
+    //rapidjson::Pointer(path).Create(document);
 }
 
 template <>
 void
-setValue(const char *path, const Object &)
+setValueSoft(rapidjson::Document &document, const char *path, const Array &)
 {
-    rapidjson::Document &d = SettingManager::getDocument();
-    rapidjson::Pointer(path).Create(d);
+    // XXX: not sure if this is soft enough
+    //rapidjson::Pointer(path).Create(document);
 }
 
 template <>
 void
-setValue(const char *path, const Array &)
+setValue(rapidjson::Document &document, const char *path,
+         const std::string &value)
 {
-    rapidjson::Document &d = SettingManager::getDocument();
-    rapidjson::Pointer(path).Create(d);
+    rapidjson::Pointer(path).Set(document, value.c_str());
+}
+
+template <>
+void
+setValue(rapidjson::Document &document, const char *path, const Object &)
+{
+    rapidjson::Pointer(path).Create(document);
+}
+
+template <>
+void
+setValue(rapidjson::Document &document, const char *path, const Array &)
+{
+    rapidjson::Pointer(path).Create(document);
+}
+
+template <>
+bool
+setSetting(shared_ptr<SettingData<Object>>, const rapidjson::Value &)
+{
+    // Do nothing
+    return true;
+}
+
+template <>
+bool
+setSetting(shared_ptr<SettingData<Array>>, const rapidjson::Value &)
+{
+    // Do nothing
+    return true;
+}
+
+template <>
+bool
+setSetting<float>(shared_ptr<SettingData<float>> setting,
+                  const rapidjson::Value &value)
+{
+    auto type = value.GetType();
+
+    switch (type) {
+        case rapidjson::Type::kNumberType: {
+            if (value.IsDouble()) {
+                setting->setValue(static_cast<float>(value.GetDouble()));
+                return true;
+            } else if (value.IsFloat()) {
+                setting->setValue(value.GetFloat());
+                return true;
+            } else if (value.IsInt()) {
+                setting->setValue(static_cast<float>(value.GetInt()));
+                return true;
+            }
+        } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
+    }
+
+    return false;
+}
+
+template <>
+bool
+setSetting<double>(shared_ptr<SettingData<double>> setting,
+                   const rapidjson::Value &value)
+{
+    auto type = value.GetType();
+
+    switch (type) {
+        case rapidjson::Type::kNumberType: {
+            if (value.IsDouble()) {
+                setting->setValue(value.GetDouble());
+                return true;
+            } else if (value.IsInt()) {
+                setting->setValue(value.GetInt());
+                return true;
+            }
+        } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
+    }
+
+    return false;
+}
+
+template <>
+bool
+setSetting<string>(shared_ptr<SettingData<string>> setting,
+                   const rapidjson::Value &value)
+{
+    auto type = value.GetType();
+
+    switch (type) {
+        case rapidjson::Type::kStringType: {
+            setting->setValue(value.GetString());
+            return true;
+        } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
+    }
+
+    return false;
+}
+
+template <>
+bool
+setSetting<bool>(shared_ptr<SettingData<bool>> setting,
+                 const rapidjson::Value &value)
+{
+    auto type = value.GetType();
+
+    switch (type) {
+        case rapidjson::Type::kTrueType:
+        case rapidjson::Type::kFalseType: {
+            setting->setValue(value.GetBool());
+            return true;
+        } break;
+
+        case rapidjson::Type::kNumberType: {
+            if (value.IsInt()) {
+                setting->setValue(value.GetInt() == 1);
+                return true;
+            }
+        } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
+    }
+
+    return false;
+}
+
+template <>
+bool
+setSetting<int>(shared_ptr<SettingData<int>> setting,
+                const rapidjson::Value &value)
+{
+    auto type = value.GetType();
+
+    switch (type) {
+        case rapidjson::Type::kNumberType: {
+            if (value.IsDouble()) {
+                setting->setValue(static_cast<int>(value.GetDouble()));
+                return true;
+            } else if (value.IsInt()) {
+                setting->setValue(value.GetInt());
+                return true;
+            }
+        } break;
+
+        default: {
+            // We should never get here
+            // If we do, then we shouldn't do anything
+        } break;
+    }
+
+    return false;
+}
+
+template <typename Type>
+bool
+loadSetting(rapidjson::Document &document,
+            std::shared_ptr<SettingData<Type>> &setting)
+{
+    // A setting should always have a path
+    assert(!setting->getPath().empty());
+
+    return loadSettingFromPath(document, setting);
+}
+
+template <>
+bool
+loadSetting(rapidjson::Document &, std::shared_ptr<SettingData<Object>> &)
+{
+    return true;
+}
+
+template <>
+bool
+loadSetting(rapidjson::Document &, std::shared_ptr<SettingData<Array>> &)
+{
+    return true;
+}
+
+template <typename Type>
+bool
+loadSettingFromPath(rapidjson::Document &document,
+                    std::shared_ptr<SettingData<Type>> &setting)
+{
+    const char *path = setting->getPath().c_str();
+    auto value = rapidjson::Pointer(path).Get(document);
+    if (value == nullptr) {
+        return false;
+    }
+
+    setSetting(setting, *value);
+
+    return true;
 }
 
 }  // namespace detail
