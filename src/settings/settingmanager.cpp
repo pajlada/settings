@@ -189,10 +189,6 @@ mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
 SettingManager::LoadError
 SettingManager::loadFrom(const char *path)
 {
-    /*
-    std::ifstream in(path, ios::in|ios::binary|ios::ate);
-    std::vector<char> data((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    */
     // Open file
     FILE *fh = fopen(path, "rb");
     if (fh == nullptr) {
@@ -219,7 +215,6 @@ SettingManager::loadFrom(const char *path)
 
     // Create vector of appropriate size
     char *fileBuffer = new char[fileSize];
-    // char *fileBuffer = (char*)malloc(fileSize);
 
     // Read file data into buffer
     auto readBytes = fread(fileBuffer, 1, fileSize, fh);
@@ -232,26 +227,27 @@ SettingManager::loadFrom(const char *path)
         return LoadError::FileReadError;
     }
 
-    // printf("File buffer: '%s'\n", fileBuffer);
-
-
     // Close file
-
     fclose(fh);
-    // delete[] fileBuffer;
 
-    // This restricts config files a bit. They NEED to have an object root
-    /*
-    if (!d.IsObject()) {
-        return LoadError::JSONParseError;
-    }
-    */
+    // XXX: Temporarily don't delete the buffer
+    // delete[] fileBuffer;
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
     auto &document = manager()->document;
 
-    document.Parse(fileBuffer, fileSize);
+    rapidjson::ParseResult ok = document.Parse(fileBuffer, fileSize);
+
+    // Make sure the file parsed okay
+    if (!ok) {
+        return LoadError::JSONParseError;
+    }
+
+    // This restricts config files a bit. They NEED to have an object root
+    if (!document.IsObject()) {
+        return LoadError::JSONParseError;
+    }
 
     // Perform deep merge of objects
     // mergeObjects(document, d, document.GetAllocator());
@@ -457,7 +453,7 @@ void
 setValueSoft(rapidjson::Document &document, const char *path, const Object &)
 {
     // XXX: not sure if this is soft enough
-    //rapidjson::Pointer(path).Create(document);
+    // rapidjson::Pointer(path).Create(document);
 }
 
 template <>
@@ -465,7 +461,7 @@ void
 setValueSoft(rapidjson::Document &document, const char *path, const Array &)
 {
     // XXX: not sure if this is soft enough
-    //rapidjson::Pointer(path).Create(document);
+    // rapidjson::Pointer(path).Create(document);
 }
 
 template <>

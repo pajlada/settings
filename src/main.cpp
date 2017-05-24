@@ -50,7 +50,8 @@ TEST_CASE("ChannelManager", "[settings]")
         REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
     }
 
-    REQUIRE(SettingManager::loadFrom("files/channelmanager.json"));
+    REQUIRE(SettingManager::loadFrom("files/channelmanager.json") ==
+            SettingManager::LoadError::NoError);
 
     REQUIRE(manager.channels.at(0).name.getValue() == "pajlada");
     REQUIRE(manager.channels.at(1).name.getValue() == "hemirt");
@@ -83,14 +84,16 @@ TEST_CASE("Channel", "[settings]")
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load default file
-    REQUIRE(SettingManager::loadFrom("files/d.channels.json") == true);
+    REQUIRE(SettingManager::loadFrom("files/d.channels.json") ==
+            SettingManager::LoadError::NoError);
 
     // Post defaults load
     REQUIRE(chHemirt.maxMessageLength.getValue() == 200);
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load custom file
-    REQUIRE(SettingManager::loadFrom("files/channels.json") == true);
+    REQUIRE(SettingManager::loadFrom("files/channels.json") ==
+            SettingManager::LoadError::NoError);
 
     // Post channels load
     REQUIRE(chHemirt.maxMessageLength == 300);
@@ -101,21 +104,26 @@ TEST_CASE("Load files", "[settings]")
 {
     SECTION("Invalid files")
     {
-        REQUIRE(SettingManager::loadFrom("files/bad-1.json") == false);
-        REQUIRE(SettingManager::loadFrom("files/bad-2.json") == false);
-        REQUIRE(SettingManager::loadFrom("files/bad-3.json") == false);
-        REQUIRE(SettingManager::loadFrom("files/empty.json") == false);
+        REQUIRE(SettingManager::loadFrom("files/bad-1.json") ==
+                SettingManager::LoadError::JSONParseError);
+        REQUIRE(SettingManager::loadFrom("files/bad-2.json") ==
+                SettingManager::LoadError::JSONParseError);
+        REQUIRE(SettingManager::loadFrom("files/bad-3.json") ==
+                SettingManager::LoadError::JSONParseError);
+        REQUIRE(SettingManager::loadFrom("files/empty.json") ==
+                SettingManager::LoadError::NoError);
     }
 
     SECTION("Non-existant files")
     {
         REQUIRE(SettingManager::loadFrom("files/test-non-existant-file.json") ==
-                false);
+                SettingManager::LoadError::CannotOpenFile);
     }
 
     SECTION("Valid files")
     {
-        REQUIRE(SettingManager::loadFrom("files/default.json") == true);
+        REQUIRE(SettingManager::loadFrom("files/default.json") ==
+                SettingManager::LoadError::NoError);
     }
 }
 
@@ -154,7 +162,8 @@ TEST_CASE("Simple static", "[settings]")
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
-    REQUIRE(SettingManager::loadFrom("files/test.json") == true);
+    REQUIRE(SettingManager::loadFrom("files/test.json") ==
+            SettingManager::LoadError::NoError);
 
     // Floats post-load
     REQUIRE(Foo::f1.getValue() == 1.f);
