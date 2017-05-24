@@ -10,87 +10,23 @@ using namespace std;
 namespace pajlada {
 namespace Settings {
 
-static constexpr unsigned MAX_ATTEMPTS = 10;
-
-static void mergeObjects(rapidjson::Value &destination,
-                         rapidjson::Value &source,
-                         rapidjson::Document::AllocatorType &allocator);
-static void mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
-                        rapidjson::Document::AllocatorType &allocator);
-
-SettingManager::SettingManager()
-    : document(rapidjson::kObjectType)
-{
-    // XXX(pajlada): Load "default.json"?
-}
-
-SettingManager::~SettingManager()
-{
-    // XXX(pajlada): Should settings automatically save on exit?
-    // Or on each setting change?
-    // Or only manually?
-    if (this->checkSaveMethodFlag(SaveMethod::SaveOnExitFlag)) {
-        SettingManager::save();
-    }
-}
-
-void
-SettingManager::prettyPrintDocument()
-{
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    this->document.Accept(writer);
-
-    cout << buffer.GetString() << endl;
-}
-
-void
-SettingManager::setPath(const char *path)
-{
-    manager()->filePath = path;
-}
-
-void
-SettingManager::clear()
-{
-    // TODO: what should clear do?
-}
-
-SettingManager::LoadError
-SettingManager::load(const char *path)
-{
-    if (path != nullptr) {
-        setPath(path);
-    }
-
-    return SettingManager::loadFrom(manager()->filePath.c_str());
-}
+namespace detail {
 
 template <typename Type>
-static inline void
+inline void
 loadSettingsFromVector(rapidjson::Document &document,
-                       vector<shared_ptr<detail::SettingData<Type>>> &vec,
-                       unsigned &numSuccessful, unsigned &numFailed)
+                       vector<shared_ptr<detail::SettingData<Type>>> &vec)
 {
-    for (auto it = begin(vec); it != end(vec);) {
-        if (detail::loadSetting(document, *it)) {
-            // Setting successfully loaded
-            ++numSuccessful;
-            it = vec.erase(it);
-        } else {
-            // Setting failed to load
-            ++numFailed;
-            ++it;
-        }
+    for (auto &setting : vec) {
+        detail::loadSetting(document, setting);
     }
 }
 
-/* get current working directory
-#include <direct.h>
-char pBuf[512];
-_getcwd(pBuf, 512);
-cout << pBuf << endl;
-*/
+/// rapidjson deep merge code
+void mergeObjects(rapidjson::Value &destination, rapidjson::Value &source,
+                  rapidjson::Document::AllocatorType &allocator);
+void mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
+                 rapidjson::Document::AllocatorType &allocator);
 
 void
 mergeObjects(rapidjson::Value &destination, rapidjson::Value &source,
@@ -186,6 +122,62 @@ mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
     }
 }
 
+}  // namespace detail
+
+SettingManager::SettingManager()
+    : document(rapidjson::kObjectType)
+{
+}
+
+SettingManager::~SettingManager()
+{
+    // XXX(pajlada): Should settings automatically save on exit?
+    // Or on each setting change?
+    // Or only manually?
+    if (this->checkSaveMethodFlag(SaveMethod::SaveOnExitFlag)) {
+        SettingManager::save();
+    }
+}
+
+void
+SettingManager::prettyPrintDocument()
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    this->document.Accept(writer);
+
+    cout << buffer.GetString() << endl;
+}
+
+void
+SettingManager::setPath(const char *path)
+{
+    manager()->filePath = path;
+}
+
+void
+SettingManager::clear()
+{
+    // TODO: what should clear do?
+}
+
+SettingManager::LoadError
+SettingManager::load(const char *path)
+{
+    if (path != nullptr) {
+        setPath(path);
+    }
+
+    return SettingManager::loadFrom(manager()->filePath.c_str());
+}
+
+/* get current working directory
+#include <direct.h>
+char pBuf[512];
+_getcwd(pBuf, 512);
+cout << pBuf << endl;
+*/
+
 SettingManager::LoadError
 SettingManager::loadFrom(const char *path)
 {
@@ -250,44 +242,16 @@ SettingManager::loadFrom(const char *path)
     }
 
     // Perform deep merge of objects
-    // mergeObjects(document, d, document.GetAllocator());
+    // detail::mergeObjects(document, d, document.GetAllocator());
 
     // Fill in any settings that registered before we called load
-    // Make a copy of the lists of settings we want to load
-    unsigned numAttempts = 0;
-    unsigned numFailed = 0;
-    unsigned numSuccessful = 0;
-    auto objectSettings = manager()->objectSettings;
-    auto arraySettings = manager()->arraySettings;
-    auto intSettings = manager()->intSettings;
-    auto floatSettings = manager()->floatSettings;
-    auto doubleSettings = manager()->doubleSettings;
-    auto strSettings = manager()->strSettings;
-    auto boolSettings = manager()->boolSettings;
-    do {
-        numFailed = 0;
-        numSuccessful = 0;
-        loadSettingsFromVector(document, objectSettings, numSuccessful,
-                               numFailed);
-        loadSettingsFromVector(document, arraySettings, numSuccessful,
-                               numFailed);
-        loadSettingsFromVector(document, intSettings, numSuccessful, numFailed);
-        loadSettingsFromVector(document, floatSettings, numSuccessful,
-                               numFailed);
-        loadSettingsFromVector(document, doubleSettings, numSuccessful,
-                               numFailed);
-        loadSettingsFromVector(document, strSettings, numSuccessful, numFailed);
-        loadSettingsFromVector(document, boolSettings, numSuccessful,
-                               numFailed);
-        // Retry if:
-        // One or more settings failed to load
-        // AND
-        // One more more settings successfully loaded (otherwise there's no
-        // chance at resolution)
-        // AND
-        // We haven't bypassed the three tries
-    } while (++numAttempts < MAX_ATTEMPTS && numFailed > 0 &&
-             numSuccessful > 0);
+    detail::loadSettingsFromVector(document, manager()->objectSettings);
+    detail::loadSettingsFromVector(document, manager()->arraySettings);
+    detail::loadSettingsFromVector(document, manager()->intSettings);
+    detail::loadSettingsFromVector(document, manager()->floatSettings);
+    detail::loadSettingsFromVector(document, manager()->doubleSettings);
+    detail::loadSettingsFromVector(document, manager()->strSettings);
+    detail::loadSettingsFromVector(document, manager()->boolSettings);
 
     return LoadError::NoError;
 }
