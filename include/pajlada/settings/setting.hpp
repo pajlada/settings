@@ -83,6 +83,18 @@ public:
         return *this;
     }
 
+    bool
+    operator==(const Type &rhs) const
+    {
+        return this->getValue() == rhs;
+    }
+
+    bool
+    operator!=(const Type &rhs) const
+    {
+        return this->getValue() != rhs;
+    }
+
     operator const Type() const
     {
         return this->getValue();
