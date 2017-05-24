@@ -201,16 +201,16 @@ SettingManager::loadFrom(const char *path)
     }
 
     // Read size of file
-    if (fseeko(fh, 0, SEEK_END) != 0) {
+    if (fseek(fh, 0, SEEK_END) != 0) {
         return LoadError::FileSeekError;
     }
 
-    auto fileSize = ftello(fh);
+    auto fileSize = ftell(fh);
     if (fileSize == -1L) {
         // An error occured when ftelling
         return LoadError::FileHandleError;
     }
-    fseeko(fh, 0, SEEK_SET);
+    fseek(fh, 0, SEEK_SET);
 
     if (fileSize == 0) {
         // Nothing to load
