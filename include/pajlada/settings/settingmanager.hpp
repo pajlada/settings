@@ -20,6 +20,14 @@ template <typename Type>
 void setValueSoft(rapidjson::Document &document, const char *path,
                   const Type &value);
 
+template <>
+void setValueSoft<Object>(rapidjson::Document &document, const char *path,
+                  const Object &value);
+
+template <>
+void setValueSoft<Array>(rapidjson::Document &document, const char *path,
+                  const Array &value);
+
 template <typename Type>
 void setValue(rapidjson::Document &document, const char *path,
               const Type &value);
