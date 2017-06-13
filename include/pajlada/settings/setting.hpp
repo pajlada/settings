@@ -122,7 +122,11 @@ private:
     std::shared_ptr<detail::SettingData<Type>> data;
 
 public:
-    Signals::Signal<const Type &> &valueChanged;
+    Signals::Signal<const Type &> &
+    getValueChangedSignal()
+    {
+        return this->data->valueChanged;
+    };
 
 private:
     std::string name;
@@ -134,7 +138,6 @@ private:
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, const Type &defaultValue)
     : data(new detail::SettingData<Type>(defaultValue))
-    , valueChanged(data->valueChanged)
 {
     this->data->setPath(path);
 
@@ -146,7 +149,6 @@ template <typename Type>
 Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
                        const Type &defaultValue)
     : data(new detail::SettingData<Type>(defaultValue))
-    , valueChanged(data->valueChanged)
 {
     this->data->setKey(key, parent);
 
@@ -158,7 +160,6 @@ template <typename Type>
 Setting<Type>::Setting(unsigned index, const Setting<Array> &parent,
                        const Type &defaultValue)
     : data(new detail::SettingData<Type>(defaultValue))
-    , valueChanged(data->valueChanged)
 {
     this->data->setIndex(index, parent);
 

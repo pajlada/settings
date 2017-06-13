@@ -31,7 +31,7 @@ connectToWidget(QSpinBox *widget, Setting<SettingType> &setting,
         });
 
     // Connect setting onChange to widget
-    setting.valueChanged.connect([widget](const auto &newValue) {
+    setting.getValueChangedSignal().connect([widget](const auto &newValue) {
         widget->setValue(newValue);  //
     });
 }
@@ -46,16 +46,18 @@ connectToWidget(QComboBox *widget, Setting<SettingType> &setting,
     }
 
     // Connect widget onChange to setting
-    QObject::connect(widget, static_cast<void (QComboBox::*)(const QString &)>(
-                                 &QComboBox::currentIndexChanged),
+    QObject::connect(widget,
+                     static_cast<void (QComboBox::*)(const QString &)>(
+                         &QComboBox::currentIndexChanged),
                      [&setting](const QString &newValue) {
                          setting = newValue.toStdString();  //
                      });
 
     // Connect setting onChange to widget
-    setting.valueChanged.connect([widget](const std::string &newValue) {
-        widget->setCurrentText(QString::fromStdString(newValue));  //
-    });
+    setting.getValueChangedSignal().connect(
+        [widget](const std::string &newValue) {
+            widget->setCurrentText(QString::fromStdString(newValue));  //
+        });
 }
 
 }  // namespace Settings
