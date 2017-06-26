@@ -2,6 +2,7 @@
 #include "test/channelmanager.hpp"
 #include "test/foo.hpp"
 
+#include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/setting.hpp"
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
@@ -16,13 +17,79 @@ using namespace pajlada;
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 
+class CustomClass : public pajlada::Settings::ISettingData
+{
+public:
+    int x = 0;
+    int y = 0;
+
+    Signals::Signal<const CustomClass &> valueChanged;
+
+    virtual rapidjson::Value
+    marshalInto(rapidjson::Document &d) override
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
+
+        auto _x = serializeToJSON<int>::serialize(this->x, d.GetAllocator());
+        auto _y = serializeToJSON<int>::serialize(this->y, d.GetAllocator());
+
+        obj.AddMember("x", _x, d.GetAllocator());
+        obj.AddMember("y", _y, d.GetAllocator());
+
+        return obj;
+    }
+
+    virtual bool
+    unmarshalFrom(rapidjson::Document &document) override
+    {
+        auto vXp = this->getValueWithSuffix("/x", document);
+        auto vYp = this->getValueWithSuffix("/y", document);
+        if (vXp != nullptr) {
+            this->x = deserializeJSON<int>::deserialize(*vXp);
+        }
+        if (vYp != nullptr) {
+            this->y = deserializeJSON<int>::deserialize(*vYp);
+        }
+
+        return true;
+    }
+
+    virtual void
+    registerDocument(rapidjson::Document &d) override
+    {
+        this->valueChanged.connect([this, &d](const auto &) {
+            this->marshalInto(d);  //
+        });
+    }
+};
+
+TEST_CASE("Custom class", "[settings]")
+{
+    Setting<CustomClass, CustomClass> test("/hehehe");
+
+    REQUIRE(test->x == 0);
+    REQUIRE(test->y == 0);
+
+    REQUIRE(SettingManager::loadFrom("files/customClass.json") ==
+            SettingManager::LoadError::NoError);
+
+    REQUIRE(test->x == 5);
+    REQUIRE(test->y == 10);
+
+    test->x = 6;
+
+    REQUIRE(test->x == 6);
+
+    SettingManager::saveAs("files/customClassOut.json");
+}
+
 TEST_CASE("Signals", "[settings]")
 {
     Channel ch("xD");
 
     int maxMessageLength = 0;
 
-    ch.maxMessageLength.valueChanged.connect(
+    ch.maxMessageLength.getValueChangedSignal().connect(
         [&maxMessageLength](const int &newValue) {
             maxMessageLength = newValue;  //
         });
@@ -71,11 +138,8 @@ TEST_CASE("ChannelManager", "[settings]")
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 }
 
-#ifndef ONLY_MINI_TEST
 TEST_CASE("Channel", "[settings]")
 {
-    SettingManager::clear();
-
     Channel chHemirt("hemirt");
     Channel chPajlada("pajlada");
 
@@ -129,8 +193,6 @@ TEST_CASE("Load files", "[settings]")
 
 TEST_CASE("Simple static", "[settings]")
 {
-    SettingManager::clear();
-
     REQUIRE(Foo::i1.getValue() == 1);
     REQUIRE(Foo::i2.getValue() == 2);
     REQUIRE(Foo::i3.getValue() == 3);
@@ -214,4 +276,3 @@ TEST_CASE("Simple static", "[settings]")
 
     REQUIRE(SettingManager::saveAs("files/test2.json") == true);
 }
-#endif

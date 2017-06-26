@@ -4,7 +4,6 @@ namespace pajlada {
 
 using namespace Settings;
 
-#ifndef ONLY_MINI_TEST
 Setting<int> Foo::i1("rootSetting1", 1);
 Setting<int> Foo::i2("rootSetting2", 2);
 Setting<int> Foo::i3("rootSetting3", 3);
@@ -35,12 +34,10 @@ Setting<bool> Foo::b5("bool5", true);
 Setting<bool> Foo::b6("bool6", false);
 Setting<bool> Foo::b7("bool7", true);
 
-Setting<Settings::Object> Foo::root("root");
-Setting<int> Foo::rootInt1 = Setting<int>("i1", Foo::root, 1);
+Setting<int> Foo::rootInt1 = Setting<int>("/root/i1", 1);
 // the error happens here for some reason
 // these lines (i1 and i2) are the reason that the new array thing isn't saved
 // properly
-Setting<int> Foo::rootInt2 = Setting<int>("i2", Foo::root, 1);
-#endif
+Setting<int> Foo::rootInt2 = Setting<int>("/root/i2", 1);
 
 }  // namespace pajlada

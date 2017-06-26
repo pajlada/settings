@@ -6,6 +6,8 @@ release/
 # save files
 files/test2.json
 files/test3.json
+files/customClassOut.json
+/settings.json
 
 # ignore binary
 settings

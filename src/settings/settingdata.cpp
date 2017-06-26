@@ -8,7 +8,6 @@ using namespace std;
 
 namespace pajlada {
 namespace Settings {
-namespace detail {
 
 static atomic<uint64_t> latestConnectionID;
 
@@ -36,22 +35,5 @@ ISettingData::setPath(const string &_path)
     }
 }
 
-void
-ISettingData::setKey(const string &_key, const Setting<Object> &parent)
-{
-    auto data = parent.getData();
-
-    this->path = data->getPath() + "/" + _key;
-}
-
-void
-ISettingData::setIndex(unsigned _index, const Setting<Array> &parent)
-{
-    auto data = parent.getData();
-
-    this->path = data->getPath() + "/" + to_string(_index);
-}
-
-}  // namespace detail
 }  // namespace Settings
 }  // namespace pajlada

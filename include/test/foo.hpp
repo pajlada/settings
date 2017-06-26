@@ -7,7 +7,6 @@ namespace pajlada {
 class Foo
 {
 public:
-#ifndef ONLY_MINI_TEST
     static Settings::Setting<int> i1;
     static Settings::Setting<int> i2;
     static Settings::Setting<int> i3;
@@ -39,7 +38,6 @@ public:
     static Settings::Setting<Settings::Object> root;
     static Settings::Setting<int> rootInt1;
     static Settings::Setting<int> rootInt2;
-#endif
 };
 
 }  // namespace pajlada

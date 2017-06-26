@@ -28,7 +28,8 @@ HEADERS += \
     include/pajlada/settings/settingdata.hpp \
     include/pajlada/settings/settingmanager.hpp \
     include/pajlada/settings/types.hpp \
-    include/pajlada/settings/types.hpp
+    include/pajlada/settings/types.hpp \
+    include/pajlada/settings/merger.hpp
 
 win32-msvc* {
     QMAKE_CXXFLAGS_WARN_ON = /W4 /wd4996

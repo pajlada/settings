@@ -9,6 +9,7 @@
 #include <pajlada/signals/signal.hpp>
 
 #include <memory>
+#include <string>
 
 namespace pajlada {
 namespace Settings {
@@ -28,20 +29,15 @@ private:
 
 }  // namespace detail
 
-template <typename Type>
+template <typename Type, typename Container = SettingData<Type>>
 class Setting : public detail::ISetting
 {
 public:
+    // Path
+    Setting(const std::string &path);
+
     // Path, Default Value
-    Setting(const std::string &path, const Type &defaultValue = Type());
-
-    // Key, Object Parent, Default Value
-    Setting(const std::string &key, const Setting<Object> &parent,
-            const Type &defaultValue = Type());
-
-    // Index, Array Parent, Default Value
-    Setting(unsigned index, const Setting<Array> &parent,
-            const Type &defaultValue = Type());
+    Setting(const std::string &path, const Type &defaultValue);
 
     ~Setting();
 
@@ -61,6 +57,14 @@ public:
         return this->data->getValue();
     }
 
+    const Type &
+    getValueRef() const
+    {
+        assert(this->data != nullptr);
+
+        return this->data->getValueRef();
+    }
+
     void
     setValue(const Type &newValue)
     {
@@ -73,6 +77,22 @@ public:
         this->data->setValue(newValue);
 
         return *this;
+    }
+
+    template <typename T2>
+    Setting &
+    operator=(const T2 &newValue)
+    {
+        this->data->setValue(newValue);
+
+        return *this;
+    }
+
+    Container *operator->()
+    {
+        this->data->dirty = true;
+
+        return this->data.get();
     }
 
     Setting &
@@ -101,7 +121,7 @@ public:
     }
 
 private:
-    std::shared_ptr<detail::SettingData<Type>>
+    std::shared_ptr<Container>
     getData() const
     {
         return this->data;
@@ -119,7 +139,7 @@ private:
         SettingManager::unregisterSetting(this->data);
     }
 
-    std::shared_ptr<detail::SettingData<Type>> data;
+    std::shared_ptr<Container> data;
 
 public:
     Signals::Signal<const Type &> &
@@ -131,43 +151,32 @@ public:
 private:
     std::string name;
 
-    friend class detail::ISettingData;
+    friend class ISettingData;
 };
 
-// Path, Default Value
-template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue)
-    : data(new detail::SettingData<Type>(defaultValue))
+// Path
+template <typename Type, typename Container>
+Setting<Type, Container>::Setting(const std::string &path)
+    : data(new Container())
 {
     this->data->setPath(path);
 
     this->registerSetting();
 }
 
-// Key, Object Parent, Default Value
-template <typename Type>
-Setting<Type>::Setting(const std::string &key, const Setting<Object> &parent,
-                       const Type &defaultValue)
-    : data(new detail::SettingData<Type>(defaultValue))
+// Path, Default Value
+template <typename Type, typename Container>
+Setting<Type, Container>::Setting(const std::string &path,
+                                  const Type &defaultValue)
+    : data(new Container(defaultValue))
 {
-    this->data->setKey(key, parent);
+    this->data->setPath(path);
 
     this->registerSetting();
 }
 
-// Index, Array Parent, Default Value
-template <typename Type>
-Setting<Type>::Setting(unsigned index, const Setting<Array> &parent,
-                       const Type &defaultValue)
-    : data(new detail::SettingData<Type>(defaultValue))
-{
-    this->data->setIndex(index, parent);
-
-    this->registerSetting();
-}
-
-template <typename Type>
-Setting<Type>::~Setting()
+template <typename Type, typename Container>
+Setting<Type, Container>::~Setting()
 {
     this->unregisterSetting();
 }

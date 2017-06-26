@@ -8,17 +8,14 @@ namespace test {
 class IndexedChannel
 {
 public:
-    IndexedChannel(const unsigned &&_index,
-                   const Settings::Setting<Settings::Array> &parent);
+    IndexedChannel(const unsigned &&_index);
 
     unsigned index;
 
-    Settings::Setting<Settings::Object> localRoot;
     Settings::Setting<int> xDIndex;
     Settings::Setting<std::string> name;
 };
 
-#ifndef ONLY_MINI_TEST
 class Channel
 {
 public:
@@ -27,11 +24,8 @@ public:
     unsigned index;
     std::string name;
 
-    static Settings::Setting<Settings::Object> globalRoot;
-    Settings::Setting<Settings::Object> localRoot;
     Settings::Setting<int> maxMessageLength;
 };
-#endif
 
 }  // namespace test
 }  // namespace pajlada

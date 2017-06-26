@@ -1,4 +1,6 @@
 #include "pajlada/settings/settingmanager.hpp"
+#include "pajlada/settings/merger.hpp"
+#include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/settingdata.hpp"
 
 #include <rapidjson/prettywriter.h>
@@ -9,120 +11,6 @@ using namespace std;
 
 namespace pajlada {
 namespace Settings {
-
-namespace detail {
-
-template <typename Type>
-inline void
-loadSettingsFromVector(rapidjson::Document &document,
-                       vector<shared_ptr<detail::SettingData<Type>>> &vec)
-{
-    for (auto &setting : vec) {
-        detail::loadSetting(document, setting);
-    }
-}
-
-/// rapidjson deep merge code
-void mergeObjects(rapidjson::Value &destination, rapidjson::Value &source,
-                  rapidjson::Document::AllocatorType &allocator);
-void mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
-                 rapidjson::Document::AllocatorType &allocator);
-
-void
-mergeObjects(rapidjson::Value &destination, rapidjson::Value &source,
-             rapidjson::Document::AllocatorType &allocator)
-{
-    assert(destination.IsObject());
-    assert(source.IsObject());
-
-    for (auto sourceIt = source.MemberBegin(); sourceIt != source.MemberEnd();
-         ++sourceIt) {
-        // Does the source member exist in destination?
-        auto destinationIt = destination.FindMember(sourceIt->name);
-        if (destinationIt == destination.MemberEnd()) {
-            // Source member was not found in destination. Add member
-            destination.AddMember(sourceIt->name, sourceIt->value, allocator);
-            continue;
-        }
-
-        // Are the source member and destination member with the same key equal
-        // types?
-        auto sourceType = sourceIt->value.GetType();
-        auto destinationType = destinationIt->value.GetType();
-
-        if (sourceType != destinationType) {
-            // The types are not the same
-            // XXX(pajlada): What do we do in this scenario? For now, we
-            // override destination member with source member
-            destinationIt->value = sourceIt->value;
-            continue;
-        }
-
-        // Source type and destination type are equal
-        if (sourceType == rapidjson::kObjectType) {
-            // Source and destination members are objects. Run mergeObjects
-            // I hope we don't recurse our way to hell
-            mergeObjects(destinationIt->value, sourceIt->value, allocator);
-            continue;
-        }
-
-        if (sourceType == rapidjson::kArrayType) {
-            // We have multiple options here
-            // Do we merge the arrays, index by index? Or do we simply push back
-            // any source member indices to the destination member
-            // For now, we will merge index by index
-            mergeArrays(destinationIt->value, sourceIt->value, allocator);
-            continue;
-        }
-
-        destinationIt->value = sourceIt->value;
-    }
-}
-
-void
-mergeArrays(rapidjson::Value &destination, rapidjson::Value &source,
-            rapidjson::Document::AllocatorType &allocator)
-{
-    assert(destination.IsArray());
-    assert(source.IsArray());
-
-    unsigned index = 0;
-    for (auto sourceArrayIt = source.Begin(); sourceArrayIt != source.End();
-         ++sourceArrayIt, ++index) {
-        if (index < destination.Size()) {
-            // Merge
-            auto &destinationArrayValue = destination[index];
-
-            auto sourceArrayValueType = sourceArrayIt->GetType();
-            auto destinationArrayValueType = destinationArrayValue.GetType();
-
-            if (sourceArrayValueType != destinationArrayValueType) {
-                // The types are not the same
-                // See comment above for what we should do in this case
-                destinationArrayValue = *sourceArrayIt;
-                continue;
-            }
-
-            if (sourceArrayValueType == rapidjson::kObjectType) {
-                mergeObjects(destinationArrayValue, *sourceArrayIt, allocator);
-                continue;
-            }
-
-            if (sourceArrayValueType == rapidjson::kArrayType) {
-                mergeArrays(destinationArrayValue, *sourceArrayIt, allocator);
-                continue;
-            }
-
-            // Same type, just replace the value
-            destinationArrayValue = *sourceArrayIt;
-        } else {
-            // Append
-            destination.PushBack(*sourceArrayIt, allocator);
-        }
-    }
-}
-
-}  // namespace detail
 
 SettingManager::SettingManager()
     : document(rapidjson::kObjectType)
@@ -140,35 +28,76 @@ SettingManager::~SettingManager()
 }
 
 void
-SettingManager::prettyPrintDocument()
+SettingManager::pp()
+{
+    SettingManager::ppDocument(SettingManager::getInstance().document);
+}
+
+void
+SettingManager::ppDocument(const rapidjson::Document &_document)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    this->document.Accept(writer);
+    _document.Accept(writer);
 
     cout << buffer.GetString() << endl;
 }
 
 void
-SettingManager::setPath(const char *path)
+SettingManager::unregisterSetting(const std::shared_ptr<ISettingData> &setting)
 {
-    manager()->filePath = path;
+    SettingManager &instance = SettingManager::getInstance();
+
+    std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
+
+    instance.settings.erase(
+        std::remove_if(
+            std::begin(instance.settings), std::end(instance.settings),
+            [setting](const auto &item) {
+                return setting->getConnectionID() == item->getConnectionID();
+            }),
+        std::end(instance.settings));
 }
 
 void
-SettingManager::clear()
+SettingManager::registerSetting(std::shared_ptr<ISettingData> setting)
 {
-    // TODO: what should clear do?
+    auto &instance = SettingManager::getInstance();
+
+    // Save initial value
+    // We might want to have this as a setting?
+    // TODO: Re-implement this
+    setting->marshalInto(instance.document);
+
+    // Set up a signal which updates the rapidjson document with the new
+    // value when the SettingData value is updated
+    setting->registerDocument(instance.document);
+
+    // file loaded with SettingManager, this callback will also fire. the
+    // only bad part about that is that the setValue method is called
+    // unnecessarily
+
+    // Load value from currently loaded document
+    setting->unmarshalFrom(instance.document);
+
+    {
+        // Push a copy of the SettingData shared pointer to our settings vector
+        std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
+
+        instance.settings.push_back(setting);
+    }
 }
 
 SettingManager::LoadError
 SettingManager::load(const char *path)
 {
+    SettingManager &instance = SettingManager::getInstance();
+
     if (path != nullptr) {
-        setPath(path);
+        instance.filePath = path;
     }
 
-    return SettingManager::loadFrom(manager()->filePath.c_str());
+    return SettingManager::loadFrom(instance.filePath.c_str());
 }
 
 /* get current working directory
@@ -181,6 +110,8 @@ cout << pBuf << endl;
 SettingManager::LoadError
 SettingManager::loadFrom(const char *path)
 {
+    SettingManager &instance = SettingManager::getInstance();
+
     // Open file
     FILE *fh = fopen(path, "rb");
     if (fh == nullptr) {
@@ -227,9 +158,8 @@ SettingManager::loadFrom(const char *path)
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
-    auto &document = manager()->document;
 
-    rapidjson::ParseResult ok = document.Parse(fileBuffer, fileSize);
+    rapidjson::ParseResult ok = instance.document.Parse(fileBuffer, fileSize);
 
     // Make sure the file parsed okay
     if (!ok) {
@@ -237,21 +167,20 @@ SettingManager::loadFrom(const char *path)
     }
 
     // This restricts config files a bit. They NEED to have an object root
-    if (!document.IsObject()) {
+    if (!instance.document.IsObject()) {
         return LoadError::JSONParseError;
     }
 
     // Perform deep merge of objects
     // detail::mergeObjects(document, d, document.GetAllocator());
 
-    // Fill in any settings that registered before we called load
-    detail::loadSettingsFromVector(document, manager()->objectSettings);
-    detail::loadSettingsFromVector(document, manager()->arraySettings);
-    detail::loadSettingsFromVector(document, manager()->intSettings);
-    detail::loadSettingsFromVector(document, manager()->floatSettings);
-    detail::loadSettingsFromVector(document, manager()->doubleSettings);
-    detail::loadSettingsFromVector(document, manager()->strSettings);
-    detail::loadSettingsFromVector(document, manager()->boolSettings);
+    {
+        // Fill in any settings that registered before we called load
+        std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
+        for (auto &setting : instance.settings) {
+            setting->unmarshalFrom(instance.document);
+        }
+    }
 
     return LoadError::NoError;
 }
@@ -259,16 +188,33 @@ SettingManager::loadFrom(const char *path)
 bool
 SettingManager::save(const char *path)
 {
+    SettingManager &instance = SettingManager::getInstance();
+
     if (path != nullptr) {
-        setPath(path);
+        instance.filePath = path;
     }
 
-    return SettingManager::saveAs(manager()->filePath.c_str());
+    return SettingManager::saveAs(instance.filePath.c_str());
 }
 
 bool
 SettingManager::saveAs(const char *path)
 {
+    SettingManager &instance = SettingManager::getInstance();
+
+    {
+        // Update any dirty settings
+        std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
+
+        for (const std::shared_ptr<ISettingData> &setting : instance.settings) {
+            if (setting->dirty || setting->isFilled()) {
+                setting->marshal(instance.document);
+                // setting->marshalInto(instance.document);
+                setting->dirty = false;
+            }
+        }
+    }
+
     FILE *fh = fopen(path, "wb+");
     if (fh == nullptr) {
         // Unable to open file at `path`
@@ -277,7 +223,7 @@ SettingManager::saveAs(const char *path)
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    manager()->document.Accept(writer);
+    instance.document.Accept(writer);
 
     auto writtenBytes = fwrite(buffer.GetString(), 1, buffer.GetSize(), fh);
 
@@ -291,359 +237,6 @@ SettingManager::saveAs(const char *path)
 
     return true;
 }
-
-rapidjson::Document &
-SettingManager::getDocument()
-{
-    return manager()->document;
-}
-
-template <>
-void
-SettingManager::localRegister<Array>(
-    std::shared_ptr<detail::SettingData<Array>> setting)
-{
-    manager()->arraySettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localRegister<Object>(
-    std::shared_ptr<detail::SettingData<Object>> setting)
-{
-    manager()->objectSettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localRegister<bool>(
-    std::shared_ptr<detail::SettingData<bool>> setting)
-{
-    manager()->boolSettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localRegister<int>(
-    std::shared_ptr<detail::SettingData<int>> setting)
-{
-    manager()->intSettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localRegister<std::string>(
-    std::shared_ptr<detail::SettingData<std::string>> setting)
-{
-    manager()->strSettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localRegister<float>(
-    std::shared_ptr<detail::SettingData<float>> setting)
-{
-    manager()->floatSettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localRegister<double>(
-    std::shared_ptr<detail::SettingData<double>> setting)
-{
-    manager()->doubleSettings.push_back(setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<Array>(
-    const std::shared_ptr<detail::SettingData<Array>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->arraySettings, setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<Object>(
-    const std::shared_ptr<detail::SettingData<Object>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->objectSettings, setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<bool>(
-    const std::shared_ptr<detail::SettingData<bool>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->boolSettings, setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<int>(
-    const std::shared_ptr<detail::SettingData<int>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->intSettings, setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<std::string>(
-    const std::shared_ptr<detail::SettingData<std::string>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->strSettings, setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<float>(
-    const std::shared_ptr<detail::SettingData<float>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->floatSettings, setting);
-}
-
-template <>
-void
-SettingManager::localUnregister<double>(
-    const std::shared_ptr<detail::SettingData<double>> &setting)
-{
-    SettingManager::removeSettingFrom(manager()->doubleSettings, setting);
-}
-
-namespace detail {
-
-template <>
-void
-setValueSoft(rapidjson::Document &document, const char *path, const Object &)
-{
-    // XXX: not sure if this is soft enough
-    // rapidjson::Pointer(path).Create(document);
-}
-
-template <>
-void
-setValueSoft(rapidjson::Document &document, const char *path, const Array &)
-{
-    // XXX: not sure if this is soft enough
-    // rapidjson::Pointer(path).Create(document);
-}
-
-template <>
-void
-setValue(rapidjson::Document &document, const char *path,
-         const std::string &value)
-{
-    rapidjson::Pointer(path).Set(document, value.c_str());
-}
-
-template <>
-void
-setValue(rapidjson::Document &document, const char *path, const Object &)
-{
-    rapidjson::Pointer(path).Create(document);
-}
-
-template <>
-void
-setValue(rapidjson::Document &document, const char *path, const Array &)
-{
-    rapidjson::Pointer(path).Create(document);
-}
-
-template <>
-bool
-setSetting(shared_ptr<SettingData<Object>>, const rapidjson::Value &)
-{
-    // Do nothing
-    return true;
-}
-
-template <>
-bool
-setSetting(shared_ptr<SettingData<Array>>, const rapidjson::Value &)
-{
-    // Do nothing
-    return true;
-}
-
-template <>
-bool
-setSetting<float>(shared_ptr<SettingData<float>> setting,
-                  const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kNumberType: {
-            if (value.IsDouble()) {
-                setting->setValue(static_cast<float>(value.GetDouble()));
-                return true;
-            } else if (value.IsFloat()) {
-                setting->setValue(value.GetFloat());
-                return true;
-            } else if (value.IsInt()) {
-                setting->setValue(static_cast<float>(value.GetInt()));
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-setSetting<double>(shared_ptr<SettingData<double>> setting,
-                   const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kNumberType: {
-            if (value.IsDouble()) {
-                setting->setValue(value.GetDouble());
-                return true;
-            } else if (value.IsInt()) {
-                setting->setValue(value.GetInt());
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-setSetting<string>(shared_ptr<SettingData<string>> setting,
-                   const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kStringType: {
-            setting->setValue(value.GetString());
-            return true;
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-setSetting<bool>(shared_ptr<SettingData<bool>> setting,
-                 const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kTrueType:
-        case rapidjson::Type::kFalseType: {
-            setting->setValue(value.GetBool());
-            return true;
-        } break;
-
-        case rapidjson::Type::kNumberType: {
-            if (value.IsInt()) {
-                setting->setValue(value.GetInt() == 1);
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <>
-bool
-setSetting<int>(shared_ptr<SettingData<int>> setting,
-                const rapidjson::Value &value)
-{
-    auto type = value.GetType();
-
-    switch (type) {
-        case rapidjson::Type::kNumberType: {
-            if (value.IsDouble()) {
-                setting->setValue(static_cast<int>(value.GetDouble()));
-                return true;
-            } else if (value.IsInt()) {
-                setting->setValue(value.GetInt());
-                return true;
-            }
-        } break;
-
-        default: {
-            // We should never get here
-            // If we do, then we shouldn't do anything
-        } break;
-    }
-
-    return false;
-}
-
-template <typename Type>
-bool
-loadSetting(rapidjson::Document &document,
-            std::shared_ptr<SettingData<Type>> &setting)
-{
-    // A setting should always have a path
-    assert(!setting->getPath().empty());
-
-    return loadSettingFromPath(document, setting);
-}
-
-template <>
-bool
-loadSetting(rapidjson::Document &, std::shared_ptr<SettingData<Object>> &)
-{
-    return true;
-}
-
-template <>
-bool
-loadSetting(rapidjson::Document &, std::shared_ptr<SettingData<Array>> &)
-{
-    return true;
-}
-
-template <typename Type>
-bool
-loadSettingFromPath(rapidjson::Document &document,
-                    std::shared_ptr<SettingData<Type>> &setting)
-{
-    const char *path = setting->getPath().c_str();
-    auto value = rapidjson::Pointer(path).Get(document);
-    if (value == nullptr) {
-        return false;
-    }
-
-    setSetting(setting, *value);
-
-    return true;
-}
-
-}  // namespace detail
 
 }  // namespace Settings
 }  // namespace pajlada
