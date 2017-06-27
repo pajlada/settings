@@ -103,6 +103,23 @@ TEST_CASE("Scoped settings", "[settings]")
     }
 
     REQUIRE(a1 == 8);
+
+    Setting<int>::set("/a", 10);
+
+    REQUIRE(a1 == 10);
+
+    {
+        Setting<int> a2("/a");
+
+        REQUIRE(a2 == 10);
+
+        Setting<int>::set("/a", 20);
+
+        REQUIRE(a2 == 20);
+        REQUIRE(a1 == 20);
+    }
+
+    REQUIRE(a1 == 20);
 }
 
 TEST_CASE("Scoped custom class", "[settings]")

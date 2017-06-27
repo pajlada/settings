@@ -136,6 +136,23 @@ public:
         return this->data->valueChanged;
     };
 
+    // Static helper methods for one-offs (get or set setting)
+    static const Type &
+    get(const std::string &path)
+    {
+        Setting<Type> setting(path);
+
+        return setting.getValueRef();
+    }
+
+    static void
+    set(const std::string &path, const Type &newValue)
+    {
+        Setting<Type> setting(path);
+
+        setting.setValue(newValue);
+    }
+
 private:
     std::string name;
 
