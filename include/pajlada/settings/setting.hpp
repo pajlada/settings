@@ -34,10 +34,12 @@ class Setting : public detail::ISetting
 {
 public:
     // Path
-    Setting(const std::string &path);
+    Setting(const std::string &path,
+            SettingOption options = SettingOption::Default);
 
     // Path, Default Value
-    Setting(const std::string &path, const Type &defaultValue);
+    Setting(const std::string &path, const Type &defaultValue,
+            SettingOption options = SettingOption::Default);
 
     virtual ~Setting() = default;
 
@@ -138,17 +140,18 @@ public:
 
     // Static helper methods for one-offs (get or set setting)
     static const Type &
-    get(const std::string &path)
+    get(const std::string &path, SettingOption options = SettingOption::Default)
     {
-        Setting<Type> setting(path);
+        Setting<Type> setting(path, options);
 
         return setting.getValueRef();
     }
 
     static void
-    set(const std::string &path, const Type &newValue)
+    set(const std::string &path, const Type &newValue,
+        SettingOption options = SettingOption::Default)
     {
-        Setting<Type> setting(path);
+        Setting<Type> setting(path, options);
 
         setting.setValue(newValue);
     }
@@ -161,16 +164,19 @@ private:
 
 // Path
 template <typename Type, typename Container>
-Setting<Type, Container>::Setting(const std::string &path)
-    : data(SettingManager::createSetting<Type, Container>(path))
+Setting<Type, Container>::Setting(const std::string &path,
+                                  SettingOption options)
+    : data(SettingManager::createSetting<Type, Container>(path, options))
 {
 }
 
 // Path, Default Value
 template <typename Type, typename Container>
 Setting<Type, Container>::Setting(const std::string &path,
-                                  const Type &defaultValue)
-    : data(SettingManager::createSetting<Type, Container>(path, defaultValue))
+                                  const Type &defaultValue,
+                                  SettingOption options)
+    : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
+                                                          options))
 {
 }
 

@@ -17,8 +17,13 @@
 namespace pajlada {
 namespace Settings {
 
-template <typename Type>
-class CustomSetting;
+enum class SettingOption : uint64_t {
+    DoNotWriteToJSON = (1ull << 1ull),
+
+    ForceSetOptions = (1ull << 2ull),
+
+    Default = 0,
+};
 
 class ISettingData
 {
@@ -27,9 +32,23 @@ public:
 
     virtual ~ISettingData() = default;
 
+    SettingOption options = SettingOption::Default;
+
+    inline bool
+    optionEnabled(SettingOption option) const
+    {
+        return (static_cast<uint64_t>(this->options) &
+                static_cast<uint64_t>(option)) != 0;
+    }
+
     void
     marshal(rapidjson::Document &d)
     {
+        if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
+            // Don't marshal anything into the setting document
+            return;
+        }
+
         rapidjson::Value v = this->marshalInto(d);
 
         rapidjson::Pointer(this->getPath().c_str()).Set(d, v);
@@ -57,6 +76,8 @@ public:
     void setPath(const std::string &_path);
 
     std::atomic<bool> dirty = {false};
+
+    bool doMarshal = true;
 
 protected:
     // Setting path (i.e. /a/b/c/3/d/e)
@@ -126,8 +147,10 @@ public:
     virtual void
     registerDocument(rapidjson::Document &d) override
     {
-        this->valueChanged.connect([this, &d](const Type &) {
-            this->marshalInto(d);  //
+        this->valueChanged.connect([this /*, &d*/](const Type &) {
+            // for now, just set as dirty
+            this->dirty = true;
+            // this->marshalInto(d);  //
         });
     }
 
@@ -158,9 +181,6 @@ public:
 private:
     Type value;
 
-    template <typename T, typename C>
-    friend class Setting;
-    friend class CustomSetting<Type>;
     friend class SettingManager;
 };
 

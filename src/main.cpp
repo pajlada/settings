@@ -57,8 +57,10 @@ public:
     virtual void
     registerDocument(rapidjson::Document &d) override
     {
-        this->valueChanged.connect([this, &d](const auto &) {
-            this->marshalInto(d);  //
+        this->valueChanged.connect([this /*, &d*/](const auto &) {
+            // just set as dirty for now
+            this->dirty = true;  //
+            // this->marshalInto(d);  //
         });
     }
 };
@@ -80,7 +82,7 @@ TEST_CASE("Custom class", "[settings]")
 
     REQUIRE(test->x == 6);
 
-    SettingManager::saveAs("files/customClassOut.json");
+    REQUIRE(SettingManager::saveAs("files/out.customClass.json") == true);
 }
 
 TEST_CASE("Scoped settings", "[settings]")
@@ -200,7 +202,7 @@ TEST_CASE("ChannelManager", "[settings]")
     }
 
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
-    REQUIRE(SettingManager::saveAs("files/test3.json"));
+    REQUIRE(SettingManager::saveAs("files/out.test3.json"));
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 }
 
@@ -340,5 +342,18 @@ TEST_CASE("Simple static", "[settings]")
 
     REQUIRE(Foo::i1.getValue() == 4);
 
-    REQUIRE(SettingManager::saveAs("files/test2.json") == true);
+    REQUIRE(SettingManager::saveAs("files/out.test2.json") == true);
+}
+
+// NOTE: This must be at the bottom to not disrupt with other
+// static-initialization testing above
+TEST_CASE("Test save/loading stuff", "[settings]")
+{
+    Setting<int>::set("/asd", 5);
+
+    SettingManager::clear();
+
+    Setting<int>::set("/lol", 10, SettingOption::DoNotWriteToJSON);
+
+    REQUIRE(SettingManager::saveAs("files/out.test.json") == true);
 }
