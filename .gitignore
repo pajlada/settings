@@ -10,7 +10,7 @@ files/customClassOut.json
 /settings.json
 
 # ignore binary
-settings
+/settings
 
 ## Generated
 # C++ objects and libs
@@ -37,8 +37,8 @@ settings
 moc_*.cpp
 qrc_*.cpp
 ui_*.h
-Makefile*
-*build-*
+/Makefile*
+/*build-*
 
 # QtCreator
 
