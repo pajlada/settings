@@ -83,6 +83,55 @@ TEST_CASE("Custom class", "[settings]")
     SettingManager::saveAs("files/customClassOut.json");
 }
 
+TEST_CASE("Scoped settings", "[settings]")
+{
+    Setting<int> a1("/a", 1);
+
+    REQUIRE(a1 == 1);
+
+    {
+        Setting<int> a2("/a");
+        // Because /a is already initialized, we should just load the same
+        // shared_ptr that a1 uses
+
+        REQUIRE(a2 == 1);
+
+        a2 = 8;
+
+        REQUIRE(a2 == 8);
+        REQUIRE(a1 == 8);
+    }
+
+    REQUIRE(a1 == 8);
+}
+
+TEST_CASE("Scoped custom class", "[settings]")
+{
+    Setting<CustomClass, CustomClass> b1("/b");
+
+    REQUIRE(b1->x == 0);
+    REQUIRE(b1->y == 0);
+
+    b1->x = 5;
+
+    REQUIRE(b1->x == 5);
+
+    {
+        Setting<CustomClass, CustomClass> b2("/b");
+        // Because /b is already initialized, we should just load the same
+        // shared_ptr that b1 uses
+
+        REQUIRE(b2->x == 5);
+
+        b2->y = 8;
+
+        REQUIRE(b2->y == 8);
+        REQUIRE(b1->y == 8);
+    }
+
+    REQUIRE(b1->y == 8);
+}
+
 TEST_CASE("Signals", "[settings]")
 {
     Channel ch("xD");

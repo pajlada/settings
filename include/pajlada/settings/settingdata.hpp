@@ -2,7 +2,6 @@
 
 #include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/setter.hpp"
-#include "pajlada/settings/settingmanager.hpp"
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
@@ -162,6 +161,7 @@ private:
     template <typename T, typename C>
     friend class Setting;
     friend class CustomSetting<Type>;
+    friend class SettingManager;
 };
 
 }  // namespace Settings

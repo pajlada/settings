@@ -39,7 +39,7 @@ public:
     // Path, Default Value
     Setting(const std::string &path, const Type &defaultValue);
 
-    ~Setting();
+    virtual ~Setting() = default;
 
     Setting &
     setName(const char *newName)
@@ -127,18 +127,6 @@ private:
         return this->data;
     }
 
-    void
-    registerSetting()
-    {
-        SettingManager::registerSetting(this->data);
-    }
-
-    void
-    unregisterSetting()
-    {
-        SettingManager::unregisterSetting(this->data);
-    }
-
     std::shared_ptr<Container> data;
 
 public:
@@ -157,28 +145,16 @@ private:
 // Path
 template <typename Type, typename Container>
 Setting<Type, Container>::Setting(const std::string &path)
-    : data(new Container())
+    : data(SettingManager::createSetting<Type, Container>(path))
 {
-    this->data->setPath(path);
-
-    this->registerSetting();
 }
 
 // Path, Default Value
 template <typename Type, typename Container>
 Setting<Type, Container>::Setting(const std::string &path,
                                   const Type &defaultValue)
-    : data(new Container(defaultValue))
+    : data(SettingManager::createSetting<Type, Container>(path, defaultValue))
 {
-    this->data->setPath(path);
-
-    this->registerSetting();
-}
-
-template <typename Type, typename Container>
-Setting<Type, Container>::~Setting()
-{
-    this->unregisterSetting();
 }
 
 }  // namespace Settings

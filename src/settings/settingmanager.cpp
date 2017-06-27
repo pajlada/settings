@@ -44,48 +44,23 @@ SettingManager::ppDocument(const rapidjson::Document &_document)
 }
 
 void
-SettingManager::unregisterSetting(const std::shared_ptr<ISettingData> &setting)
+SettingManager::registerSetting(std::shared_ptr<ISettingData> &setting)
 {
-    SettingManager &instance = SettingManager::getInstance();
-
-    std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
-
-    instance.settings.erase(
-        std::remove_if(
-            std::begin(instance.settings), std::end(instance.settings),
-            [setting](const auto &item) {
-                return setting->getConnectionID() == item->getConnectionID();
-            }),
-        std::end(instance.settings));
-}
-
-void
-SettingManager::registerSetting(std::shared_ptr<ISettingData> setting)
-{
-    auto &instance = SettingManager::getInstance();
-
     // Save initial value
     // We might want to have this as a setting?
     // TODO: Re-implement this
-    setting->marshalInto(instance.document);
+    setting->marshalInto(this->document);
 
     // Set up a signal which updates the rapidjson document with the new
     // value when the SettingData value is updated
-    setting->registerDocument(instance.document);
+    setting->registerDocument(this->document);
 
     // file loaded with SettingManager, this callback will also fire. the
     // only bad part about that is that the setValue method is called
     // unnecessarily
 
     // Load value from currently loaded document
-    setting->unmarshalFrom(instance.document);
-
-    {
-        // Push a copy of the SettingData shared pointer to our settings vector
-        std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
-
-        instance.settings.push_back(setting);
-    }
+    setting->unmarshalFrom(this->document);
 }
 
 SettingManager::LoadError
@@ -176,8 +151,11 @@ SettingManager::loadFrom(const char *path)
 
     {
         // Fill in any settings that registered before we called load
-        std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
-        for (auto &setting : instance.settings) {
+        std::lock_guard<std::mutex> lock(instance.settingsMutex);
+
+        for (const auto &it : instance.settings) {
+            const std::shared_ptr<ISettingData> &setting = it.second;
+
             setting->unmarshalFrom(instance.document);
         }
     }
@@ -204,9 +182,11 @@ SettingManager::saveAs(const char *path)
 
     {
         // Update any dirty settings
-        std::lock_guard<std::mutex> lock(instance.settingsVectorMutex);
+        std::lock_guard<std::mutex> lock(instance.settingsMutex);
 
-        for (const std::shared_ptr<ISettingData> &setting : instance.settings) {
+        for (const auto &it : instance.settings) {
+            const std::shared_ptr<ISettingData> &setting = it.second;
+
             if (setting->dirty || setting->isFilled()) {
                 setting->marshal(instance.document);
                 // setting->marshalInto(instance.document);

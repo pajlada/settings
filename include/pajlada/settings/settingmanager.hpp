@@ -1,18 +1,17 @@
 #pragma once
 
+#include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <mutex>
-#include <vector>
 
 namespace pajlada {
 namespace Settings {
-
-class ISettingData;
 
 class SettingManager
 {
@@ -33,13 +32,67 @@ public:
     static void pp();
     static void ppDocument(const rapidjson::Document &document);
 
+    template <typename Type, typename Container>
+    static std::shared_ptr<Container>
+    createSetting(const std::string &path)
+    {
+        SettingManager &instance = SettingManager::getInstance();
+
+        // Check if a setting with the given path is already created
+
+        std::lock_guard<std::mutex>(instance.settingsMutex);
+
+        auto &setting = instance.settings[path];
+
+        if (setting == nullptr) {
+            // No setting has been created with this path
+            setting.reset(new Container());
+
+            // TODO: This should be in the constructor
+            setting->setPath(path);
+
+            instance.registerSetting(setting);
+        }
+
+        std::shared_ptr<Container> ret =
+            std::static_pointer_cast<Container>(setting);
+
+        return ret;
+    }
+
+    template <typename Type, typename Container>
+    static std::shared_ptr<Container>
+    createSetting(const std::string &path, const Type &defaultValue)
+    {
+        SettingManager &instance = SettingManager::getInstance();
+
+        // Check if a setting with the given path is already created
+
+        std::lock_guard<std::mutex>(instance.settingsMutex);
+
+        auto &setting = instance.settings[path];
+
+        if (setting == nullptr) {
+            // No setting has been created with this path
+            setting.reset(new Container(defaultValue));
+
+            // TODO: This should be in the constructor
+            setting->setPath(path);
+
+            instance.registerSetting(setting);
+        }
+
+        std::shared_ptr<Container> ret =
+            std::static_pointer_cast<Container>(setting);
+
+        return ret;
+    }
+
 private:
     template <typename Type, typename Container>
     friend class Setting;
 
-    static void unregisterSetting(const std::shared_ptr<ISettingData> &setting);
-
-    static void registerSetting(std::shared_ptr<ISettingData> setting);
+    void registerSetting(std::shared_ptr<ISettingData> &setting);
 
 public:
     // Load from given path and set given path as the "default path" (or load
@@ -88,8 +141,10 @@ private:
 
     std::string filePath = "settings.json";
 
-    std::mutex settingsVectorMutex;
-    std::vector<std::shared_ptr<ISettingData>> settings;
+    std::mutex settingsMutex;
+
+    //       path         setting
+    std::map<std::string, std::shared_ptr<ISettingData>> settings;
 };
 
 }  // namespace Settings
