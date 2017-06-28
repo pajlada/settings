@@ -157,6 +157,10 @@ public:
     void
     setValue(const Type &newValue)
     {
+        if (this->value == newValue) {
+            return;
+        }
+
         this->value = newValue;
 
         this->filled = true;
