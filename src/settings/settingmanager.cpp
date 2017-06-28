@@ -151,9 +151,13 @@ SettingManager::loadFrom(const char *path)
 
     {
         // Fill in any settings that registered before we called load
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
+        instance.settingsMutex.lock();
 
-        for (const auto &it : instance.settings) {
+        auto settingsCopy = instance.settings;
+
+        instance.settingsMutex.unlock();
+
+        for (const auto &it : settingsCopy) {
             const std::shared_ptr<ISettingData> &setting = it.second;
 
             setting->unmarshalFrom(instance.document);
