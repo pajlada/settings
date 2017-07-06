@@ -2,6 +2,7 @@
 
 debug/
 release/
+build/
 
 # save files
 /settings.json

@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 3.8)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+project(settings)
+
+set(PajladaSettings_SOURCES
+    src/main.cpp
+    src/test/foo.cpp
+    src/test/channel.cpp
+    src/settings/settingdata.cpp
+    src/settings/settingmanager.cpp
+    )
+
+include_directories(include)
+
+add_executable(settings
+    ${PajladaSettings_SOURCES}
+    )
+
+# Enable C++14
+set_property(TARGET settings PROPERTY CXX_STANDARD 14)
+
+# Dependencies
+find_package(PajladaSignals REQUIRED)
+include_directories(${PajladaSignals_INCLUDE_DIRS})
+
+if (MSVC)
+
+else()
+    list(APPEND CMAKE_CXX_FLAGS "-Wall -Wno-unused-function -Wno-switch")
+endif()
+
+set(CMAKE_BUILD_TYPE Debug)
