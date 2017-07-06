@@ -60,14 +60,6 @@ public:
         return this->data->getValue();
     }
 
-    const Type &
-    getValueRef() const
-    {
-        assert(this->data != nullptr);
-
-        return this->data->getValueRef();
-    }
-
     void
     setValue(const Type &newValue)
     {
@@ -146,12 +138,12 @@ public:
     };
 
     // Static helper methods for one-offs (get or set setting)
-    static const Type &
+    static const Type
     get(const std::string &path, SettingOption options = SettingOption::Default)
     {
         Setting<Type> setting(path, options);
 
-        return setting.getValueRef();
+        return setting.getValue();
     }
 
     static void
