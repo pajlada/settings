@@ -48,34 +48,33 @@ namespace pajlada {
 namespace Settings {
 
 template <>
-struct serializeToJSON<SimpleCustomClass> {
+struct Serialize<SimpleCustomClass> {
     static rapidjson::Value
-    serialize(const SimpleCustomClass &value,
-              rapidjson::Document::AllocatorType &a)
+    get(const SimpleCustomClass &value, rapidjson::Document::AllocatorType &a)
     {
         rapidjson::Value ret(rapidjson::kObjectType);
 
         ret.AddMember(rapidjson::Value("x", a).Move(),
-                      serializeToJSON<int>::serialize(value.x, a), a);
+                      Serialize<int>::get(value.x, a), a);
         ret.AddMember(rapidjson::Value("y", a).Move(),
-                      serializeToJSON<int>::serialize(value.y, a), a);
+                      Serialize<int>::get(value.y, a), a);
 
         return ret;
     }
 };
 
 template <>
-struct deserializeJSON<SimpleCustomClass> {
+struct Deserialize<SimpleCustomClass> {
     static SimpleCustomClass
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         SimpleCustomClass ret;
 
         // Note: missing error checking here
         // value might not be an object, and value might not have the members
         // "x" and "y"
-        ret.x = deserializeJSON<int>::deserialize(value["x"]);
-        ret.y = deserializeJSON<int>::deserialize(value["y"]);
+        ret.x = Deserialize<int>::get(value["x"]);
+        ret.y = Deserialize<int>::get(value["y"]);
 
         return ret;
     }
@@ -97,8 +96,8 @@ public:
     {
         rapidjson::Value obj(rapidjson::kObjectType);
 
-        auto _x = serializeToJSON<int>::serialize(this->x, d.GetAllocator());
-        auto _y = serializeToJSON<int>::serialize(this->y, d.GetAllocator());
+        auto _x = Serialize<int>::get(this->x, d.GetAllocator());
+        auto _y = Serialize<int>::get(this->y, d.GetAllocator());
 
         obj.AddMember("x", _x, d.GetAllocator());
         obj.AddMember("y", _y, d.GetAllocator());
@@ -112,10 +111,10 @@ public:
         auto vXp = this->getValueWithSuffix("/x", document);
         auto vYp = this->getValueWithSuffix("/y", document);
         if (vXp != nullptr) {
-            this->x = deserializeJSON<int>::deserialize(*vXp);
+            this->x = Deserialize<int>::get(*vXp);
         }
         if (vYp != nullptr) {
-            this->y = deserializeJSON<int>::deserialize(*vYp);
+            this->y = Deserialize<int>::get(*vYp);
         }
 
         return true;

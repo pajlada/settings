@@ -13,9 +13,9 @@ namespace Settings {
 
 // Create a rapidjson::Value from the templated value
 template <typename Type>
-struct serializeToJSON {
+struct Serialize {
     static rapidjson::Value
-    serialize(const Type &value, rapidjson::Document::AllocatorType &)
+    get(const Type &value, rapidjson::Document::AllocatorType &)
     {
         rapidjson::Value ret(value);
 
@@ -24,9 +24,9 @@ struct serializeToJSON {
 };
 
 template <>
-struct serializeToJSON<std::string> {
+struct Serialize<std::string> {
     static rapidjson::Value
-    serialize(const std::string &value, rapidjson::Document::AllocatorType &a)
+    get(const std::string &value, rapidjson::Document::AllocatorType &a)
     {
         rapidjson::Value ret(value.c_str(), a);
 
@@ -35,9 +35,9 @@ struct serializeToJSON<std::string> {
 };
 
 template <>
-struct serializeToJSON<Object> {
+struct Serialize<Object> {
     static rapidjson::Value
-    serialize(const Object &, rapidjson::Document::AllocatorType &)
+    get(const Object &, rapidjson::Document::AllocatorType &)
     {
         rapidjson::Value ret(rapidjson::kObjectType);
 
@@ -46,9 +46,9 @@ struct serializeToJSON<Object> {
 };
 
 template <>
-struct serializeToJSON<Array> {
+struct Serialize<Array> {
     static rapidjson::Value
-    serialize(const Array &, rapidjson::Document::AllocatorType &)
+    get(const Array &, rapidjson::Document::AllocatorType &)
     {
         rapidjson::Value ret(rapidjson::kArrayType);
 
@@ -57,16 +57,15 @@ struct serializeToJSON<Array> {
 };
 
 template <typename ContainerType>
-struct serializeToJSON<std::vector<ContainerType>> {
+struct Serialize<std::vector<ContainerType>> {
     static rapidjson::Value
-    serialize(const std::vector<ContainerType> &value,
-              rapidjson::Document::AllocatorType &a)
+    get(const std::vector<ContainerType> &value,
+        rapidjson::Document::AllocatorType &a)
     {
         rapidjson::Value ret(rapidjson::kArrayType);
 
         for (const ContainerType &innerValue : value) {
-            ret.PushBack(
-                serializeToJSON<ContainerType>::serialize(innerValue, a), a);
+            ret.PushBack(Serialize<ContainerType>::get(innerValue, a), a);
         }
 
         return ret;
@@ -74,9 +73,9 @@ struct serializeToJSON<std::vector<ContainerType>> {
 };
 
 template <typename Type>
-struct deserializeJSON {
+struct Deserialize {
     static Type
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         printf("%s\n", typeid(Type).name());
         throw std::runtime_error("Unimplemented deserialize for type");
@@ -84,9 +83,9 @@ struct deserializeJSON {
 };
 
 template <>
-struct deserializeJSON<int> {
+struct Deserialize<int> {
     static int
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         if (!value.IsInt()) {
             throw std::runtime_error(
@@ -98,9 +97,9 @@ struct deserializeJSON<int> {
 };
 
 template <>
-struct deserializeJSON<bool> {
+struct Deserialize<bool> {
     static bool
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         if (value.IsBool()) {
             // No conversion needed
@@ -119,9 +118,9 @@ struct deserializeJSON<bool> {
 };
 
 template <>
-struct deserializeJSON<double> {
+struct Deserialize<double> {
     static double
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         if (!value.IsFloat() && !value.IsDouble() && !value.IsNumber()) {
             throw std::runtime_error(
@@ -133,9 +132,9 @@ struct deserializeJSON<double> {
 };
 
 template <>
-struct deserializeJSON<float> {
+struct Deserialize<float> {
     static float
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         if (!value.IsFloat() && !value.IsDouble() && !value.IsNumber()) {
             throw std::runtime_error(
@@ -147,9 +146,9 @@ struct deserializeJSON<float> {
 };
 
 template <>
-struct deserializeJSON<std::string> {
+struct Deserialize<std::string> {
     static std::string
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         if (!value.IsString()) {
             throw std::runtime_error(
@@ -161,9 +160,9 @@ struct deserializeJSON<std::string> {
 };
 
 template <>
-struct deserializeJSON<Object> {
+struct Deserialize<Object> {
     static Object
-    deserialize(const rapidjson::Value &)
+    get(const rapidjson::Value &)
     {
         // Do nothing
         return Object{};
@@ -171,9 +170,9 @@ struct deserializeJSON<Object> {
 };
 
 template <>
-struct deserializeJSON<Array> {
+struct Deserialize<Array> {
     static Array
-    deserialize(const rapidjson::Value &)
+    get(const rapidjson::Value &)
     {
         // Do nothing
         return Array{};
@@ -181,9 +180,9 @@ struct deserializeJSON<Array> {
 };
 
 template <typename ContainerType>
-struct deserializeJSON<std::vector<ContainerType>> {
+struct Deserialize<std::vector<ContainerType>> {
     static std::vector<ContainerType>
-    deserialize(const rapidjson::Value &value)
+    get(const rapidjson::Value &value)
     {
         std::vector<ContainerType> ret;
 
@@ -192,7 +191,7 @@ struct deserializeJSON<std::vector<ContainerType>> {
         }
 
         for (const auto &v : value.GetArray()) {
-            ret.push_back(deserializeJSON<ContainerType>::deserialize(v));
+            ret.push_back(Deserialize<ContainerType>::get(v));
         }
 
         return ret;

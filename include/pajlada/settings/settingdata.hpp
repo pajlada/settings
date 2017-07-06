@@ -124,8 +124,7 @@ public:
     virtual rapidjson::Value
     marshalInto(rapidjson::Document &d) override
     {
-        return serializeToJSON<Type>::serialize(this->getValue(),
-                                                d.GetAllocator());
+        return Serialize<Type>::get(this->getValue(), d.GetAllocator());
     }
 
     virtual bool
@@ -137,7 +136,7 @@ public:
             return false;
         }
 
-        auto newValue = deserializeJSON<Type>::deserialize(*valuePointer);
+        auto newValue = Deserialize<Type>::get(*valuePointer);
 
         this->setValue(newValue);
 
