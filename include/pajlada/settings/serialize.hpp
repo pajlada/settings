@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <typeinfo>
+#include <vector>
 
 namespace pajlada {
 namespace Settings {
@@ -50,6 +51,23 @@ struct serializeToJSON<Array> {
     serialize(const Array &, rapidjson::Document::AllocatorType &)
     {
         rapidjson::Value ret(rapidjson::kArrayType);
+
+        return ret;
+    }
+};
+
+template <typename ContainerType>
+struct serializeToJSON<std::vector<ContainerType>> {
+    static rapidjson::Value
+    serialize(const std::vector<ContainerType> &value,
+              rapidjson::Document::AllocatorType &a)
+    {
+        rapidjson::Value ret(rapidjson::kArrayType);
+
+        for (const ContainerType &innerValue : value) {
+            ret.PushBack(
+                serializeToJSON<ContainerType>::serialize(innerValue, a), a);
+        }
 
         return ret;
     }
@@ -159,6 +177,25 @@ struct deserializeJSON<Array> {
     {
         // Do nothing
         return Array{};
+    }
+};
+
+template <typename ContainerType>
+struct deserializeJSON<std::vector<ContainerType>> {
+    static std::vector<ContainerType>
+    deserialize(const rapidjson::Value &value)
+    {
+        std::vector<ContainerType> ret;
+
+        if (!value.IsArray()) {
+            return ret;
+        }
+
+        for (const auto &v : value.GetArray()) {
+            ret.push_back(deserializeJSON<ContainerType>::deserialize(v));
+        }
+
+        return ret;
     }
 };
 

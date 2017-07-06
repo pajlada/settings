@@ -65,6 +65,28 @@ public:
     }
 };
 
+TEST_CASE("Vector", "[settings]")
+{
+    Setting<std::vector<int>> test("/vectorTest");
+
+    REQUIRE(SettingManager::loadFrom("files/in.vector.json") ==
+            SettingManager::LoadError::NoError);
+
+    auto vec = test.getValue();
+
+    REQUIRE(vec.size() == 3);
+
+    REQUIRE(vec.at(0) == 5);
+    REQUIRE(vec.at(1) == 10);
+    REQUIRE(vec.at(2) == 15);
+
+    std::vector<int> x = {1, 2, 3};
+
+    test = x;
+
+    REQUIRE(SettingManager::saveAs("files/out.vector.json") == true);
+}
+
 TEST_CASE("Custom class", "[settings]")
 {
     Setting<CustomClass, CustomClass> test("/hehehe");
