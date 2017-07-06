@@ -32,19 +32,8 @@ public:
     static void pp();
     static void ppDocument(const rapidjson::Document &document);
 
-    static void
-    clear()
-    {
-        SettingManager &instance = SettingManager::getInstance();
 
-        // Clear document
-        rapidjson::Value(rapidjson::kObjectType).Swap(instance.document);
-
-        // Clear map of settings
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
-
-        instance.settings.clear();
-    }
+    static void clear();
 
     template <typename Type, typename Container>
     static std::shared_ptr<Container>

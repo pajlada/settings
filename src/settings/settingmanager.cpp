@@ -44,6 +44,20 @@ SettingManager::ppDocument(const rapidjson::Document &_document)
 }
 
 void
+SettingManager::clear()
+{
+    SettingManager &instance = SettingManager::getInstance();
+
+    // Clear document
+    rapidjson::Value(rapidjson::kObjectType).Swap(instance.document);
+
+    // Clear map of settings
+    std::lock_guard<std::mutex> lock(instance.settingsMutex);
+
+    instance.settings.clear();
+}
+
+void
 SettingManager::registerSetting(std::shared_ptr<ISettingData> &setting)
 {
     // Save initial value
