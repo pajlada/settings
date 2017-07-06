@@ -174,12 +174,6 @@ public:
         return this->value;
     }
 
-    const Type &
-    getValueRef() const
-    {
-        return this->value;
-    }
-
     Signals::Signal<const Type &> valueChanged;
 
 private:
