@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pajlada/settings/borrowedsetting.hpp"
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
 #include "pajlada/settings/types.hpp"
@@ -95,6 +96,12 @@ public:
         this->data->dirty = true;
 
         return this->data.get();
+    }
+
+    BorrowedSetting<Type>
+    borrow()
+    {
+        return BorrowedSetting<Type>(std::shared_ptr<Container>(this->data));
     }
 
     Setting &

@@ -17,6 +17,73 @@ using namespace pajlada;
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 
+class SimpleCustomClass
+{
+public:
+    SimpleCustomClass() = default;
+
+    explicit SimpleCustomClass(int _x, int _y)
+        : x(_x)
+        , y(_y)
+    {
+    }
+
+    int x = 0;
+    int y = 0;
+
+    bool
+    operator==(const SimpleCustomClass &o) const
+    {
+        return std::tie(this->x, this->y) == std::tie(o.x, o.y);
+    }
+
+    bool
+    operator!=(const SimpleCustomClass &o) const
+    {
+        return !(*this == o);
+    }
+};
+
+namespace pajlada {
+namespace Settings {
+
+template <>
+struct serializeToJSON<SimpleCustomClass> {
+    static rapidjson::Value
+    serialize(const SimpleCustomClass &value,
+              rapidjson::Document::AllocatorType &a)
+    {
+        rapidjson::Value ret(rapidjson::kObjectType);
+
+        ret.AddMember(rapidjson::Value("x", a).Move(),
+                      serializeToJSON<int>::serialize(value.x, a), a);
+        ret.AddMember(rapidjson::Value("y", a).Move(),
+                      serializeToJSON<int>::serialize(value.y, a), a);
+
+        return ret;
+    }
+};
+
+template <>
+struct deserializeJSON<SimpleCustomClass> {
+    static SimpleCustomClass
+    deserialize(const rapidjson::Value &value)
+    {
+        SimpleCustomClass ret;
+
+        // Note: missing error checking here
+        // value might not be an object, and value might not have the members
+        // "x" and "y"
+        ret.x = deserializeJSON<int>::deserialize(value["x"]);
+        ret.y = deserializeJSON<int>::deserialize(value["y"]);
+
+        return ret;
+    }
+};
+
+}  // namespace Settings
+}  // namespace pajlada
+
 class CustomClass : public pajlada::Settings::ISettingData
 {
 public:
@@ -105,6 +172,82 @@ TEST_CASE("Custom class", "[settings]")
     REQUIRE(test->x == 6);
 
     REQUIRE(SettingManager::saveAs("files/out.customClass.json") == true);
+}
+
+TEST_CASE("Borrowed setting", "[settings]")
+{
+    Setting<int> test("/borrowedSettingInt");
+
+    int numSignalsFired = 0;
+
+    test.getValueChangedSignal().connect(
+        [&numSignalsFired](const auto &newValue) {
+            ++numSignalsFired;  //
+        });
+
+    test = 10;
+
+    REQUIRE(test == 10);
+    REQUIRE(numSignalsFired == 1);
+
+    {
+        BorrowedSetting<int> borrowedTest = test.borrow();
+
+        borrowedTest = 15;
+    }
+
+    REQUIRE(test == 15);
+    REQUIRE(numSignalsFired == 2);
+}
+
+TEST_CASE("Borrowed setting custom class", "[settings]")
+{
+    Setting<SimpleCustomClass> test("/borrowedSettingCustom");
+
+    int numSignalsFired = 0;
+
+    test.getValueChangedSignal().connect(
+        [&numSignalsFired](const auto &newValue) {
+            ++numSignalsFired;  //
+        });
+
+    REQUIRE(numSignalsFired == 0);
+
+    test = SimpleCustomClass{5, 10};
+
+    REQUIRE(numSignalsFired == 1);
+
+    {
+        auto v = test.getValue();
+        REQUIRE(v.x == 5);
+        REQUIRE(v.y == 10);
+    }
+
+    {
+        BorrowedSetting<SimpleCustomClass> borrowedTest = test.borrow();
+    }
+
+    REQUIRE(numSignalsFired == 1);
+
+    {
+        auto v = test.getValue();
+        REQUIRE(v.x == 5);
+        REQUIRE(v.y == 10);
+    }
+
+    {
+        BorrowedSetting<SimpleCustomClass> borrowedTest = test.borrow();
+
+        borrowedTest->x = 6;
+    }
+
+    REQUIRE(numSignalsFired == 2);
+
+    {
+        auto v = test.getValue();
+        REQUIRE(v.x == 6);
+        REQUIRE(v.y == 10);
+    }
 }
 
 TEST_CASE("Scoped settings", "[settings]")
