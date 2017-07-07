@@ -83,53 +83,40 @@ struct Deserialize<SimpleCustomClass> {
 }  // namespace Settings
 }  // namespace pajlada
 
-class CustomClass : public pajlada::Settings::ISettingData
+TEST_CASE("Array test", "[settings]")
 {
-public:
-    int x = 0;
-    int y = 0;
+    Setting<int> test1("/array/0/int", SettingOption::SaveOnChange);
+    Setting<int> test2("/array/1/int", SettingOption::SaveInitialValue);
+    Setting<int> test3("/array/2/int", SettingOption::SaveInitialValue);
 
-    Signals::Signal<const CustomClass &> valueChanged;
+    test1 = 5;
+    test2 = 10;
+    test3 = 15;
 
-    virtual rapidjson::Value
-    marshalInto(rapidjson::Document &d) override
-    {
-        rapidjson::Value obj(rapidjson::kObjectType);
+    // This below assertation is not always true
+    // It will only be true if the settings above area created with
+    // "SaveInitialValue", or if "SaveOnChange" is enabled and the value has
+    // been changed
+    REQUIRE(SettingManager::arraySize("/array") == 3);
 
-        auto _x = Serialize<int>::get(this->x, d.GetAllocator());
-        auto _y = Serialize<int>::get(this->y, d.GetAllocator());
+    REQUIRE(SettingManager::saveAs("files/out.array_test.json") == true);
 
-        obj.AddMember("x", _x, d.GetAllocator());
-        obj.AddMember("y", _y, d.GetAllocator());
+    REQUIRE(SettingManager::arraySize("/array") == 3);
+}
 
-        return obj;
-    }
+TEST_CASE("Array size", "[settings]")
+{
+    REQUIRE(SettingManager::loadFrom("files/in.array_size.json") ==
+            SettingManager::LoadError::NoError);
 
-    virtual bool
-    unmarshalFrom(rapidjson::Document &document) override
-    {
-        auto vXp = this->getValueWithSuffix("/x", document);
-        auto vYp = this->getValueWithSuffix("/y", document);
-        if (vXp != nullptr) {
-            this->x = Deserialize<int>::get(*vXp);
-        }
-        if (vYp != nullptr) {
-            this->y = Deserialize<int>::get(*vYp);
-        }
+    REQUIRE(SettingManager::arraySize("/arraySize1") == 1);
+    REQUIRE(SettingManager::arraySize("/arraySize2") == 2);
+    REQUIRE(SettingManager::arraySize("/arraySize3") == 3);
+    REQUIRE(SettingManager::arraySize("/arraySize4") == 4);
 
-        return true;
-    }
-
-    virtual void
-    registerDocument(rapidjson::Document &d) override
-    {
-        this->valueChanged.connect([this /*, &d*/](const auto &) {
-            // just set as dirty for now
-            this->dirty = true;  //
-            // this->marshalInto(d);  //
-        });
-    }
-};
+    // Not an array
+    REQUIRE(SettingManager::arraySize("/arraySize5") == 0);
+}
 
 TEST_CASE("Vector", "[settings]")
 {
@@ -151,26 +138,6 @@ TEST_CASE("Vector", "[settings]")
     test = x;
 
     REQUIRE(SettingManager::saveAs("files/out.vector.json") == true);
-}
-
-TEST_CASE("Custom class", "[settings]")
-{
-    Setting<CustomClass, CustomClass> test("/hehehe");
-
-    REQUIRE(test->x == 0);
-    REQUIRE(test->y == 0);
-
-    REQUIRE(SettingManager::loadFrom("files/customClass.json") ==
-            SettingManager::LoadError::NoError);
-
-    REQUIRE(test->x == 5);
-    REQUIRE(test->y == 10);
-
-    test->x = 6;
-
-    REQUIRE(test->x == 6);
-
-    REQUIRE(SettingManager::saveAs("files/out.customClass.json") == true);
 }
 
 TEST_CASE("Borrowed setting", "[settings]")
@@ -288,32 +255,7 @@ TEST_CASE("Scoped settings", "[settings]")
     REQUIRE(a1 == 20);
 }
 
-TEST_CASE("Scoped custom class", "[settings]")
-{
-    Setting<CustomClass, CustomClass> b1("/b");
-
-    REQUIRE(b1->x == 0);
-    REQUIRE(b1->y == 0);
-
-    b1->x = 5;
-
-    REQUIRE(b1->x == 5);
-
-    {
-        Setting<CustomClass, CustomClass> b2("/b");
-        // Because /b is already initialized, we should just load the same
-        // shared_ptr that b1 uses
-
-        REQUIRE(b2->x == 5);
-
-        b2->y = 8;
-
-        REQUIRE(b2->y == 8);
-        REQUIRE(b1->y == 8);
-    }
-
-    REQUIRE(b1->y == 8);
-}
+// TODO: Re-implement scoped tests
 
 TEST_CASE("Signals", "[settings]")
 {

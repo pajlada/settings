@@ -14,6 +14,8 @@ set(PajladaSettings_SOURCES
 
 include_directories(include)
 
+add_definitions(-DPAJLADA_SETTINGS_DEBUG)
+
 add_executable(settings
     ${PajladaSettings_SOURCES}
     )

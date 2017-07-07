@@ -72,6 +72,8 @@ struct Serialize<std::vector<ContainerType>> {
     }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 template <typename Type>
 struct Deserialize {
     static Type

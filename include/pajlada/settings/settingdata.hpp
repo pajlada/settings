@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pajlada/settings/internal.hpp"
 #include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/setter.hpp"
 #include "pajlada/settings/types.hpp"
@@ -10,7 +11,6 @@
 
 #include <atomic>
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -22,8 +22,18 @@ enum class SettingOption : uint64_t {
 
     ForceSetOptions = (1ull << 2ull),
 
+    SaveOnChange = (1ull << 3ull),
+
+    SaveInitialValue = (1ull << 4ull),
+
     Default = 0,
 };
+
+inline SettingOption
+operator|(const SettingOption &lhs, const SettingOption &rhs)
+{
+    return (SettingOption)((uint64_t)lhs | (uint64_t)rhs);
+}
 
 class ISettingData
 {
@@ -45,13 +55,19 @@ public:
     marshal(rapidjson::Document &d)
     {
         if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
-            // Don't marshal anything into the setting document
+            PS_DEBUG(
+                "[" << this->path
+                    << "] Skipping marshal due to `DoNotWriteToJSON` setting");
             return;
         }
+
+        PS_DEBUG("[" << this->path << "] Marshalling into document");
 
         rapidjson::Value v = this->marshalInto(d);
 
         rapidjson::Pointer(this->getPath().c_str()).Set(d, v);
+
+        this->needsMarshalling = false;
     }
 
     virtual rapidjson::Value marshalInto(rapidjson::Document &d) = 0;
@@ -65,29 +81,17 @@ public:
         return this->connectionID;
     }
 
-    inline bool
-    isFilled() const
-    {
-        return this->filled;
-    }
-
     const std::string &getPath() const;
 
     void setPath(const std::string &_path);
 
-    std::atomic<bool> dirty = {false};
-
-    bool doMarshal = true;
+    std::atomic<bool> needsMarshalling = {false};
 
 protected:
     // Setting path (i.e. /a/b/c/3/d/e)
     std::string path;
 
     uint64_t connectionID = 0;
-
-    // If the setting has been filled with any value other than the default
-    // one
-    bool filled = false;
 
     rapidjson::Value *
     getValueWithSuffix(const std::string &suffix, rapidjson::Document &document)
@@ -146,11 +150,19 @@ public:
     virtual void
     registerDocument(rapidjson::Document &d) override
     {
-        this->valueChanged.connect([this /*, &d*/](const Type &) {
-            // for now, just set as dirty
-            this->dirty = true;
-            // this->marshalInto(d);  //
+        // PS_DEBUG("[" << this->path << "] Register document");
+
+        this->valueChanged.connect([this, &d](const Type &) {
+            if (this->optionEnabled(SettingOption::SaveOnChange)) {
+                this->marshal(d);
+            } else {
+                this->needsMarshalling = true;
+            }
         });
+
+        if (this->optionEnabled(SettingOption::SaveInitialValue)) {
+            this->marshal(d);
+        }
     }
 
     void
@@ -161,8 +173,6 @@ public:
         }
 
         this->value = newValue;
-
-        this->filled = true;
 
         this->valueChanged.invoke(newValue);
     }

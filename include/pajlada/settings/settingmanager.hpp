@@ -29,9 +29,11 @@ public:
     };
 
     // Print given document json data prettily
-    static void pp();
-    static void ppDocument(const rapidjson::Document &document);
+    static void pp(const std::string &prefix = std::string());
+    static void ppDocument(const rapidjson::Document &document,
+                           const std::string &prefix = std::string());
 
+    static rapidjson::SizeType arraySize(const std::string &path);
 
     static void clear();
 

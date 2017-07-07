@@ -28,19 +28,40 @@ SettingManager::~SettingManager()
 }
 
 void
-SettingManager::pp()
+SettingManager::pp(const string &prefix)
 {
-    SettingManager::ppDocument(SettingManager::getInstance().document);
+    SettingManager::ppDocument(SettingManager::getInstance().document, prefix);
 }
 
 void
-SettingManager::ppDocument(const rapidjson::Document &_document)
+SettingManager::ppDocument(const rapidjson::Document &_document,
+                           const string &prefix)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     _document.Accept(writer);
 
-    cout << buffer.GetString() << endl;
+    cout << prefix << buffer.GetString() << endl;
+}
+
+rapidjson::SizeType
+SettingManager::arraySize(const string &path)
+{
+    SettingManager &instance = SettingManager::getInstance();
+
+    auto valuePointer = rapidjson::Pointer(path.c_str()).Get(instance.document);
+    if (valuePointer == nullptr) {
+        return false;
+    }
+
+    rapidjson::Value &value = *valuePointer;
+
+    if (!value.IsArray()) {
+        // Do we need to throw an error here?
+        return 0;
+    }
+
+    return value.Size();
 }
 
 void
@@ -52,13 +73,13 @@ SettingManager::clear()
     rapidjson::Value(rapidjson::kObjectType).Swap(instance.document);
 
     // Clear map of settings
-    std::lock_guard<std::mutex> lock(instance.settingsMutex);
+    lock_guard<mutex> lock(instance.settingsMutex);
 
     instance.settings.clear();
 }
 
 void
-SettingManager::registerSetting(std::shared_ptr<ISettingData> &setting)
+SettingManager::registerSetting(shared_ptr<ISettingData> &setting)
 {
     // Save initial value
     // We might want to have this as a setting?
@@ -131,7 +152,7 @@ SettingManager::loadFrom(const char *path)
     // Read file data into buffer
     auto readBytes = fread(fileBuffer, 1, fileSize, fh);
 
-    if (readBytes != static_cast<std::size_t>(fileSize)) {
+    if (readBytes != static_cast<size_t>(fileSize)) {
         // Error reading the buffer
         fclose(fh);
         delete[] fileBuffer;
@@ -172,7 +193,7 @@ SettingManager::loadFrom(const char *path)
         instance.settingsMutex.unlock();
 
         for (const auto &it : settingsCopy) {
-            const std::shared_ptr<ISettingData> &setting = it.second;
+            const shared_ptr<ISettingData> &setting = it.second;
 
             setting->unmarshalFrom(instance.document);
         }
@@ -196,19 +217,18 @@ SettingManager::save(const char *path)
 bool
 SettingManager::saveAs(const char *path)
 {
+    PS_DEBUG("Saving to " << path);
+
     SettingManager &instance = SettingManager::getInstance();
 
     {
-        // Update any dirty settings
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
+        lock_guard<mutex> lock(instance.settingsMutex);
 
         for (const auto &it : instance.settings) {
-            const std::shared_ptr<ISettingData> &setting = it.second;
+            const shared_ptr<ISettingData> &setting = it.second;
 
-            if (setting->dirty || setting->isFilled()) {
+            if (setting->needsMarshalling) {
                 setting->marshal(instance.document);
-                // setting->marshalInto(instance.document);
-                setting->dirty = false;
             }
         }
     }

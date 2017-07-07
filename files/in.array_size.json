@@ -1,0 +1,15 @@
+{
+    "arraySize1": [
+        1
+    ],
+    "arraySize2": [
+        1, 2
+    ],
+    "arraySize3": [
+        1, 2, 3
+    ],
+    "arraySize4": [
+        1, 2, null, 4
+    ],
+    "arraySize5": "notAnArray"
+}
