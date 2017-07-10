@@ -33,7 +33,18 @@ public:
     static void ppDocument(const rapidjson::Document &document,
                            const std::string &prefix = std::string());
 
+    // Useful array helper methods
     static rapidjson::SizeType arraySize(const std::string &path);
+    static bool isNull(const std::string &path);
+    bool _isNull(const std::string &path);
+    static void setNull(const std::string &path);
+
+    // Basically the same as setNull, except we fully remove a value if it's the
+    // last index of the array
+    static bool removeArrayValue(const std::string &arrayPath,
+                                 rapidjson::SizeType index);
+
+    static rapidjson::SizeType cleanArray(const std::string &arrayPath);
 
     static void clear();
 
@@ -107,6 +118,8 @@ private:
     friend class Setting;
 
     void registerSetting(std::shared_ptr<ISettingData> &setting);
+
+    void clearSettings(const std::string &root);
 
 public:
     // Load from given path and set given path as the "default path" (or load
