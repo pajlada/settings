@@ -4,6 +4,7 @@
 #include "pajlada/settings/settingdata.hpp"
 
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 
 #include <iostream>
 #include <string>
@@ -43,6 +44,24 @@ SettingManager::ppDocument(const rapidjson::Document &_document,
     _document.Accept(writer);
 
     cout << prefix << buffer.GetString() << endl;
+}
+
+std::string
+SettingManager::stringify(const rapidjson::Value &v)
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    v.Accept(writer);
+
+    return std::string(buffer.GetString());
+}
+
+rapidjson::Value *
+SettingManager::rawValue(const char *path)
+{
+    SettingManager &instance = SettingManager::getInstance();
+
+    return rapidjson::Pointer(path).Get(instance.document);
 }
 
 rapidjson::SizeType

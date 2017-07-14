@@ -32,6 +32,9 @@ public:
     static void pp(const std::string &prefix = std::string());
     static void ppDocument(const rapidjson::Document &document,
                            const std::string &prefix = std::string());
+    static std::string stringify(const rapidjson::Value &v);
+
+    static rapidjson::Value *rawValue(const char *path);
 
     // Useful array helper methods
     static rapidjson::SizeType arraySize(const std::string &path);
