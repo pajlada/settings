@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/internal.hpp"
 #include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/setter.hpp"
@@ -168,14 +169,9 @@ public:
     void
     setValue(const Type &newValue)
     {
-        /*
-         * TODO(pajlada): Implement templated IsEqual method.
-         * That templated thing should by default call the == operator, but can
-         * return different values for i.e. map
-        if (this->value == newValue) {
+        if (IsEqual<Type>::get(this->value, newValue)) {
             return;
         }
-        */
 
         this->value = newValue;
 

@@ -83,6 +83,74 @@ struct Deserialize<SimpleCustomClass> {
 }  // namespace Settings
 }  // namespace pajlada
 
+TEST_CASE("IsEqual", "[settings]")
+{
+    Setting<std::map<std::string, std::string>> stringMap("/stringMap");
+    Setting<std::map<std::string, boost::any>> anyMap("/anyMap");
+
+    REQUIRE(SettingManager::loadFrom("files/in.isequal.json") ==
+            SettingManager::LoadError::NoError);
+
+    {
+        auto map = stringMap.getValue();
+        REQUIRE(map.size() == 3);
+        REQUIRE(map["a"] == "5");
+        REQUIRE(map["b"] == "10");
+        REQUIRE(map["c"] == "15");
+
+        int numSignalsFired = 0;
+
+        stringMap.getValueChangedSignal().connect(
+            [&numSignalsFired](const auto &) {
+                ++numSignalsFired;  //
+            });
+
+        REQUIRE(numSignalsFired == 0);
+
+        stringMap = map;
+
+        REQUIRE(numSignalsFired == 0);
+
+        map["a"] = "8";
+
+        stringMap = map;
+
+        REQUIRE(numSignalsFired == 1);
+    }
+
+    {
+        using boost::any_cast;
+
+        auto map = anyMap.getValue();
+        REQUIRE(map.size() == 3);
+        REQUIRE(any_cast<std::string>(map["a"]) == "5");
+        REQUIRE(any_cast<int>(map["b"]) == 10);
+        REQUIRE(any_cast<std::string>(map["c"]) == "15");
+
+        int numSignalsFired = 0;
+
+        anyMap.getValueChangedSignal().connect(
+            [&numSignalsFired](const auto &) {
+                ++numSignalsFired;  //
+            });
+
+        REQUIRE(numSignalsFired == 0);
+
+        anyMap = map;
+
+        // Because we use boost::any, we cannot know whether the map that we're
+        // setting it to has been changed or not, so the equality check will
+        // always return false to be safe
+        REQUIRE(numSignalsFired == 1);
+
+        map["a"] = "8";
+
+        anyMap = map;
+
+        REQUIRE(numSignalsFired == 2);
+    }
+}
+
 TEST_CASE("Simple Map", "[settings]")
 {
     using boost::any_cast;
