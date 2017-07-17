@@ -83,6 +83,65 @@ struct Deserialize<SimpleCustomClass> {
 }  // namespace Settings
 }  // namespace pajlada
 
+TEST_CASE("Simple Map", "[settings]")
+{
+    using boost::any_cast;
+
+    Setting<std::map<std::string, boost::any>> test("/map");
+
+    REQUIRE(SettingManager::loadFrom("files/in.simplemap.json") ==
+            SettingManager::LoadError::NoError);
+
+    auto map = test.getValue();
+    REQUIRE(map.size() == 3);
+    REQUIRE(any_cast<int>(map["a"]) == 1);
+    REQUIRE(any_cast<std::string>(map["b"]) == "asd");
+    REQUIRE(any_cast<double>(map["c"]) == 3.14);
+
+    REQUIRE(SettingManager::saveAs("files/out.simplemap.json"));
+}
+
+TEST_CASE("Complex Map", "[settings]")
+{
+    using boost::any_cast;
+
+    Setting<std::map<std::string, boost::any>> test("/map");
+
+    REQUIRE(SettingManager::loadFrom("files/in.complexmap.json") ==
+            SettingManager::LoadError::NoError);
+
+    auto map = test.getValue();
+    REQUIRE(map.size() == 3);
+    REQUIRE(any_cast<int>(map["a"]) == 5);
+
+    auto innerMap =
+        any_cast<std::map<std::string, boost::any>>(map["innerMap"]);
+    REQUIRE(innerMap.size() == 3);
+    REQUIRE(any_cast<int>(innerMap["a"]) == 420);
+    REQUIRE(any_cast<int>(innerMap["b"]) == 320);
+    REQUIRE(any_cast<double>(innerMap["c"]) == 13.37);
+
+    auto innerArray = any_cast<std::vector<boost::any>>(map["innerArray"]);
+    REQUIRE(innerArray.size() == 9);
+    REQUIRE(any_cast<int>(innerArray[0]) == 1);
+    REQUIRE(any_cast<int>(innerArray[1]) == 2);
+    REQUIRE(any_cast<int>(innerArray[2]) == 3);
+    REQUIRE(any_cast<int>(innerArray[3]) == 4);
+    REQUIRE(any_cast<std::string>(innerArray[4]) == "testman");
+    REQUIRE(any_cast<bool>(innerArray[5]) == true);
+    REQUIRE(any_cast<bool>(innerArray[6]) == false);
+    REQUIRE(any_cast<double>(innerArray[7]) == 4.20);
+
+    auto innerArrayMap =
+        any_cast<std::map<std::string, boost::any>>(innerArray[8]);
+    REQUIRE(innerArrayMap.size() == 3);
+    REQUIRE(any_cast<int>(innerArrayMap["a"]) == 1);
+    REQUIRE(any_cast<int>(innerArrayMap["b"]) == 2);
+    REQUIRE(any_cast<int>(innerArrayMap["c"]) == 3);
+
+    REQUIRE(SettingManager::saveAs("files/out.complexmap.json"));
+}
+
 TEST_CASE("Array test", "[settings]")
 {
     Setting<int> test1("/array/0/int", SettingOption::SaveOnChange);
