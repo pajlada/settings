@@ -14,8 +14,6 @@
 namespace pajlada {
 namespace Settings {
 
-boost::any DeserializeAny(const rapidjson::Value &value);
-
 template <typename Type>
 void AddMember(rapidjson::Value &object, const char *key, const Type &value,
                rapidjson::Document::AllocatorType &a);
