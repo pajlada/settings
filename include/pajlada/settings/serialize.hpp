@@ -136,6 +136,9 @@ struct Serialize<boost::any> {
             return Serialize<bool>::get(any_cast<bool>(value), a);
         } else if (value.type() == typeid(std::string)) {
             return Serialize<std::string>::get(any_cast<std::string>(value), a);
+        } else if (value.type() == typeid(const char *)) {
+            return Serialize<std::string>::get(any_cast<const char *>(value),
+                                               a);
         } else if (value.type() == typeid(std::map<std::string, boost::any>)) {
             return Serialize<std::map<std::string, boost::any>>::get(
                 any_cast<std::map<std::string, boost::any>>(value), a);
