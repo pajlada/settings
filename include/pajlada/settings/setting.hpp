@@ -30,9 +30,11 @@ private:
 
 }  // namespace detail
 
-template <typename Type, typename Container = SettingData<Type>>
+template <typename Type>
 class Setting : public detail::ISetting
 {
+    using Container = SettingData<Type>;
+
 public:
     // Path
     Setting(const std::string &path,
@@ -162,18 +164,16 @@ private:
 };
 
 // Path
-template <typename Type, typename Container>
-Setting<Type, Container>::Setting(const std::string &path,
-                                  SettingOption options)
+template <typename Type>
+Setting<Type>::Setting(const std::string &path, SettingOption options)
     : data(SettingManager::createSetting<Type, Container>(path, options))
 {
 }
 
 // Path, Default Value
-template <typename Type, typename Container>
-Setting<Type, Container>::Setting(const std::string &path,
-                                  const Type &defaultValue,
-                                  SettingOption options)
+template <typename Type>
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
+                       SettingOption options)
     : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
                                                           options))
 {

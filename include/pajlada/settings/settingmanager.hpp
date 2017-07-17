@@ -117,7 +117,7 @@ public:
     }
 
 private:
-    template <typename Type, typename Container>
+    template <typename Type>
     friend class Setting;
 
     void registerSetting(std::shared_ptr<ISettingData> &setting);
