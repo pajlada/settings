@@ -67,26 +67,10 @@ struct Serialize<Array> {
     }
 };
 
-template <typename ContainerType>
-struct Serialize<std::vector<ContainerType>> {
+template <typename ValueType>
+struct Serialize<std::map<std::string, ValueType>> {
     static rapidjson::Value
-    get(const std::vector<ContainerType> &value,
-        rapidjson::Document::AllocatorType &a)
-    {
-        rapidjson::Value ret(rapidjson::kArrayType);
-
-        for (const ContainerType &innerValue : value) {
-            ret.PushBack(Serialize<ContainerType>::get(innerValue, a), a);
-        }
-
-        return ret;
-    }
-};
-
-template <>
-struct Serialize<std::map<std::string, boost::any>> {
-    static rapidjson::Value
-    get(const std::map<std::string, boost::any> &value,
+    get(const std::map<std::string, ValueType> &value,
         rapidjson::Document::AllocatorType &a)
     {
         rapidjson::Value ret(rapidjson::kObjectType);
@@ -99,10 +83,10 @@ struct Serialize<std::map<std::string, boost::any>> {
     }
 };
 
-template <>
-struct Serialize<std::vector<boost::any>> {
+template <typename ValueType>
+struct Serialize<std::vector<ValueType>> {
     static rapidjson::Value
-    get(const std::vector<boost::any> &value,
+    get(const std::vector<ValueType> &value,
         rapidjson::Document::AllocatorType &a)
     {
         rapidjson::Value ret(rapidjson::kArrayType);
@@ -262,39 +246,15 @@ struct Deserialize<Array> {
     }
 };
 
-template <typename ContainerType>
-struct Deserialize<std::vector<ContainerType>> {
-    static std::vector<ContainerType>
+template <typename ValueType>
+struct Deserialize<std::map<std::string, ValueType>> {
+    static std::map<std::string, ValueType>
     get(const rapidjson::Value &value)
     {
-        std::vector<ContainerType> ret;
-
-        if (!value.IsArray()) {
-            return ret;
-        }
-
-        for (const auto &v : value.GetArray()) {
-            ret.push_back(Deserialize<ContainerType>::get(v));
-        }
-
-        return ret;
-    }
-};
-
-template <>
-struct Deserialize<boost::any> {
-    static boost::any get(const rapidjson::Value &value);
-};
-
-template <>
-struct Deserialize<std::map<std::string, boost::any>> {
-    static std::map<std::string, boost::any>
-    get(const rapidjson::Value &value)
-    {
-        std::map<std::string, boost::any> ret;
+        std::map<std::string, ValueType> ret;
 
         if (!value.IsObject()) {
-            PS_DEBUG("[std::map<std::string, boost::any>] "
+            PS_DEBUG("[std::map<std::string, ValueType>] "
                      "Deserialize: Value "
                      "is not a map");
             return ret;
@@ -303,7 +263,29 @@ struct Deserialize<std::map<std::string, boost::any>> {
         for (rapidjson::Value::ConstMemberIterator it = value.MemberBegin();
              it != value.MemberEnd(); ++it) {
             ret.emplace(it->name.GetString(),
-                        Deserialize<boost::any>::get(it->value));
+                        Deserialize<ValueType>::get(it->value));
+        }
+
+        return ret;
+    }
+};
+
+template <typename ValueType>
+struct Deserialize<std::vector<ValueType>> {
+    static std::vector<ValueType>
+    get(const rapidjson::Value &value)
+    {
+        std::vector<ValueType> ret;
+
+        if (!value.IsArray()) {
+            PS_DEBUG("[std::vector<ValueType>] "
+                     "Deserialize: Value "
+                     "is not an array");
+            return ret;
+        }
+
+        for (const rapidjson::Value &innerValue : value.GetArray()) {
+            ret.emplace_back(Deserialize<ValueType>::get(innerValue));
         }
 
         return ret;
@@ -311,46 +293,27 @@ struct Deserialize<std::map<std::string, boost::any>> {
 };
 
 template <>
-struct Deserialize<std::vector<boost::any>> {
-    static std::vector<boost::any>
+struct Deserialize<boost::any> {
+    static boost::any
     get(const rapidjson::Value &value)
     {
-        std::vector<boost::any> ret;
-
-        if (!value.IsArray()) {
-            PS_DEBUG("[std::vector<boost::any>] "
-                     "Deserialize: Value "
-                     "is not an array");
-            return ret;
+        if (value.IsInt()) {
+            return value.GetInt();
+        } else if (value.IsFloat() || value.IsDouble()) {
+            return value.GetDouble();
+        } else if (value.IsString()) {
+            return std::string(value.GetString());
+        } else if (value.IsBool()) {
+            return value.GetBool();
+        } else if (value.IsObject()) {
+            return Deserialize<std::map<std::string, boost::any>>::get(value);
+        } else if (value.IsArray()) {
+            return Deserialize<std::vector<boost::any>>::get(value);
         }
 
-        for (const rapidjson::Value &innerValue : value.GetArray()) {
-            ret.emplace_back(Deserialize<boost::any>::get(innerValue));
-        }
-
-        return ret;
+        return boost::any();
     }
 };
-
-inline boost::any
-Deserialize<boost::any>::get(const rapidjson::Value &value)
-{
-    if (value.IsInt()) {
-        return value.GetInt();
-    } else if (value.IsFloat() || value.IsDouble()) {
-        return value.GetDouble();
-    } else if (value.IsString()) {
-        return std::string(value.GetString());
-    } else if (value.IsBool()) {
-        return value.GetBool();
-    } else if (value.IsObject()) {
-        return Deserialize<std::map<std::string, boost::any>>::get(value);
-    } else if (value.IsArray()) {
-        return Deserialize<std::vector<boost::any>>::get(value);
-    }
-
-    return boost::any();
-}
 
 template <typename Type>
 inline void
