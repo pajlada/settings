@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pajlada/settings/internal.hpp"
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
