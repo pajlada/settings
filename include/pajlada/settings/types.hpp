@@ -5,7 +5,8 @@ namespace Settings {
 
 // Custom "JSON Object {}" type
 struct Object {
-    bool operator==(const Object &rhs)
+    bool
+    operator==(const Object &)
     {
         return false;
     }
@@ -13,7 +14,8 @@ struct Object {
 
 // Custom "JSON Array []" type
 struct Array {
-    bool operator==(const Array &rhs)
+    bool
+    operator==(const Array &)
     {
         return false;
     }
