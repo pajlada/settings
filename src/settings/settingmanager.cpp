@@ -46,14 +46,14 @@ SettingManager::ppDocument(const rapidjson::Document &_document,
     cout << prefix << buffer.GetString() << endl;
 }
 
-std::string
+string
 SettingManager::stringify(const rapidjson::Value &v)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     v.Accept(writer);
 
-    return std::string(buffer.GetString());
+    return string(buffer.GetString());
 }
 
 rapidjson::Value *
@@ -86,7 +86,7 @@ SettingManager::arraySize(const string &path)
 
 // Returns true if the value at the given path is null or if doesn't exist
 bool
-SettingManager::isNull(const std::string &path)
+SettingManager::isNull(const string &path)
 {
     SettingManager &instance = SettingManager::getInstance();
 
@@ -94,7 +94,7 @@ SettingManager::isNull(const std::string &path)
 }
 
 bool
-SettingManager::_isNull(const std::string &path)
+SettingManager::_isNull(const string &path)
 {
     auto valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
     if (valuePointer == nullptr) {
@@ -105,7 +105,7 @@ SettingManager::_isNull(const std::string &path)
 }
 
 void
-SettingManager::setNull(const std::string &path)
+SettingManager::setNull(const string &path)
 {
     SettingManager &instance = SettingManager::getInstance();
 
@@ -113,12 +113,12 @@ SettingManager::setNull(const std::string &path)
 }
 
 bool
-SettingManager::removeArrayValue(const std::string &arrayPath,
+SettingManager::removeArrayValue(const string &arrayPath,
                                  rapidjson::SizeType index)
 {
     SettingManager &instance = SettingManager::getInstance();
 
-    instance.clearSettings(arrayPath + "/" + std::to_string(index) + "/");
+    instance.clearSettings(arrayPath + "/" + to_string(index) + "/");
 
     rapidjson::SizeType size = SettingManager::arraySize(arrayPath);
 
@@ -144,16 +144,16 @@ SettingManager::removeArrayValue(const std::string &arrayPath,
         // We want to remove the last element
         array.PopBack();
     } else {
-        SettingManager::setNull(arrayPath + "/" + std::to_string(index));
+        SettingManager::setNull(arrayPath + "/" + to_string(index));
     }
 
-    instance.clearSettings(arrayPath + "/" + std::to_string(index) + "/");
+    instance.clearSettings(arrayPath + "/" + to_string(index) + "/");
 
     return true;
 }
 
 rapidjson::SizeType
-SettingManager::cleanArray(const std::string &arrayPath)
+SettingManager::cleanArray(const string &arrayPath)
 {
     rapidjson::SizeType size = SettingManager::arraySize(arrayPath);
 
@@ -167,7 +167,7 @@ SettingManager::cleanArray(const std::string &arrayPath)
     rapidjson::SizeType numValuesRemoved = 0;
 
     for (rapidjson::SizeType i = size - 1; i > 0; --i) {
-        if (instance._isNull(arrayPath + "/" + std::to_string(i))) {
+        if (instance._isNull(arrayPath + "/" + to_string(i))) {
             SettingManager::removeArrayValue(arrayPath, i);
             ++numValuesRemoved;
         }
@@ -230,11 +230,11 @@ SettingManager::registerSetting(shared_ptr<ISettingData> &setting)
 }
 
 void
-SettingManager::clearSettings(const std::string &root)
+SettingManager::clearSettings(const string &root)
 {
-    std::lock_guard<std::mutex> lock(this->settingsMutex);
+    lock_guard<mutex> lock(this->settingsMutex);
 
-    std::vector<std::string> keysToBeRemoved;
+    vector<string> keysToBeRemoved;
 
     for (const auto &setting : this->settings) {
         if (setting.first.compare(0, root.length(), root) == 0) {
