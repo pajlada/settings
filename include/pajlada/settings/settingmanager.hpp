@@ -49,6 +49,10 @@ public:
 
     static rapidjson::SizeType cleanArray(const std::string &arrayPath);
 
+    // Useful object helper methods
+    static std::vector<std::string> getObjectKeys(
+        const std::string &objectPath);
+
     static void clear();
 
     template <typename Type, typename Container>

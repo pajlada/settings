@@ -176,6 +176,25 @@ SettingManager::cleanArray(const std::string &arrayPath)
     return numValuesRemoved;
 }
 
+vector<string>
+SettingManager::getObjectKeys(const string &objectPath)
+{
+    vector<string> ret;
+
+    auto root = SettingManager::rawValue(objectPath.c_str());
+
+    if (root == nullptr || !root->IsObject()) {
+        return ret;
+    }
+
+    for (rapidjson::Value::ConstMemberIterator it = root->MemberBegin();
+         it != root->MemberEnd(); ++it) {
+        ret.emplace_back(it->name.GetString());
+    }
+
+    return ret;
+}
+
 void
 SettingManager::clear()
 {
