@@ -91,13 +91,6 @@ public:
         return *this;
     }
 
-    Container *operator->()
-    {
-        this->data->dirty = true;
-
-        return this->data.get();
-    }
-
     BorrowedSetting<Type>
     borrow()
     {
