@@ -18,6 +18,7 @@ public:
     static Settings::Setting<float> f4;
     static Settings::Setting<float> f5;
     static Settings::Setting<float> f6;
+    static Settings::Setting<float> f7;
 
     static Settings::Setting<double> d1;
     static Settings::Setting<double> d2;

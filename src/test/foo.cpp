@@ -17,6 +17,7 @@ Setting<float> Foo::f3("float3", 1.123456789f);
 Setting<float> Foo::f4("float4", 1.f);
 Setting<float> Foo::f5("float5", 0.f);
 Setting<float> Foo::f6("float6", -.1f);
+Setting<float> Foo::f7("float7", 1.0f);
 
 Setting<double> Foo::d1("double1", 1.0101);
 Setting<double> Foo::d2("double2", 1.0101010101);

@@ -505,6 +505,7 @@ TEST_CASE("Simple static", "[settings]")
     REQUIRE(Foo::f4.getValue() == 1.f);
     REQUIRE(Foo::f5.getValue() == 0.f);
     REQUIRE(Foo::f6.getValue() == -.1f);
+    REQUIRE(Foo::f7.getValue() == 1.f);
 
     REQUIRE(Foo::d1.getValue() == 1.0101);
     REQUIRE(Foo::d2.getValue() == 1.0101010101);
@@ -574,6 +575,8 @@ TEST_CASE("Simple static", "[settings]")
     Foo::i1 = 4;
 
     REQUIRE(Foo::i1.getValue() == 4);
+
+    Foo::f7 = 0.f;
 
     REQUIRE(SettingManager::saveAs("files/out.test2.json") == true);
 }
