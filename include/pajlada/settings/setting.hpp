@@ -122,6 +122,24 @@ public:
         return this->getValue();
     }
 
+    void
+    resetToDefaultValue()
+    {
+        this->data->resetToDefaultValue();
+    }
+
+    void
+    setDefaultValue(const Type &newDefaultValue)
+    {
+        this->data->setDefaultValue(newDefaultValue);
+    }
+
+    Type
+    getDefaultValue() const
+    {
+        return this->data->getDefaultValue();
+    }
+
 private:
     std::shared_ptr<Container>
     getData() const

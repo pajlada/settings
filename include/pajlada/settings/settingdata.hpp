@@ -109,19 +109,22 @@ class SettingData : public ISettingData,
 {
     SettingData()
         : ISettingData()
+        , defaultValue(Type())
         , value(Type())
     {
     }
 
-    SettingData(const Type &defaultValue)
+    SettingData(const Type &_defaultValue)
         : ISettingData()
-        , value(defaultValue)
+        , defaultValue(_defaultValue)
+        , value(_defaultValue)
     {
     }
 
-    SettingData(Type &&defaultValue)
+    SettingData(Type &&_defaultValue)
         : ISettingData()
-        , value(defaultValue)
+        , defaultValue(_defaultValue)
+        , value(_defaultValue)
     {
     }
 
@@ -178,6 +181,24 @@ public:
         this->valueChanged.invoke(newValue);
     }
 
+    void
+    resetToDefaultValue()
+    {
+        this->setValue(this->defaultValue);
+    }
+
+    void
+    setDefaultValue(const Type &newDefaultValue)
+    {
+        this->defaultValue = newDefaultValue;
+    }
+
+    Type
+    getDefaultValue() const
+    {
+        return this->defaultValue;
+    }
+
     Type
     getValue() const
     {
@@ -187,6 +208,7 @@ public:
     Signals::Signal<const Type &> valueChanged;
 
 private:
+    Type defaultValue;
     Type value;
 
     Type *
