@@ -46,6 +46,12 @@ public:
 
     virtual ~Setting() = default;
 
+    const std::string &
+    getPath() const
+    {
+        return this->data->getPath();
+    }
+
     Setting &
     setName(const char *newName)
     {
