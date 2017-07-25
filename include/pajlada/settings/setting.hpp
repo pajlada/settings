@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pajlada/settings/borrowedsetting.hpp"
+#include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
 #include "pajlada/settings/types.hpp"
@@ -138,6 +139,14 @@ public:
     getDefaultValue() const
     {
         return this->data->getDefaultValue();
+    }
+
+    // Returns true if the current value is the same as the default value
+    // boost::any cannot be properly compared
+    bool
+    isDefaultValue() const
+    {
+        return IsEqual<Type>::get(this->getValue(), this->getDefaultValue());
     }
 
 private:
