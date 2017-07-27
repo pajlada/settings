@@ -39,3 +39,10 @@ win32-msvc* {
 linux {
     QMAKE_CXXFLAGS_WARN_ON = -Wall
 }
+
+
+win32 {
+    LIBS += -LC:/local/boost_1_62_0/lib64-msvc-14.0
+    DEFINES += BOOST_USE_WINDOWS_H
+    INCLUDEPATH += C:/local/boost_1_62_0
+}
