@@ -2,6 +2,7 @@
 
 #include <pajlada/settings/setting.hpp>
 
+#include <QComboBox>
 #include <QSpinBox>
 
 namespace pajlada {
