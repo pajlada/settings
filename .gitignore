@@ -50,3 +50,5 @@ ui_*.h
 # QtCtreator CMake
 CMakeLists.txt.user
 
+# Ignore vim-plugin files
+.ycm_*
