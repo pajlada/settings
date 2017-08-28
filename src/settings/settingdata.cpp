@@ -9,17 +9,26 @@ using namespace std;
 namespace pajlada {
 namespace Settings {
 
-static atomic<uint64_t> latestConnectionID;
-
-ISettingData::ISettingData()
-    : connectionID(++latestConnectionID)
-{
-}
-
 const string &
 ISettingData::getPath() const
 {
     return this->path;
+}
+
+void
+ISettingData::marshal(rapidjson::Document &d)
+{
+    if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
+        PS_DEBUG("[" << this->path
+                     << "] Skipping marshal due to `DoNotWriteToJSON` setting");
+        return;
+    }
+
+    PS_DEBUG("[" << this->path << "] Marshalling into document");
+
+    rapidjson::Value v = this->marshalInto(d);
+
+    SettingManager::set(this->getPath().c_str(), std::move(v), d);
 }
 
 void
@@ -33,6 +42,12 @@ ISettingData::setPath(const string &_path)
     } else {
         this->path = "/" + _path;
     }
+}
+
+rapidjson::Value *
+ISettingData::get(rapidjson::Document &d)
+{
+    return SettingManager::get(this->path.c_str(), d);
 }
 
 }  // namespace Settings

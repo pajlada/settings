@@ -64,6 +64,27 @@ SettingManager::rawValue(const char *path)
     return rapidjson::Pointer(path).Get(instance.document);
 }
 
+rapidjson::Value *
+SettingManager::get(const char *path, rapidjson::Document &d)
+{
+    return rapidjson::Pointer(path).Get(d);
+}
+
+void
+SettingManager::set(const char *path, rapidjson::Value &&value,
+                    rapidjson::Document &d)
+{
+    rapidjson::Pointer(path).Set(d, value);
+}
+
+void
+SettingManager::set(const char *path, rapidjson::Value &&value)
+{
+    SettingManager &instance = SettingManager::getInstance();
+
+    rapidjson::Pointer(path).Set(instance.document, value);
+}
+
 rapidjson::SizeType
 SettingManager::arraySize(const string &path)
 {
@@ -369,18 +390,6 @@ SettingManager::saveAs(const char *path)
     PS_DEBUG("Saving to " << path);
 
     SettingManager &instance = SettingManager::getInstance();
-
-    {
-        lock_guard<mutex> lock(instance.settingsMutex);
-
-        for (const auto &it : instance.settings) {
-            const shared_ptr<ISettingData> &setting = it.second;
-
-            if (setting->needsMarshalling) {
-                setting->marshal(instance.document);
-            }
-        }
-    }
 
     FILE *fh = fopen(path, "wb+");
     if (fh == nullptr) {

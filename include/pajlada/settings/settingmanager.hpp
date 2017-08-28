@@ -35,6 +35,12 @@ public:
     static std::string stringify(const rapidjson::Value &v);
 
     static rapidjson::Value *rawValue(const char *path);
+    static rapidjson::Value *get(const char *path, rapidjson::Document &d);
+    static void set(const char *path, rapidjson::Value &&value,
+                    rapidjson::Document &d);
+    static void set(const char *path, rapidjson::Value &&value);
+
+    static void setWithPointer(const char *path, rapidjson::Value &&value);
 
     // Useful array helper methods
     static rapidjson::SizeType arraySize(const std::string &path);

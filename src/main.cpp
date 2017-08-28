@@ -198,13 +198,26 @@ TEST_CASE("ResetToDefault", "[settings]")
     REQUIRE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 }
 
+TEST_CASE("Any", "[settings]")
+{
+    Setting<boost::any> test("/anyTest");
+    auto test2 = new Setting<boost::any>("/anyTest2");
+
+    auto v1 = test.getValue();
+    auto v2 = test2->getValue();
+}
+
 TEST_CASE("IsEqual", "[settings]")
 {
     Setting<std::map<std::string, std::string>> stringMap("/stringMap");
     Setting<std::map<std::string, boost::any>> anyMap("/anyMap");
 
+    auto v = anyMap.getValue();
+
     REQUIRE(SettingManager::loadFrom("files/in.isequal.json") ==
             SettingManager::LoadError::NoError);
+
+    auto v2 = anyMap.getValue();
 
     {
         auto map = stringMap.getValue();
@@ -327,7 +340,7 @@ TEST_CASE("Complex Map", "[settings]")
 
 TEST_CASE("Array test", "[settings]")
 {
-    Setting<int> test1("/array/0/int", SettingOption::SaveOnChange);
+    Setting<int> test1("/array/0/int");
     Setting<int> test2("/array/1/int", SettingOption::SaveInitialValue);
     Setting<int> test3("/array/2/int", SettingOption::SaveInitialValue);
 
