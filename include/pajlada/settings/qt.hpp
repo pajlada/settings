@@ -32,7 +32,7 @@ connectToWidget(QSpinBox *widget, Setting<SettingType> &setting,
         });
 
     // Connect setting onChange to widget
-    setting.getValueChangedSignal().connect([widget](const auto &newValue) {
+    setting.getValueChangedSignal().connect([widget](const auto &newValue, const auto&) {
         widget->setValue(newValue);  //
     });
 }

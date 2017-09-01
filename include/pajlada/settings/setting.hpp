@@ -70,9 +70,9 @@ public:
     }
 
     void
-    setValue(const Type &newValue)
+    setValue(const Type &newValue, boost::any userData = boost::any())
     {
-        this->data->setValue(newValue);
+        this->data->setValue(newValue, userData);
     }
 
     Setting &
@@ -124,9 +124,9 @@ public:
     }
 
     void
-    resetToDefaultValue()
+    resetToDefaultValue(boost::any userData = boost::any())
     {
-        this->data->resetToDefaultValue();
+        this->data->resetToDefaultValue(userData);
     }
 
     void
@@ -159,7 +159,7 @@ private:
     std::shared_ptr<Container> data;
 
 public:
-    Signals::Signal<const Type &> &
+    Signals::Signal<const Type &, const boost::any &> &
     getValueChangedSignal()
     {
         return this->data->valueChanged;

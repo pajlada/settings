@@ -7,6 +7,7 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
+#include <boost/any.hpp>
 #include <pajlada/signals/signal.hpp>
 
 #include <atomic>
@@ -119,7 +120,7 @@ public:
     {
         // PS_DEBUG("[" << this->path << "] Register document");
 
-        this->valueChanged.connect([this, &d](const Type &) {
+        this->valueChanged.connect([this, &d](const Type &, const auto &) {
             this->marshal(d);  //
         });
 
@@ -129,7 +130,7 @@ public:
     }
 
     void
-    setValue(const Type &newValue)
+    setValue(const Type &newValue, boost::any userData = boost::any())
     {
         if (IsEqual<Type>::get(this->value, newValue)) {
             return;
@@ -137,13 +138,13 @@ public:
 
         this->value = newValue;
 
-        this->valueChanged.invoke(newValue);
+        this->valueChanged.invoke(newValue, userData);
     }
 
     void
-    resetToDefaultValue()
+    resetToDefaultValue(boost::any userData)
     {
-        this->setValue(this->defaultValue);
+        this->setValue(this->defaultValue, userData);
     }
 
     void
@@ -164,7 +165,7 @@ public:
         return this->value;
     }
 
-    Signals::Signal<const Type &> valueChanged;
+    Signals::Signal<const Type &, const boost::any &> valueChanged;
 
 private:
     Type defaultValue;
