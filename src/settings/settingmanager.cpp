@@ -36,8 +36,7 @@ SettingManager::pp(const string &prefix)
 }
 
 void
-SettingManager::ppDocument(const rapidjson::Document &_document,
-                           const string &prefix)
+SettingManager::ppDocument(const rapidjson::Document &_document, const string &prefix)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -71,8 +70,7 @@ SettingManager::get(const char *path, rapidjson::Document &d)
 }
 
 void
-SettingManager::set(const char *path, rapidjson::Value &&value,
-                    rapidjson::Document &d)
+SettingManager::set(const char *path, rapidjson::Value &&value, rapidjson::Document &d)
 {
     rapidjson::Pointer(path).Set(d, value);
 }
@@ -134,8 +132,7 @@ SettingManager::setNull(const string &path)
 }
 
 bool
-SettingManager::removeArrayValue(const string &arrayPath,
-                                 rapidjson::SizeType index)
+SettingManager::removeArrayValue(const string &arrayPath, rapidjson::SizeType index)
 {
     SettingManager &instance = SettingManager::getInstance();
 
@@ -153,8 +150,7 @@ SettingManager::removeArrayValue(const string &arrayPath,
         return false;
     }
 
-    auto valuePointer =
-        rapidjson::Pointer(arrayPath.c_str()).Get(instance.document);
+    auto valuePointer = rapidjson::Pointer(arrayPath.c_str()).Get(instance.document);
     if (valuePointer == nullptr) {
         return false;
     }
@@ -208,8 +204,8 @@ SettingManager::getObjectKeys(const string &objectPath)
         return ret;
     }
 
-    for (rapidjson::Value::ConstMemberIterator it = root->MemberBegin();
-         it != root->MemberEnd(); ++it) {
+    for (rapidjson::Value::ConstMemberIterator it = root->MemberBegin(); it != root->MemberEnd();
+         ++it) {
         ret.emplace_back(it->name.GetString());
     }
 

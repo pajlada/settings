@@ -38,8 +38,7 @@ class Setting : public detail::ISetting
 
 public:
     // Path
-    Setting(const std::string &path,
-            SettingOption options = SettingOption::Default);
+    Setting(const std::string &path, SettingOption options = SettingOption::Default);
 
     // Path, Default Value
     Setting(const std::string &path, const Type &defaultValue,
@@ -198,10 +197,8 @@ Setting<Type>::Setting(const std::string &path, SettingOption options)
 
 // Path, Default Value
 template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
-                       SettingOption options)
-    : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
-                                                          options))
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue, SettingOption options)
+    : data(SettingManager::createSetting<Type, Container>(path, defaultValue, options))
 {
 }
 

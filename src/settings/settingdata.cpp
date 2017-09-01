@@ -19,8 +19,7 @@ void
 ISettingData::marshal(rapidjson::Document &d)
 {
     if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
-        PS_DEBUG("[" << this->path
-                     << "] Skipping marshal due to `DoNotWriteToJSON` setting");
+        PS_DEBUG("[" << this->path << "] Skipping marshal due to `DoNotWriteToJSON` setting");
         return;
     }
 

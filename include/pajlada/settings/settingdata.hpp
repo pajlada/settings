@@ -46,8 +46,7 @@ public:
     inline bool
     optionEnabled(SettingOption option) const
     {
-        return (static_cast<uint64_t>(this->options) &
-                static_cast<uint64_t>(option)) != 0;
+        return (static_cast<uint64_t>(this->options) & static_cast<uint64_t>(option)) != 0;
     }
 
     void marshal(rapidjson::Document &d);
@@ -69,8 +68,7 @@ protected:
 };
 
 template <typename Type>
-class SettingData : public ISettingData,
-                    public std::enable_shared_from_this<SettingData<Type>>
+class SettingData : public ISettingData, public std::enable_shared_from_this<SettingData<Type>>
 {
     SettingData()
         : ISettingData()
