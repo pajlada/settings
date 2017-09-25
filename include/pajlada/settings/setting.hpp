@@ -69,15 +69,15 @@ public:
     }
 
     void
-    setValue(const Type &newValue, boost::any userData = boost::any())
+    setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
-        this->data->setValue(newValue, userData);
+        this->data->setValue(newValue, std::move(args));
     }
 
     Setting &
     operator=(const Type &newValue)
     {
-        this->data->setValue(newValue);
+        this->setValue(newValue);
 
         return *this;
     }
@@ -86,7 +86,7 @@ public:
     Setting &
     operator=(const T2 &newValue)
     {
-        this->data->setValue(newValue);
+        this->setValue(newValue);
 
         return *this;
     }
@@ -123,9 +123,9 @@ public:
     }
 
     void
-    resetToDefaultValue(boost::any userData = boost::any())
+    resetToDefaultValue(SignalArgs &&args = SignalArgs())
     {
-        this->data->resetToDefaultValue(userData);
+        this->data->resetToDefaultValue(std::move(args));
     }
 
     void
@@ -158,11 +158,11 @@ private:
     std::shared_ptr<Container> data;
 
 public:
-    Signals::Signal<const Type &, const boost::any &> &
+    Signals::Signal<const Type &, const SignalArgs &> &
     getValueChangedSignal()
     {
         return this->data->valueChanged;
-    };
+    }
 
     // Static helper methods for one-offs (get or set setting)
     static const Type

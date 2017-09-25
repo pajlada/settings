@@ -3,11 +3,11 @@
 #include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/internal.hpp"
 #include "pajlada/settings/serialize.hpp"
+#include "pajlada/settings/signalargs.hpp"
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
-#include <boost/any.hpp>
 #include <pajlada/signals/signal.hpp>
 
 #include <atomic>
@@ -108,7 +108,11 @@ public:
 
         auto newValue = Deserialize<Type>::get(*valuePointer);
 
-        this->setValue(newValue);
+        SignalArgs args;
+
+        args.source = SignalArgs::Source::Unmarshal;
+
+        this->setValue(newValue, std::move(args));
 
         return true;
     }
@@ -128,7 +132,7 @@ public:
     }
 
     void
-    setValue(const Type &newValue, boost::any userData = boost::any())
+    setValue(const Type &newValue, SignalArgs &&args)
     {
         if (IsEqual<Type>::get(this->value, newValue)) {
             return;
@@ -136,13 +140,21 @@ public:
 
         this->value = newValue;
 
-        this->valueChanged.invoke(newValue, userData);
+        SignalArgs invocationArgs(std::move(args.userData));
+
+        if (args.source == SignalArgs::Source::Unset) {
+            invocationArgs.source = SignalArgs::Source::Setter;
+        } else {
+            invocationArgs.source = args.source;
+        }
+
+        this->valueChanged.invoke(newValue, invocationArgs);
     }
 
     void
-    resetToDefaultValue(boost::any userData)
+    resetToDefaultValue(SignalArgs &&args)
     {
-        this->setValue(this->defaultValue, userData);
+        this->setValue(this->defaultValue, std::move(args));
     }
 
     void
@@ -163,7 +175,7 @@ public:
         return this->value;
     }
 
-    Signals::Signal<const Type &, const boost::any &> valueChanged;
+    Signals::Signal<const Type &, const SignalArgs &> valueChanged;
 
 private:
     Type defaultValue;
