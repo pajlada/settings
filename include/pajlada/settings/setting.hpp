@@ -48,12 +48,16 @@ public:
     const std::string &
     getPath() const
     {
+        assert(this->data != nullptr);
+
         return this->data->getPath();
     }
 
     Setting &
     setName(const char *newName)
     {
+        assert(this->data != nullptr);
+
         this->name = newName;
 
         return *this;
@@ -70,12 +74,16 @@ public:
     void
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
+        assert(this->data != nullptr);
+
         this->data->setValue(newValue, std::move(args));
     }
 
     Setting &
     operator=(const Type &newValue)
     {
+        assert(this->data != nullptr);
+
         this->setValue(newValue);
 
         return *this;
@@ -85,6 +93,8 @@ public:
     Setting &
     operator=(const T2 &newValue)
     {
+        assert(this->data != nullptr);
+
         this->setValue(newValue);
 
         return *this;
@@ -93,7 +103,9 @@ public:
     Setting &
     operator=(Type &&newValue) noexcept
     {
-        this->data->setValue(std::move(newValue));
+        assert(this->data != nullptr);
+
+        this->setValue(std::move(newValue));
 
         return *this;
     }
@@ -101,35 +113,47 @@ public:
     bool
     operator==(const Type &rhs) const
     {
+        assert(this->data != nullptr);
+
         return this->getValue() == rhs;
     }
 
     bool
     operator!=(const Type &rhs) const
     {
+        assert(this->data != nullptr);
+
         return this->getValue() != rhs;
     }
 
     operator const Type() const
     {
+        assert(this->data != nullptr);
+
         return this->getValue();
     }
 
     void
     resetToDefaultValue(SignalArgs &&args = SignalArgs())
     {
+        assert(this->data != nullptr);
+
         this->data->resetToDefaultValue(std::move(args));
     }
 
     void
     setDefaultValue(const Type &newDefaultValue)
     {
+        assert(this->data != nullptr);
+
         this->data->setDefaultValue(newDefaultValue);
     }
 
     Type
     getDefaultValue() const
     {
+        assert(this->data != nullptr);
+
         return this->data->getDefaultValue();
     }
 

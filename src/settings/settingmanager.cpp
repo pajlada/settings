@@ -226,6 +226,26 @@ SettingManager::clear()
     instance.settings.clear();
 }
 
+bool
+SettingManager::removeSetting(const string &path)
+{
+    SettingManager &instance = SettingManager::getInstance();
+
+    return instance._removeSetting(path);
+}
+
+bool
+SettingManager::_removeSetting(const string &path)
+{
+    auto ptr = rapidjson::Pointer(path.c_str());
+
+    lock_guard<mutex> lock(this->settingsMutex);
+
+    this->settings.erase(path);
+
+    return ptr.Erase(this->document);
+}
+
 void
 SettingManager::registerSetting(shared_ptr<ISettingData> &setting)
 {

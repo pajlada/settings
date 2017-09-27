@@ -83,6 +83,32 @@ struct Deserialize<SimpleCustomClass> {
 }  // namespace Settings
 }  // namespace pajlada
 
+TEST_CASE("RemoveSetting", "[settings]")
+{
+    Setting<int> a("/rs/a");
+    Setting<int> b("/rs/b", 5);
+    Setting<int> c("/rs/c");
+
+    // Before loading
+    REQUIRE(a == 0);
+    REQUIRE(b == 5);
+    REQUIRE(c == 0);
+
+    REQUIRE(SettingManager::loadFrom("files/in.removesetting.json") ==
+            SettingManager::LoadError::NoError);
+
+    // After loading
+    REQUIRE(a == 5);
+    REQUIRE(b == 10);
+    REQUIRE(c == 0);
+
+    REQUIRE(SettingManager::saveAs("files/out.pre.removesetting.json"));
+
+    REQUIRE(a.remove());
+
+    REQUIRE(SettingManager::saveAs("files/out.post.removesetting.json"));
+}
+
 TEST_CASE("ResetToDefault", "[settings]")
 {
     // No custom default value, not available in the settings file

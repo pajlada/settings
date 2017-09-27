@@ -120,11 +120,15 @@ public:
         return ret;
     }
 
+    static bool removeSetting(const std::string &path);
+
 private:
     template <typename Type>
     friend class Setting;
 
     void registerSetting(std::shared_ptr<ISettingData> &setting);
+
+    bool _removeSetting(const std::string &path);
 
     void clearSettings(const std::string &root);
 
