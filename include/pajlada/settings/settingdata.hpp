@@ -190,9 +190,6 @@ private:
     }
 
     friend class SettingManager;
-
-    template <typename a1, typename a2>
-    friend class BorrowedSetting;
 };
 
 }  // namespace Settings

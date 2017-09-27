@@ -229,7 +229,7 @@ TEST_CASE("IsEqual", "[settings]")
         int numSignalsFired = 0;
 
         stringMap.getValueChangedSignal().connect(
-            [&numSignalsFired](const auto &) {
+            [&numSignalsFired](auto, auto) {
                 ++numSignalsFired;  //
             });
 
@@ -258,7 +258,7 @@ TEST_CASE("IsEqual", "[settings]")
         int numSignalsFired = 0;
 
         anyMap.getValueChangedSignal().connect(
-            [&numSignalsFired](const auto &) {
+            [&numSignalsFired](auto, auto) {
                 ++numSignalsFired;  //
             });
 
@@ -395,82 +395,6 @@ TEST_CASE("Vector", "[settings]")
     REQUIRE(SettingManager::saveAs("files/out.vector.json") == true);
 }
 
-TEST_CASE("Borrowed setting", "[settings]")
-{
-    Setting<int> test("/borrowedSettingInt");
-
-    int numSignalsFired = 0;
-
-    test.getValueChangedSignal().connect(
-        [&numSignalsFired](const auto &newValue) {
-            ++numSignalsFired;  //
-        });
-
-    test = 10;
-
-    REQUIRE(test == 10);
-    REQUIRE(numSignalsFired == 1);
-
-    {
-        BorrowedSetting<int> borrowedTest = test.borrow();
-
-        borrowedTest = 15;
-    }
-
-    REQUIRE(test == 15);
-    REQUIRE(numSignalsFired == 2);
-}
-
-TEST_CASE("Borrowed setting custom class", "[settings]")
-{
-    Setting<SimpleCustomClass> test("/borrowedSettingCustom");
-
-    int numSignalsFired = 0;
-
-    test.getValueChangedSignal().connect(
-        [&numSignalsFired](const auto &newValue) {
-            ++numSignalsFired;  //
-        });
-
-    REQUIRE(numSignalsFired == 0);
-
-    test = SimpleCustomClass{5, 10};
-
-    REQUIRE(numSignalsFired == 1);
-
-    {
-        auto v = test.getValue();
-        REQUIRE(v.x == 5);
-        REQUIRE(v.y == 10);
-    }
-
-    {
-        BorrowedSetting<SimpleCustomClass> borrowedTest = test.borrow();
-    }
-
-    REQUIRE(numSignalsFired == 1);
-
-    {
-        auto v = test.getValue();
-        REQUIRE(v.x == 5);
-        REQUIRE(v.y == 10);
-    }
-
-    {
-        BorrowedSetting<SimpleCustomClass> borrowedTest = test.borrow();
-
-        borrowedTest->x = 6;
-    }
-
-    REQUIRE(numSignalsFired == 2);
-
-    {
-        auto v = test.getValue();
-        REQUIRE(v.x == 6);
-        REQUIRE(v.y == 10);
-    }
-}
-
 TEST_CASE("Scoped settings", "[settings]")
 {
     Setting<int> a1("/a", 1);
@@ -519,7 +443,7 @@ TEST_CASE("Signals", "[settings]")
     int maxMessageLength = 0;
 
     ch.maxMessageLength.getValueChangedSignal().connect(
-        [&maxMessageLength](const int &newValue) {
+        [&maxMessageLength](const int &newValue, auto) {
             maxMessageLength = newValue;  //
         });
 

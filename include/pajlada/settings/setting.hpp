@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pajlada/settings/borrowedsetting.hpp"
 #include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
@@ -89,12 +88,6 @@ public:
         this->setValue(newValue);
 
         return *this;
-    }
-
-    BorrowedSetting<Type>
-    borrow()
-    {
-        return BorrowedSetting<Type>(std::shared_ptr<Container>(this->data));
     }
 
     Setting &
