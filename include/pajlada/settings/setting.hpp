@@ -162,36 +162,76 @@ public:
     bool
     isDefaultValue() const
     {
+        assert(this->data != nullptr);
+
         return IsEqual<Type>::get(this->getValue(), this->getDefaultValue());
     }
 
-private:
-    std::shared_ptr<Container>
-    getData() const
+    // Remove this setting
+    bool
+    remove()
     {
-        return this->data;
+        auto uc = this->data.use_count();
+
+        if (uc != 2) {
+            return false;
+        }
+
+        SettingManager::removeSetting(this->getPath());
+
+        this->data.reset();
+
+        return true;
     }
 
+private:
     std::shared_ptr<Container> data;
 
 public:
     Signals::Signal<const Type &, const SignalArgs &> &
     getValueChangedSignal()
     {
+        assert(this->data != nullptr);
+
         return this->data->valueChanged;
     }
 
     void
-    connect(typename Container::valueChangedCallbackType func)
+    connect(typename Container::valueChangedCallbackType func, bool autoInvoke = true)
     {
-        this->managedConnections.emplace_back(this->data->valueChanged.connect(func));
+        assert(this->data != nullptr);
+
+        auto connection = this->data->valueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            this->data->valueChanged.invokeOne(connection.index, this->data->getValue(),
+                                               invocationArgs);
+        }
+
+        this->managedConnections.emplace_back(std::move(connection));
     }
 
     void
     connect(typename Container::valueChangedCallbackType func,
-            std::vector<Signals::ScopedConnection> &userDefinedManagedConnections)
+            std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
+            bool autoInvoke = true)
     {
-        userDefinedManagedConnections.emplace_back(this->data->valueChanged.connect(func));
+        assert(this->data != nullptr);
+
+        auto connection = this->data->valueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            this->data->valueChanged.invokeOne(connection.index, this->data->getValue(),
+                                               invocationArgs);
+        }
+
+        userDefinedManagedConnections.emplace_back(std::move(connection));
     }
 
     // Static helper methods for one-offs (get or set setting)

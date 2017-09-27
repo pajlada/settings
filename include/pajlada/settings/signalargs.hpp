@@ -17,6 +17,7 @@ struct SignalArgs {
         Unset,
         Setter,
         Unmarshal,
+        OnConnect,
         External,
     } source = Source::Unset;
 
