@@ -164,6 +164,19 @@ public:
         return this->data->valueChanged;
     }
 
+    void
+    connect(typename Container::valueChangedCallbackType func)
+    {
+        this->managedConnections.emplace_back(this->data->valueChanged.connect(func));
+    }
+
+    void
+    connect(typename Container::valueChangedCallbackType func,
+            std::vector<Signals::ScopedConnection> &userDefinedManagedConnections)
+    {
+        userDefinedManagedConnections.emplace_back(this->data->valueChanged.connect(func));
+    }
+
     // Static helper methods for one-offs (get or set setting)
     static const Type
     get(const std::string &path, SettingOption options = SettingOption::Default)
@@ -184,6 +197,8 @@ public:
 
 private:
     std::string name;
+
+    std::vector<Signals::ScopedConnection> managedConnections;
 
     friend class ISettingData;
 };

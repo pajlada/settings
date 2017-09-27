@@ -92,6 +92,8 @@ class SettingData : public ISettingData, public std::enable_shared_from_this<Set
     }
 
 public:
+    using valueChangedCallbackType = std::function<void(const Type &, const SignalArgs &args)>;
+
     virtual rapidjson::Value
     marshalInto(rapidjson::Document &d) override
     {
