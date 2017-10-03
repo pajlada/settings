@@ -1,6 +1,7 @@
 #include "test/foo.hpp"
 
 namespace pajlada {
+namespace test {
 
 using namespace Settings;
 
@@ -41,4 +42,5 @@ Setting<int> Foo::rootInt1 = Setting<int>("/root/i1", 1);
 // properly
 Setting<int> Foo::rootInt2 = Setting<int>("/root/i2", 1);
 
+}  // namespace test
 }  // namespace pajlada

@@ -177,6 +177,8 @@ public:
             return false;
         }
 
+        this->managedConnections.clear();
+
         SettingManager::removeSetting(this->getPath());
 
         this->data.reset();
@@ -207,8 +209,7 @@ public:
             SignalArgs invocationArgs;
             invocationArgs.source = SignalArgs::Source::OnConnect;
 
-            this->data->valueChanged.invokeOne(connection.index, this->data->getValue(),
-                                               invocationArgs);
+            connection.invoke(this->data->getValue(), invocationArgs);
         }
 
         this->managedConnections.emplace_back(std::move(connection));
@@ -227,8 +228,7 @@ public:
             SignalArgs invocationArgs;
             invocationArgs.source = SignalArgs::Source::OnConnect;
 
-            this->data->valueChanged.invokeOne(connection.index, this->data->getValue(),
-                                               invocationArgs);
+            connection.invoke(this->data->getValue(), invocationArgs);
         }
 
         userDefinedManagedConnections.emplace_back(std::move(connection));

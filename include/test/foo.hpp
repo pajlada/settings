@@ -3,6 +3,7 @@
 #include "pajlada/settings/setting.hpp"
 
 namespace pajlada {
+namespace test {
 
 class Foo
 {
@@ -41,4 +42,5 @@ public:
     static Settings::Setting<int> rootInt2;
 };
 
+}  // namespace test
 }  // namespace pajlada

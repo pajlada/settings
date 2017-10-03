@@ -13,75 +13,275 @@
 #include <assert.h>
 #include <iostream>
 
-using namespace pajlada;
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 
-class SimpleCustomClass
+TEST_CASE("AdvancedSignals", "[settings")
 {
-public:
-    SimpleCustomClass() = default;
+    int count = 0;
+    auto cb = [&count](auto, auto) { ++count; };
 
-    explicit SimpleCustomClass(int _x, int _y)
-        : x(_x)
-        , y(_y)
     {
+        count = 0;
+        Setting<int> a("/advancedSignals/a");
+        REQUIRE(count == 0);
+
+        // c1
+        a.connect(cb, false);
+
+        REQUIRE(count == 0);
+
+        // c2
+        a.connect(cb, true);
+
+        REQUIRE(count == 1);
+
+        auto c3 = a.getValueChangedSignal().connect(cb);
+
+        REQUIRE(count == 1);
+
+        // c1, c2, and c3 are active
+        a = 1;
+
+        REQUIRE(count == 4);
+
+        // c1, c2, and c3 are active
+        // Value wasn't changed, hence no signal fired
+        a = 1;
+
+        REQUIRE(count == 4);
+
+        // c1, c2, and c3 are active
+        a = 2;
+
+        REQUIRE(count == 7);
+
+        REQUIRE(c3.isConnected());
+        REQUIRE(c3.disconnect());
+        REQUIRE(!c3.isConnected());
+        REQUIRE(!c3.disconnect());
+        REQUIRE(!c3.isConnected());
+
+        // c1 and c2 c3 are active
+        a = 3;
+
+        REQUIRE(count == 9);
     }
 
-    int x = 0;
-    int y = 0;
-
-    bool
-    operator==(const SimpleCustomClass &o) const
     {
-        return std::tie(this->x, this->y) == std::tie(o.x, o.y);
+        count = 0;
+        Setting<int> b("/advancedSignals/b");
+        REQUIRE(count == 0);
+
+        auto c1 = b.getValueChangedSignal().connect(cb);
+
+        REQUIRE(count == 0);
+
+        b = 1;
+
+        REQUIRE(count == 1);
+
+        REQUIRE(!c1.isBlocked());
+        REQUIRE(c1.block());
+        REQUIRE(c1.isBlocked());
+        REQUIRE(!c1.block());
+        REQUIRE(c1.isBlocked());
+
+        b = 2;
+
+        REQUIRE(count == 1);
+
+        REQUIRE(c1.isBlocked());
+        REQUIRE(c1.unblock());
+        REQUIRE(!c1.isBlocked());
+        REQUIRE(!c1.unblock());
+        REQUIRE(!c1.isBlocked());
+
+        b = 3;
+
+        REQUIRE(count == 2);
+
+        {
+            auto c2 = b.getValueChangedSignal().connect(cb);
+
+            REQUIRE(count == 2);
+
+            b = 4;
+
+            REQUIRE(count == 4);
+
+            REQUIRE(c2.block());
+            REQUIRE(c2.isBlocked());
+            REQUIRE(!c1.isBlocked());
+
+            b = 5;
+
+            REQUIRE(count == 5);
+
+            REQUIRE(c2.unblock());
+            REQUIRE(!c2.isBlocked());
+            REQUIRE(!c1.isBlocked());
+
+            b = 6;
+
+            REQUIRE(count == 7);
+
+            REQUIRE(c1.isConnected());
+            REQUIRE(c2.isConnected());
+            REQUIRE(c2.disconnect());
+            REQUIRE(c1.isConnected());
+            REQUIRE(!c2.isConnected());
+
+            b = 7;
+
+            REQUIRE(count == 8);
+
+            {
+                auto c3 = b.getValueChangedSignal().connect(cb);
+
+                REQUIRE(count == 8);
+
+                b = 8;
+
+                REQUIRE(count == 10);
+            }
+
+            // Connection c3 has gone out of scope, this has caused
+            // a leaky callback. For now I think this should be
+            // your own responsibility. This can easily be fixed
+            // by just making a ScopedConnection instead like this:
+            // Signals::ScopedConnection c3 = b.getValueChangedSignal().connect(cb);
+            // Which will disconnect automatically when it goes out of scope
+
+            // c1 and c3 are active
+            b = 9;
+
+            REQUIRE(count == 12);
+
+            {
+                pajlada::Signals::ScopedConnection c4 = b.getValueChangedSignal().connect(cb);
+
+                // c1, c3, and c4 are active
+                b = 10;
+
+                REQUIRE(count == 15);
+
+                // c4 disconnected
+            }
+
+            // c1 and c3 are active
+            b = 11;
+
+            REQUIRE(count == 17);
+        }
     }
 
-    bool
-    operator!=(const SimpleCustomClass &o) const
     {
-        return !(*this == o);
+        count = 0;
+
+        std::vector<pajlada::Signals::ScopedConnection> connections;
+
+        {
+            Setting<int> c("/advancedSignals/c");
+
+            REQUIRE(count == 0);
+
+            c.connect(cb, connections, false);
+            c.connect(cb, connections, false);
+            c.connect(cb, connections, false);
+
+            REQUIRE(count == 0);
+
+            // c1, c2, and c3 are active
+            c = 1;
+
+            REQUIRE(count == 3);
+
+            connections.pop_back();
+
+            // c1 and c2 are active
+            c = 2;
+
+            REQUIRE(count == 5);
+        }
+
+        // Scenario: Setting has gone out of scope, but we still have connections that point
+        // toward a body that lived in the settings value changed signal
+
+        // not able to assert this correctness, but if it's broken it SHOULD crash here
     }
-};
 
-namespace pajlada {
-namespace Settings {
-
-template <>
-struct Serialize<SimpleCustomClass> {
-    static rapidjson::Value
-    get(const SimpleCustomClass &value, rapidjson::Document::AllocatorType &a)
     {
-        rapidjson::Value ret(rapidjson::kObjectType);
+        count = 0;
 
-        ret.AddMember(rapidjson::Value("x", a).Move(),
-                      Serialize<int>::get(value.x, a), a);
-        ret.AddMember(rapidjson::Value("y", a).Move(),
-                      Serialize<int>::get(value.y, a), a);
+        std::vector<pajlada::Signals::ScopedConnection> connections;
+        Setting<int> d("/advancedSignals/d");
+        REQUIRE(count == 0);
 
-        return ret;
+        d.connect(cb, connections, false);
+        d.connect(cb, connections, false);
+        d.connect(cb, connections, false);
+
+        REQUIRE(count == 0);
+
+        // c1, c2, and c3 are active
+        d = 1;
+
+        REQUIRE(count == 3);
+
+        connections.pop_back();
+
+        // c1 and c2 are active
+        d = 2;
+
+        REQUIRE(count == 5);
+
+        connections.clear();
+
+        // No connection is active
+        d = 3;
+
+        REQUIRE(count == 5);
     }
-};
 
-template <>
-struct Deserialize<SimpleCustomClass> {
-    static SimpleCustomClass
-    get(const rapidjson::Value &value)
     {
-        SimpleCustomClass ret;
+        count = 0;
 
-        // Note: missing error checking here
-        // value might not be an object, and value might not have the members
-        // "x" and "y"
-        ret.x = Deserialize<int>::get(value["x"]);
-        ret.y = Deserialize<int>::get(value["y"]);
+        std::vector<pajlada::Signals::ScopedConnection> connections;
+        Setting<int> e("/advancedSignals/e");
+        REQUIRE(count == 0);
 
-        return ret;
+        e.connect(cb, connections, false);
+        e.connect(cb, connections, false);
+        e.connect(cb, connections, false);
+
+        REQUIRE(count == 0);
+
+        // c1, c2, and c3 are active
+        e = 1;
+
+        REQUIRE(count == 3);
+
+        connections.pop_back();
+
+        // c1 and c2 are active
+        e = 2;
+
+        REQUIRE(count == 5);
+
+        e.remove();
+
+        connections.clear();
+
+        // No connection is active
+
+        // TODO: If the setting is removed, no need to assert here imo
+        // so remove operator= assert
+        e = 3;
+
+        REQUIRE(count == 5);
     }
-};
-
-}  // namespace Settings
-}  // namespace pajlada
+}
 
 TEST_CASE("RemoveSetting", "[settings]")
 {
@@ -127,8 +327,7 @@ TEST_CASE("ResetToDefault", "[settings]")
     Setting<int> loadedSameCustomDefault("/loadedSameCustomDefault", 5);
 
     // Custom default value, saved in settings file as a different value
-    Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault",
-                                              5);
+    Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault", 5);
 
     REQUIRE(noDefault.getDefaultValue() == 0);
     REQUIRE(customDefault.getDefaultValue() == 5);
@@ -254,10 +453,9 @@ TEST_CASE("IsEqual", "[settings]")
 
         int numSignalsFired = 0;
 
-        stringMap.getValueChangedSignal().connect(
-            [&numSignalsFired](auto, auto) {
-                ++numSignalsFired;  //
-            });
+        stringMap.getValueChangedSignal().connect([&numSignalsFired](auto, auto) {
+            ++numSignalsFired;  //
+        });
 
         REQUIRE(numSignalsFired == 0);
 
@@ -283,10 +481,9 @@ TEST_CASE("IsEqual", "[settings]")
 
         int numSignalsFired = 0;
 
-        anyMap.getValueChangedSignal().connect(
-            [&numSignalsFired](auto, auto) {
-                ++numSignalsFired;  //
-            });
+        anyMap.getValueChangedSignal().connect([&numSignalsFired](auto, auto) {
+            ++numSignalsFired;  //
+        });
 
         REQUIRE(numSignalsFired == 0);
 
@@ -336,8 +533,7 @@ TEST_CASE("Complex Map", "[settings]")
     REQUIRE(map.size() == 3);
     REQUIRE(any_cast<int>(map["a"]) == 5);
 
-    auto innerMap =
-        any_cast<std::map<std::string, boost::any>>(map["innerMap"]);
+    auto innerMap = any_cast<std::map<std::string, boost::any>>(map["innerMap"]);
     REQUIRE(innerMap.size() == 3);
     REQUIRE(any_cast<int>(innerMap["a"]) == 420);
     REQUIRE(any_cast<int>(innerMap["b"]) == 320);
@@ -354,8 +550,7 @@ TEST_CASE("Complex Map", "[settings]")
     REQUIRE(any_cast<bool>(innerArray[6]) == false);
     REQUIRE(any_cast<double>(innerArray[7]) == 4.20);
 
-    auto innerArrayMap =
-        any_cast<std::map<std::string, boost::any>>(innerArray[8]);
+    auto innerArrayMap = any_cast<std::map<std::string, boost::any>>(innerArray[8]);
     REQUIRE(innerArrayMap.size() == 3);
     REQUIRE(any_cast<int>(innerArrayMap["a"]) == 1);
     REQUIRE(any_cast<int>(innerArrayMap["b"]) == 2);
@@ -403,8 +598,7 @@ TEST_CASE("Vector", "[settings]")
 {
     Setting<std::vector<int>> test("/vectorTest");
 
-    REQUIRE(SettingManager::loadFrom("files/in.vector.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(SettingManager::loadFrom("files/in.vector.json") == SettingManager::LoadError::NoError);
 
     auto vec = test.getValue();
 
@@ -504,9 +698,8 @@ TEST_CASE("ChannelManager", "[settings]")
     REQUIRE(manager.channels.at(2).name.getValue() == "gempir");
 
     // Last channel should always be unset
-    REQUIRE(
-        manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
-        "Name not loaded");
+    REQUIRE(manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
+            "Name not loaded");
 
     for (auto i = 4; i < pajlada::test::NUM_CHANNELS; ++i) {
         manager.channels.at(i).name = "From file FeelsGoodMan";
@@ -535,8 +728,7 @@ TEST_CASE("Channel", "[settings]")
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load custom file
-    REQUIRE(SettingManager::loadFrom("files/channels.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(SettingManager::loadFrom("files/channels.json") == SettingManager::LoadError::NoError);
 
     // Post channels load
     REQUIRE(chHemirt.maxMessageLength == 300);
@@ -553,8 +745,7 @@ TEST_CASE("Load files", "[settings]")
                 SettingManager::LoadError::JSONParseError);
         REQUIRE(SettingManager::loadFrom("files/bad-3.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::loadFrom("files/empty.json") ==
-                SettingManager::LoadError::NoError);
+        REQUIRE(SettingManager::loadFrom("files/empty.json") == SettingManager::LoadError::NoError);
     }
 
     SECTION("Non-existant files")
@@ -604,8 +795,7 @@ TEST_CASE("Simple static", "[settings]")
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
-    REQUIRE(SettingManager::loadFrom("files/test.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(SettingManager::loadFrom("files/test.json") == SettingManager::LoadError::NoError);
 
     // Floats post-load
     REQUIRE(Foo::f1.getValue() == 1.f);
