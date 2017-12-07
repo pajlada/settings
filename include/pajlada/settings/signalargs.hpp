@@ -22,6 +22,7 @@ struct SignalArgs {
     } source = Source::Unset;
 
     boost::any userData;
+    std::string path;
 };
 
 }  // namespace Settings

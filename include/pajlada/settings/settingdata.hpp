@@ -115,6 +115,7 @@ public:
         SignalArgs args;
 
         args.source = SignalArgs::Source::Unmarshal;
+        args.path = this->getPath();
 
         this->setValue(newValue, std::move(args));
 
@@ -145,6 +146,8 @@ public:
         this->value = newValue;
 
         SignalArgs invocationArgs(std::move(args.userData));
+
+        invocationArgs.path = this->path;
 
         if (args.source == SignalArgs::Source::Unset) {
             invocationArgs.source = SignalArgs::Source::Setter;
