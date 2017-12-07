@@ -60,6 +60,8 @@ public:
 
     void setPath(const std::string &_path);
 
+    Signals::Signal<const SignalArgs &> simpleValueChanged;
+
 protected:
     // Setting path (i.e. /a/b/c/3/d/e)
     std::string path;
@@ -151,6 +153,7 @@ public:
         }
 
         this->valueChanged.invoke(newValue, invocationArgs);
+        this->simpleValueChanged.invoke(invocationArgs);
     }
 
     void

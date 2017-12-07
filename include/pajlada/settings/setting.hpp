@@ -198,6 +198,14 @@ public:
         return this->data->valueChanged;
     }
 
+    Signals::Signal<const SignalArgs &> &
+    getSimpleSignal()
+    {
+        assert(this->data != nullptr);
+
+        return this->data->simpleValueChanged;
+    }
+
     void
     connect(typename Container::valueChangedCallbackType func, bool autoInvoke = true)
     {
@@ -210,6 +218,23 @@ public:
             invocationArgs.source = SignalArgs::Source::OnConnect;
 
             connection.invoke(this->data->getValue(), invocationArgs);
+        }
+
+        this->managedConnections.emplace_back(std::move(connection));
+    }
+
+    void
+    connectSimple(std::function<void(const SignalArgs &)> func, bool autoInvoke = true)
+    {
+        assert(this->data != nullptr);
+
+        auto connection = this->data->simpleValueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            connection.invoke(invocationArgs);
         }
 
         this->managedConnections.emplace_back(std::move(connection));
