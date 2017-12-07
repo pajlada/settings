@@ -206,6 +206,12 @@ public:
         return this->data->simpleValueChanged;
     }
 
+    std::weak_ptr<Container>
+    getData()
+    {
+        return this->data;
+    }
+
     void
     connect(typename Container::valueChangedCallbackType func, bool autoInvoke = true)
     {
