@@ -265,6 +265,25 @@ public:
         userDefinedManagedConnections.emplace_back(std::move(connection));
     }
 
+    void
+    connectSimple(std::function<void(const SignalArgs &)> func,
+                  std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
+                  bool autoInvoke = true)
+    {
+        assert(this->data != nullptr);
+
+        auto connection = this->data->simpleValueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            connection.invoke(invocationArgs);
+        }
+
+        userDefinedManagedConnections.emplace_back(std::move(connection));
+    }
+
     // Static helper methods for one-offs (get or set setting)
     static const Type
     get(const std::string &path, SettingOption options = SettingOption::Default)
