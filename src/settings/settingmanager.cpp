@@ -243,6 +243,25 @@ SettingManager::_removeSetting(const string &path)
 
     this->settings.erase(path);
 
+    string pathWithExtendor;
+    if (path.at(path.length() - 1) == '/') {
+        pathWithExtendor = path;
+    } else {
+        pathWithExtendor = path + '/';
+    }
+
+    auto iter = this->settings.begin();
+    auto endIter = this->settings.end();
+    for (; iter != endIter;) {
+        const auto &p = *iter;
+        if (p.first.compare(0, pathWithExtendor.length(), pathWithExtendor) == 0) {
+            rapidjson::Pointer(p.first.c_str()).Erase(this->document);
+            this->settings.erase(iter++);
+        } else {
+            ++iter;
+        }
+    }
+
     return ptr.Erase(this->document);
 }
 
