@@ -46,6 +46,8 @@ public:
                 this->addRawSetting(s);
             }
         }
+
+        return *this;
     }
 
     SettingListener(const SettingListener &) = delete;
