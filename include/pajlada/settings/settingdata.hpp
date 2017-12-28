@@ -53,6 +53,7 @@ public:
 
     virtual rapidjson::Value marshalInto(rapidjson::Document &d) = 0;
     virtual bool unmarshalFrom(rapidjson::Document &d) = 0;
+    virtual bool unmarshalValue(const rapidjson::Value &value) = 0;
 
     virtual void registerDocument(rapidjson::Document &d) = 0;
 
@@ -111,6 +112,21 @@ public:
         }
 
         auto newValue = Deserialize<Type>::get(*valuePointer);
+
+        SignalArgs args;
+
+        args.source = SignalArgs::Source::Unmarshal;
+        args.path = this->getPath();
+
+        this->setValue(newValue, std::move(args));
+
+        return true;
+    }
+
+    virtual bool
+    unmarshalValue(const rapidjson::Value &value) override
+    {
+        auto newValue = Deserialize<Type>::get(value);
 
         SignalArgs args;
 
