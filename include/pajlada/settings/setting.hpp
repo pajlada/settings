@@ -186,7 +186,7 @@ public:
         return true;
     }
 
-private:
+protected:
     std::shared_ptr<Container> data;
 
 public:
