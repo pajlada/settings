@@ -59,6 +59,8 @@ public:
 
     const std::string &getPath() const;
 
+    bool hasBeenSet() const;
+
     void setPath(const std::string &_path);
 
     Signals::Signal<const SignalArgs &> simpleValueChanged;
@@ -68,6 +70,10 @@ protected:
     std::string path;
 
     rapidjson::Value *get(rapidjson::Document &document);
+
+    // valueHasBeenSet is set to true when setValue is used,
+    // except for when it's set via resetToDefaultValue
+    bool valueHasBeenSet = false;
 };
 
 template <typename Type>
@@ -159,6 +165,7 @@ public:
             return;
         }
 
+        this->valueHasBeenSet = true;
         this->value = newValue;
 
         SignalArgs invocationArgs(std::move(args.userData));
@@ -178,7 +185,12 @@ public:
     void
     resetToDefaultValue(SignalArgs &&args)
     {
+        // Preserve hasBeenSet state
+        bool tmp = this->valueHasBeenSet;
+
         this->setValue(this->defaultValue, std::move(args));
+
+        this->valueHasBeenSet = tmp;
     }
 
     void

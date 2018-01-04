@@ -15,6 +15,12 @@ ISettingData::getPath() const
     return this->path;
 }
 
+bool
+ISettingData::hasBeenSet() const
+{
+    return this->valueHasBeenSet;
+}
+
 void
 ISettingData::marshal(rapidjson::Document &d)
 {

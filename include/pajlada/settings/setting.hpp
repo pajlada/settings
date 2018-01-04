@@ -71,6 +71,14 @@ public:
         return this->data->getValue();
     }
 
+    bool
+    hasBeenSet() const
+    {
+        assert(this->data != nullptr);
+
+        return this->data->hasBeenSet();
+    }
+
     void
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
