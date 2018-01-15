@@ -36,11 +36,15 @@ class Setting : public detail::ISetting
     using Container = SettingData<Type>;
 
 public:
-    // Path
+    // Path, Setting Options
     Setting(const std::string &path, SettingOption options = SettingOption::Default);
 
-    // Path, Default Value
+    // Path, Default Value, Setting Options
     Setting(const std::string &path, const Type &defaultValue,
+            SettingOption options = SettingOption::Default);
+
+    // Path, Default Value, Current Value, Setting Options
+    Setting(const std::string &path, const Type &defaultValue, Type &&currentValue,
             SettingOption options = SettingOption::Default);
 
     virtual ~Setting() = default;
@@ -318,17 +322,26 @@ private:
     friend class ISettingData;
 };
 
-// Path
+// Path, Setting Options
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, SettingOption options)
     : data(SettingManager::createSetting<Type, Container>(path, options))
 {
 }
 
-// Path, Default Value
+// Path, Default Value, Setting Options
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, const Type &defaultValue, SettingOption options)
     : data(SettingManager::createSetting<Type, Container>(path, defaultValue, options))
+{
+}
+
+// Path, Default Value, Current Value, Setting Options
+template <typename Type>
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue, Type &&currentValue,
+                       SettingOption options)
+    : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
+                                                          std::move(currentValue), options))
 {
 }
 

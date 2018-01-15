@@ -120,6 +120,38 @@ public:
         return ret;
     }
 
+    template <typename Type, typename Container>
+    static std::shared_ptr<Container>
+    createSetting(const std::string &path, const Type &defaultValue, Type &&currentValue,
+                  SettingOption options)
+    {
+        SettingManager &instance = SettingManager::getInstance();
+
+        // Check if a setting with the given path is already created
+
+        std::lock_guard<std::mutex>(instance.settingsMutex);
+
+        auto &setting = instance.settings[path];
+
+        if (setting == nullptr) {
+            // No setting has been created with this path
+            setting.reset(new Container(defaultValue, std::move(currentValue)));
+
+            // TODO: This should be in the constructor
+            setting->setPath(path);
+
+            setting->options = options;
+
+            instance.registerSetting(setting);
+        } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
+            setting->options = options;
+        }
+
+        std::shared_ptr<Container> ret = std::static_pointer_cast<Container>(setting);
+
+        return ret;
+    }
+
     static bool removeSetting(const std::string &path);
 
 private:
