@@ -130,6 +130,9 @@ struct Serialize<boost::any> {
         } else if (value.type() == typeid(std::vector<boost::any>)) {
             return Serialize<std::vector<boost::any>>::get(
                 any_cast<std::vector<boost::any>>(value), a);
+        } else if (value.type() == typeid(std::vector<std::string>)) {
+            return Serialize<std::vector<std::string>>::get(
+                any_cast<std::vector<std::string>>(value), a);
         } else {
             PS_DEBUG("[boost::any] Deserialize: Unknown type of value");
         }
