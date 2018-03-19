@@ -93,10 +93,10 @@ class SettingData : public ISettingData, public std::enable_shared_from_this<Set
     {
     }
 
-    SettingData(const Type &_defaultValue, Type &&_currentValue)
+    SettingData(const Type &_defaultValue, const Type &_currentValue)
         : ISettingData()
         , defaultValue(_defaultValue)
-        , value(std::move(_currentValue))
+        , value(_currentValue)
     {
     }
 

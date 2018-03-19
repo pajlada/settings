@@ -122,7 +122,7 @@ public:
 
     template <typename Type, typename Container>
     static std::shared_ptr<Container>
-    createSetting(const std::string &path, const Type &defaultValue, Type &&currentValue,
+    createSetting(const std::string &path, const Type &defaultValue, const Type &currentValue,
                   SettingOption options)
     {
         SettingManager &instance = SettingManager::getInstance();
@@ -135,7 +135,7 @@ public:
 
         if (setting == nullptr) {
             // No setting has been created with this path
-            setting.reset(new Container(defaultValue, std::move(currentValue)));
+            setting.reset(new Container(defaultValue, currentValue));
 
             // TODO: This should be in the constructor
             setting->setPath(path);

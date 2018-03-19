@@ -44,7 +44,7 @@ public:
             SettingOption options = SettingOption::Default);
 
     // Path, Default Value, Current Value, Setting Options
-    Setting(const std::string &path, const Type &defaultValue, Type &&currentValue,
+    Setting(const std::string &path, const Type &defaultValue, const Type &currentValue,
             SettingOption options = SettingOption::Default);
 
     virtual ~Setting() = default;
@@ -338,10 +338,10 @@ Setting<Type>::Setting(const std::string &path, const Type &defaultValue, Settin
 
 // Path, Default Value, Current Value, Setting Options
 template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue, Type &&currentValue,
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue, const Type &currentValue,
                        SettingOption options)
-    : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
-                                                          std::move(currentValue), options))
+    : data(
+          SettingManager::createSetting<Type, Container>(path, defaultValue, currentValue, options))
 {
 }
 
