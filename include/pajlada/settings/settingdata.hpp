@@ -4,7 +4,6 @@
 #include "pajlada/settings/internal.hpp"
 #include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/signalargs.hpp"
-#include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>

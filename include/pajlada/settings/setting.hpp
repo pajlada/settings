@@ -3,7 +3,6 @@
 #include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
-#include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>

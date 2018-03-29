@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pajlada/settings/settingdata.hpp"
-#include "pajlada/settings/types.hpp"
 
 #include <rapidjson/pointer.h>
 

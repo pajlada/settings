@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pajlada/settings/internal.hpp"
-#include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
 
@@ -44,28 +43,6 @@ struct Serialize<std::string> {
     get(const std::string &value, rapidjson::Document::AllocatorType &a)
     {
         rapidjson::Value ret(value.c_str(), a);
-
-        return ret;
-    }
-};
-
-template <>
-struct Serialize<Object> {
-    static rapidjson::Value
-    get(const Object &, rapidjson::Document::AllocatorType &)
-    {
-        rapidjson::Value ret(rapidjson::kObjectType);
-
-        return ret;
-    }
-};
-
-template <>
-struct Serialize<Array> {
-    static rapidjson::Value
-    get(const Array &, rapidjson::Document::AllocatorType &)
-    {
-        rapidjson::Value ret(rapidjson::kArrayType);
 
         return ret;
     }
@@ -232,26 +209,6 @@ struct Deserialize<std::string> {
         }
 
         return value.GetString();
-    }
-};
-
-template <>
-struct Deserialize<Object> {
-    static Object
-    get(const rapidjson::Value &)
-    {
-        // Do nothing
-        return Object{};
-    }
-};
-
-template <>
-struct Deserialize<Array> {
-    static Array
-    get(const rapidjson::Value &)
-    {
-        // Do nothing
-        return Array{};
     }
 };
 
