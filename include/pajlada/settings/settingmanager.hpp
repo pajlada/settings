@@ -68,7 +68,7 @@ public:
 
         // Check if a setting with the given path is already created
 
-        std::lock_guard<std::mutex>(instance.settingsMutex);
+        std::lock_guard<std::mutex> lock(instance.settingsMutex);
 
         auto &setting = instance.settings[path];
 
@@ -88,10 +88,7 @@ public:
             setting->options = options;
         }
 
-        std::shared_ptr<Container> ret =
-            std::static_pointer_cast<Container>(setting);
-
-        return ret;
+        return std::static_pointer_cast<Container>(setting);
     }
 
     template <typename Type, typename Container>
@@ -103,7 +100,7 @@ public:
 
         // Check if a setting with the given path is already created
 
-        std::lock_guard<std::mutex>(instance.settingsMutex);
+        std::lock_guard<std::mutex> lock(instance.settingsMutex);
 
         auto &setting = instance.settings[path];
 
@@ -123,10 +120,7 @@ public:
             setting->options = options;
         }
 
-        std::shared_ptr<Container> ret =
-            std::static_pointer_cast<Container>(setting);
-
-        return ret;
+        return std::static_pointer_cast<Container>(setting);
     }
 
     template <typename Type, typename Container>
@@ -138,7 +132,7 @@ public:
 
         // Check if a setting with the given path is already created
 
-        std::lock_guard<std::mutex>(instance.settingsMutex);
+        std::lock_guard<std::mutex> lock(instance.settingsMutex);
 
         auto &setting = instance.settings[path];
 
@@ -158,9 +152,7 @@ public:
             setting->options = options;
         }
 
-        std::shared_ptr<Container> ret = std::static_pointer_cast<Container>(setting);
-
-        return ret;
+        return std::static_pointer_cast<Container>(setting);
     }
 
     static bool removeSetting(const std::string &path);
