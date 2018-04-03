@@ -1,6 +1,8 @@
 #pragma once
 
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 #include <boost/any.hpp>
+#endif
 
 #include <map>
 #include <vector>
@@ -17,6 +19,7 @@ struct IsEqual {
     }
 };
 
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 template <>
 struct IsEqual<boost::any> {
     static bool
@@ -26,6 +29,7 @@ struct IsEqual<boost::any> {
         return false;
     }
 };
+#endif
 
 template <typename KeyType, typename ValueType>
 struct IsEqual<std::map<KeyType, ValueType>> {
@@ -41,6 +45,7 @@ struct IsEqual<std::map<KeyType, ValueType>> {
     }
 };
 
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 template <typename KeyType>
 struct IsEqual<std::map<KeyType, boost::any>> {
     static bool
@@ -51,6 +56,7 @@ struct IsEqual<std::map<KeyType, boost::any>> {
         return false;
     }
 };
+#endif
 
 template <typename ValueType>
 struct IsEqual<std::vector<ValueType>> {
@@ -65,6 +71,7 @@ struct IsEqual<std::vector<ValueType>> {
     }
 };
 
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 template <>
 struct IsEqual<std::vector<boost::any>> {
     static bool
@@ -74,6 +81,7 @@ struct IsEqual<std::vector<boost::any>> {
         return false;
     }
 };
+#endif
 
 }  // namespace Settings
 }  // namespace pajlada

@@ -4,7 +4,10 @@
 #include "pajlada/settings/types.hpp"
 
 #include <rapidjson/document.h>
+
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 #include <boost/any.hpp>
+#endif
 
 #include <cassert>
 #include <map>
@@ -100,6 +103,7 @@ struct Serialize<std::vector<ValueType>> {
     }
 };
 
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 template <>
 struct Serialize<boost::any> {
     static rapidjson::Value
@@ -140,6 +144,7 @@ struct Serialize<boost::any> {
         return rapidjson::Value(rapidjson::kNullType);
     }
 };
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -296,6 +301,7 @@ struct Deserialize<std::vector<ValueType>> {
     }
 };
 
+#ifndef PAJLADA_SETTINGS_NO_BOOST
 template <>
 struct Deserialize<boost::any> {
     static boost::any
@@ -318,6 +324,7 @@ struct Deserialize<boost::any> {
         return boost::any();
     }
 };
+#endif
 
 template <typename Type>
 inline void
