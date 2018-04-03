@@ -182,14 +182,12 @@ public:
         this->valueHasBeenSet = true;
         this->value = newValue;
 
-        SignalArgs invocationArgs(std::move(args.userData));
+        SignalArgs invocationArgs(args);
 
         invocationArgs.path = this->path;
 
-        if (args.source == SignalArgs::Source::Unset) {
+        if (invocationArgs.source == SignalArgs::Source::Unset) {
             invocationArgs.source = SignalArgs::Source::Setter;
-        } else {
-            invocationArgs.source = args.source;
         }
 
         this->valueChanged.invoke(newValue, invocationArgs);
