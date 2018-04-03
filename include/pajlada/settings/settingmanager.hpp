@@ -78,7 +78,9 @@ public:
 
             setting->options = options;
 
-            instance.registerSetting(setting);
+            if (!setting->optionEnabled(SettingOption::Remote)) {
+                instance.registerSetting(setting);
+            }
         } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
             setting->options = options;
         }
@@ -109,7 +111,9 @@ public:
 
             setting->options = options;
 
-            instance.registerSetting(setting);
+            if (!setting->optionEnabled(SettingOption::Remote)) {
+                instance.registerSetting(setting);
+            }
         } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
             setting->options = options;
         }
@@ -141,7 +145,9 @@ public:
 
             setting->options = options;
 
-            instance.registerSetting(setting);
+            if (!setting->optionEnabled(SettingOption::Remote)) {
+                instance.registerSetting(setting);
+            }
         } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
             setting->options = options;
         }

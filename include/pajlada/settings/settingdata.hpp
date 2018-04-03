@@ -24,6 +24,9 @@ enum class SettingOption : uint64_t {
 
     SaveInitialValue = (1ull << 3ull),
 
+    /// A remote setting is a setting that is never saved locally, nor registered locally with any callbacks or anything
+    Remote = (1ull << 4ull),
+
     Default = 0,
 };
 
