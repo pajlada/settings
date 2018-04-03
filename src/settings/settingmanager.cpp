@@ -271,7 +271,7 @@ SettingManager::registerSetting(shared_ptr<ISettingData> &setting)
     // Save initial value
     // We might want to have this as a setting?
     // TODO: Re-implement this
-    setting->marshalInto(this->document);
+    // setting->marshalInto(this->document);
 
     // Set up a signal which updates the rapidjson document with the new
     // value when the SettingData value is updated
@@ -441,12 +441,7 @@ SettingManager::saveAs(const char *path)
     // Close file handle
     fclose(fh);
 
-    if (writtenBytes != buffer.GetSize()) {
-        // Something went wrong with saving the file;
-        return false;
-    }
-
-    return true;
+    return writtenBytes == buffer.GetSize();
 }
 
 }  // namespace Settings
