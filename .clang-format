@@ -26,7 +26,7 @@ BraceWrapping: {
     AfterFunction: 'true'
     BeforeCatch: 'false'
 }
-ColumnLimit: 100
+ColumnLimit: 80
 
 # Might need to comment this out if you don't have the latest clang installed
 FixNamespaceComments: true
