@@ -36,17 +36,19 @@ class Setting : public detail::ISetting
 
 public:
     // Path, Setting Options
-    Setting(const std::string &path, SettingOption options = SettingOption::Default);
+    Setting(const std::string &path,
+            SettingOption options = SettingOption::Default);
 
     // Path, Default Value, Setting Options
     Setting(const std::string &path, const Type &defaultValue,
             SettingOption options = SettingOption::Default);
 
     // Path, Default Value, Current Value, Setting Options
-    Setting(const std::string &path, const Type &defaultValue, const Type &currentValue,
+    Setting(const std::string &path, const Type &defaultValue,
+            const Type &currentValue,
             SettingOption options = SettingOption::Default);
 
-    virtual ~Setting() = default;
+    ~Setting() override = default;
 
     const std::string &
     getPath() const
@@ -224,7 +226,8 @@ public:
     }
 
     void
-    connect(typename Container::valueChangedCallbackType func, bool autoInvoke = true)
+    connect(typename Container::valueChangedCallbackType func,
+            bool autoInvoke = true)
     {
         assert(this->data != nullptr);
 
@@ -241,7 +244,8 @@ public:
     }
 
     void
-    connectSimple(std::function<void(const SignalArgs &)> func, bool autoInvoke = true)
+    connectSimple(std::function<void(const SignalArgs &)> func,
+                  bool autoInvoke = true)
     {
         assert(this->data != nullptr);
 
@@ -258,9 +262,10 @@ public:
     }
 
     void
-    connect(typename Container::valueChangedCallbackType func,
-            std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
-            bool autoInvoke = true)
+    connect(
+        typename Container::valueChangedCallbackType func,
+        std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
+        bool autoInvoke = true)
     {
         assert(this->data != nullptr);
 
@@ -277,9 +282,10 @@ public:
     }
 
     void
-    connectSimple(std::function<void(const SignalArgs &)> func,
-                  std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
-                  bool autoInvoke = true)
+    connectSimple(
+        std::function<void(const SignalArgs &)> func,
+        std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
+        bool autoInvoke = true)
     {
         assert(this->data != nullptr);
 
@@ -330,17 +336,19 @@ Setting<Type>::Setting(const std::string &path, SettingOption options)
 
 // Path, Default Value, Setting Options
 template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue, SettingOption options)
-    : data(SettingManager::createSetting<Type, Container>(path, defaultValue, options))
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
+                       SettingOption options)
+    : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
+                                                          options))
 {
 }
 
 // Path, Default Value, Current Value, Setting Options
 template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue, const Type &currentValue,
-                       SettingOption options)
-    : data(
-          SettingManager::createSetting<Type, Container>(path, defaultValue, currentValue, options))
+Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
+                       const Type &currentValue, SettingOption options)
+    : data(SettingManager::createSetting<Type, Container>(
+          path, defaultValue, currentValue, options))
 {
 }
 

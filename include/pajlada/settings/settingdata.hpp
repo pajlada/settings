@@ -33,7 +33,15 @@ enum class SettingOption : uint64_t {
 inline SettingOption
 operator|(const SettingOption &lhs, const SettingOption &rhs)
 {
-    return (SettingOption)((uint64_t)lhs | (uint64_t)rhs);
+    return static_cast<SettingOption>(
+        (static_cast<uint64_t>(lhs) | static_cast<uint64_t>(rhs)));
+}
+
+inline SettingOption operator&(const SettingOption &lhs,
+                               const SettingOption &rhs)
+{
+    return static_cast<SettingOption>(
+        (static_cast<uint64_t>(lhs) & static_cast<uint64_t>(rhs)));
 }
 
 class ISettingData
@@ -48,7 +56,7 @@ public:
     inline bool
     optionEnabled(SettingOption option) const
     {
-        return (static_cast<uint64_t>(this->options) & static_cast<uint64_t>(option)) != 0;
+        return (this->options & option) == option;
     }
 
     void marshal(rapidjson::Document &d);
@@ -79,7 +87,8 @@ protected:
 };
 
 template <typename Type>
-class SettingData : public ISettingData, public std::enable_shared_from_this<SettingData<Type>>
+class SettingData : public ISettingData,
+                    public std::enable_shared_from_this<SettingData<Type>>
 {
     SettingData()
         : ISettingData()
@@ -117,15 +126,16 @@ class SettingData : public ISettingData, public std::enable_shared_from_this<Set
     }
 
 public:
-    using valueChangedCallbackType = std::function<void(const Type &, const SignalArgs &args)>;
+    using valueChangedCallbackType =
+        std::function<void(const Type &, const SignalArgs &args)>;
 
-    virtual rapidjson::Value
+    rapidjson::Value
     marshalInto(rapidjson::Document &d) override
     {
         return Serialize<Type>::get(this->getValue(), d.GetAllocator());
     }
 
-    virtual bool
+    bool
     unmarshalFrom(rapidjson::Document &document) override
     {
         auto valuePointer = this->get(document);
@@ -145,7 +155,7 @@ public:
         return true;
     }
 
-    virtual bool
+    bool
     unmarshalValue(const rapidjson::Value &fromValue) override
     {
         auto newValue = Deserialize<Type>::get(fromValue);
@@ -160,7 +170,7 @@ public:
         return true;
     }
 
-    virtual void
+    void
     registerDocument(rapidjson::Document &d) override
     {
         // PS_DEBUG("[" << this->path << "] Register document");

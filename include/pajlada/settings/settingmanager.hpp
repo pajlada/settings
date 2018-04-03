@@ -35,7 +35,8 @@ public:
 
     static rapidjson::Value *rawValue(const char *path);
     static rapidjson::Value *get(const char *path, rapidjson::Document &d);
-    static void set(const char *path, rapidjson::Value &&value, rapidjson::Document &d);
+    static void set(const char *path, rapidjson::Value &&value,
+                    rapidjson::Document &d);
     static void set(const char *path, rapidjson::Value &&value);
 
     static void setWithPointer(const char *path, rapidjson::Value &&value);
@@ -48,12 +49,14 @@ public:
 
     // Basically the same as setNull, except we fully remove a value if it's the
     // last index of the array
-    static bool removeArrayValue(const std::string &arrayPath, rapidjson::SizeType index);
+    static bool removeArrayValue(const std::string &arrayPath,
+                                 rapidjson::SizeType index);
 
     static rapidjson::SizeType cleanArray(const std::string &arrayPath);
 
     // Useful object helper methods
-    static std::vector<std::string> getObjectKeys(const std::string &objectPath);
+    static std::vector<std::string> getObjectKeys(
+        const std::string &objectPath);
 
     static void clear();
 
@@ -85,14 +88,16 @@ public:
             setting->options = options;
         }
 
-        std::shared_ptr<Container> ret = std::static_pointer_cast<Container>(setting);
+        std::shared_ptr<Container> ret =
+            std::static_pointer_cast<Container>(setting);
 
         return ret;
     }
 
     template <typename Type, typename Container>
     static std::shared_ptr<Container>
-    createSetting(const std::string &path, const Type &defaultValue, SettingOption options)
+    createSetting(const std::string &path, const Type &defaultValue,
+                  SettingOption options)
     {
         SettingManager &instance = SettingManager::getInstance();
 
@@ -118,15 +123,16 @@ public:
             setting->options = options;
         }
 
-        std::shared_ptr<Container> ret = std::static_pointer_cast<Container>(setting);
+        std::shared_ptr<Container> ret =
+            std::static_pointer_cast<Container>(setting);
 
         return ret;
     }
 
     template <typename Type, typename Container>
     static std::shared_ptr<Container>
-    createSetting(const std::string &path, const Type &defaultValue, const Type &currentValue,
-                  SettingOption options)
+    createSetting(const std::string &path, const Type &defaultValue,
+                  const Type &currentValue, SettingOption options)
     {
         SettingManager &instance = SettingManager::getInstance();
 
@@ -200,8 +206,8 @@ private:
     inline bool
     checkSaveMethodFlag(SettingManager::SaveMethod testSaveMethod) const
     {
-        return (static_cast<uint64_t>(this->saveMethod) & static_cast<uint64_t>(testSaveMethod)) !=
-               0;
+        return (static_cast<uint64_t>(this->saveMethod) &
+                static_cast<uint64_t>(testSaveMethod)) != 0;
     }
 
     static SettingManager &

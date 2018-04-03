@@ -16,11 +16,11 @@ public:
     SettingListener() = default;
 
     SettingListener(Callback _cb)
-        : cb(_cb)
+        : cb(std::move(_cb))
     {
     }
 
-    SettingListener(SettingListener &&other)
+    SettingListener(SettingListener &&other) noexcept
         : cb(std::move(other.cb))
         , settings(std::move(other.settings))
     {
@@ -34,7 +34,7 @@ public:
     }
 
     SettingListener &
-    operator=(SettingListener &&other)
+    operator=(SettingListener &&other) noexcept
     {
         other.managedConnections.clear();
 
@@ -56,11 +56,12 @@ public:
     void
     addRawSetting(std::shared_ptr<ISettingData> setting)
     {
-        auto connection = setting->simpleValueChanged.connect([this](const SignalArgs &args) {
-            if (this->cb) {
-                this->cb(args);
-            }
-        });
+        auto connection =
+            setting->simpleValueChanged.connect([this](const SignalArgs &args) {
+                if (this->cb) {
+                    this->cb(args);
+                }
+            });
 
         this->managedConnections.emplace_back(std::move(connection));
     }
@@ -71,11 +72,12 @@ public:
     {
         this->settings.emplace_back(setting.getData());
 
-        auto connection = setting.getSimpleSignal().connect([this](const SignalArgs &args) {
-            if (this->cb) {
-                this->cb(args);
-            }
-        });
+        auto connection =
+            setting.getSimpleSignal().connect([this](const SignalArgs &args) {
+                if (this->cb) {
+                    this->cb(args);
+                }
+            });
 
         this->managedConnections.emplace_back(std::move(connection));
     }
@@ -83,9 +85,9 @@ public:
     Callback cb;
 
 private:
-    std::vector<std::weak_ptr<pajlada::Settings::ISettingData>> settings;
+    std::vector<std::weak_ptr<ISettingData>> settings;
 
-    std::vector<pajlada::Signals::ScopedConnection> managedConnections;
+    std::vector<Signals::ScopedConnection> managedConnections;
 };
 
 }  // namespace Settings
