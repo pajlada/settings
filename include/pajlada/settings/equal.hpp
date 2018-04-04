@@ -23,10 +23,10 @@ struct IsEqual {
 template <>
 struct IsEqual<boost::any> {
     static bool
-    get(const boost::any &, const boost::any &)
+    get(const boost::any &lhs, const boost::any &rhs)
     {
-        // two boost::any cannot be safely compared to each other
-        return false;
+        // two boost::any cannot be safely compared to each other, so we only consider them equal if both are empty
+        return (lhs.empty() && rhs.empty());
     }
 };
 #endif
@@ -49,11 +49,11 @@ struct IsEqual<std::map<KeyType, ValueType>> {
 template <typename KeyType>
 struct IsEqual<std::map<KeyType, boost::any>> {
     static bool
-    get(const std::map<KeyType, boost::any> &,
-        const std::map<KeyType, boost::any> &)
+    get(const std::map<KeyType, boost::any> &lhs,
+        const std::map<KeyType, boost::any> &rhs)
     {
-        // two boost::any cannot be safely compared to each other
-        return false;
+        // two boost::any cannot be safely compared to each other, so we only consider them equal if both maps are empty
+        return lhs.size() == rhs.size();
     }
 };
 #endif
@@ -75,10 +75,10 @@ struct IsEqual<std::vector<ValueType>> {
 template <>
 struct IsEqual<std::vector<boost::any>> {
     static bool
-    get(const std::vector<boost::any> &, const std::vector<boost::any> &)
+    get(const std::vector<boost::any> &lhs, const std::vector<boost::any> &rhs)
     {
-        // two boost::any cannot be safely compared to each other
-        return false;
+        // two boost::any cannot be safely compared to each other, so we only consider them equal if both vectors are empty
+        return lhs.size() == rhs.size();
     }
 };
 #endif
