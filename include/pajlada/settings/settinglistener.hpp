@@ -68,18 +68,17 @@ public:
 
     template <typename AnySetting>
     void
-    addSetting(AnySetting &setting)
+    addSetting(AnySetting &setting, bool autoInvoke = false)
     {
         this->settings.emplace_back(setting.getData());
 
-        auto connection =
-            setting.getSimpleSignal().connect([this](const SignalArgs &args) {
+        setting.connectSimple(
+            [this](const SignalArgs &args) {
                 if (this->cb) {
                     this->cb(args);
                 }
-            });
-
-        this->managedConnections.emplace_back(std::move(connection));
+            },
+            this->managedConnections, autoInvoke);
     }
 
     Callback cb;
