@@ -48,6 +48,21 @@ struct Serialize<std::string> {
     }
 };
 
+template <typename Arg1, typename Arg2>
+struct Serialize<std::pair<Arg1, Arg2>> {
+    static rapidjson::Value
+    get(const std::pair<Arg1, Arg2> &value,
+        rapidjson::Document::AllocatorType &a)
+    {
+        rapidjson::Value ret(rapidjson::kArrayType);
+
+        ret.PushBack(Serialize<Arg1>::get(value.first, a), a);
+        ret.PushBack(Serialize<Arg2>::get(value.second, a), a);
+
+        return ret;
+    }
+};
+
 template <typename ValueType>
 struct Serialize<std::map<std::string, ValueType>> {
     static rapidjson::Value
@@ -255,6 +270,26 @@ struct Deserialize<std::vector<ValueType>> {
         }
 
         return ret;
+    }
+};
+
+template <typename Arg1, typename Arg2>
+struct Deserialize<std::pair<Arg1, Arg2>> {
+    static std::pair<Arg1, Arg2>
+    get(const rapidjson::Value &value)
+    {
+        if (!value.IsArray()) {
+            PS_DEBUG("[std::pair: Value is not a 2-size array");
+            return std::make_pair(Arg1(), Arg2());
+        }
+
+        if (value.Size() != 2) {
+            PS_DEBUG("[std::pair: Value is not a 2-size array");
+            return std::make_pair(Arg1(), Arg2());
+        }
+
+        return std::make_pair(Deserialize<Arg1>::get(value[0]),
+                              Deserialize<Arg2>::get(value[1]));
     }
 };
 

@@ -19,6 +19,16 @@ struct IsEqual {
     }
 };
 
+template <typename Type1, typename Type2>
+struct IsEqual<std::pair<Type1, Type2>> {
+    static bool
+    get(const std::pair<Type1, Type2> &lhs, const std::pair<Type1, Type2> &rhs)
+    {
+        return IsEqual<Type1>::get(lhs.first, rhs.first) &&
+               IsEqual<Type2>::get(lhs.second, rhs.second);
+    }
+};
+
 #ifndef PAJLADA_SETTINGS_NO_BOOST
 template <>
 struct IsEqual<boost::any> {
