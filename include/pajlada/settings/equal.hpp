@@ -62,8 +62,23 @@ struct IsEqual<std::map<KeyType, boost::any>> {
     get(const std::map<KeyType, boost::any> &lhs,
         const std::map<KeyType, boost::any> &rhs)
     {
-        // two boost::any cannot be safely compared to each other, so we only consider them equal if both maps are empty
-        return lhs.size() == rhs.size();
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+
+        for (const auto &p : lhs) {
+            auto rit = rhs.find(p.first);
+
+            if (rit == rhs.end()) {
+                return false;
+            }
+
+            if (!IsEqual<boost::any>::get(p.second, rit->second)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 };
 #endif
@@ -87,8 +102,24 @@ struct IsEqual<std::vector<boost::any>> {
     static bool
     get(const std::vector<boost::any> &lhs, const std::vector<boost::any> &rhs)
     {
-        // two boost::any cannot be safely compared to each other, so we only consider them equal if both vectors are empty
-        return lhs.size() == rhs.size();
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+
+        auto lit = lhs.begin();
+        auto rit = rhs.begin();
+
+        for (; lit != lhs.begin(); ++lit, ++rit) {
+            if (rit == rhs.end()) {
+                return false;
+            }
+
+            if (!IsEqual<boost::any>::get(*lit, *rit)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 };
 #endif
