@@ -17,7 +17,8 @@ SOURCES += src/main.cpp \
     src/test/foo.cpp \
     src/test/channel.cpp \
     src/settings/settingdata.cpp \
-    src/settings/settingmanager.cpp
+    src/settings/settingmanager.cpp \
+    src/catchimplementor.cpp
 
 HEADERS += \
     include/pajlada/settings/setting.hpp \

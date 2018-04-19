@@ -7,7 +7,6 @@
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
 
-#define CATCH_CONFIG_MAIN
 #include "libs/catch.hpp"
 
 #include <assert.h>
