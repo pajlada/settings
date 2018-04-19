@@ -4,6 +4,11 @@ CONFIG -= qt app_bundle
 
 linux {
     QMAKE_CXXFLAGS += --std=c++14
+
+    coverage {
+        QMAKE_CXXFLAGS += --coverage
+        QMAKE_LFLAGS += --coverage
+    }
 }
 
 INCLUDEPATH += ./include
