@@ -11,6 +11,10 @@ files/out.*.json
 # ignore binary
 /settings
 
+# Generated coverage files
+*.gcno
+*.gcda
+
 ## Generated
 # C++ objects and libs
 
