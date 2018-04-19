@@ -37,7 +37,6 @@ public:
     static Settings::Setting<bool> b6;
     static Settings::Setting<bool> b7;
 
-    static Settings::Setting<Settings::Object> root;
     static Settings::Setting<int> rootInt1;
     static Settings::Setting<int> rootInt2;
 };
