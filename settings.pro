@@ -18,7 +18,8 @@ SOURCES += src/main.cpp \
     src/test/channel.cpp \
     src/settings/settingdata.cpp \
     src/settings/settingmanager.cpp \
-    src/catchimplementor.cpp
+    src/catchimplementor.cpp \
+    src/testhelpers.cpp
 
 HEADERS += \
     include/pajlada/settings/setting.hpp \
@@ -30,7 +31,8 @@ HEADERS += \
     include/pajlada/settings/settingmanager.hpp \
     include/pajlada/settings/types.hpp \
     include/pajlada/settings/types.hpp \
-    include/pajlada/settings/merger.hpp
+    include/pajlada/settings/merger.hpp \
+    src/testhelpers.hpp
 
 win32-msvc* {
     QMAKE_CXXFLAGS_WARN_ON = /W4 /wd4996
