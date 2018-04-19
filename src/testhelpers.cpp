@@ -3,6 +3,7 @@
 #include <pajlada/settings/settingmanager.hpp>
 
 #include <fstream>
+#include <iostream>
 
 static std::string initialPath = "files/";
 
@@ -33,19 +34,25 @@ FilesMatch(const std::string &fileName1, const std::string &fileName2)
     auto content1 = ReadFile(path1);
     auto content2 = ReadFile(path2);
 
+    // std::cout << path1 << ": " << content1 << '\n';
+    // std::cout << path2 << ": " << content2 << '\n';
+
     return content1 == content2;
 }
 
-bool LoadFile(const std::string &fileName)
+bool
+LoadFile(const std::string &fileName)
 {
     using namespace pajlada::Settings;
 
     std::string path = initialPath + fileName;
 
-    return SettingManager::loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
+    return SettingManager::loadFrom(path.c_str()) ==
+           SettingManager::LoadError::NoError;
 }
 
-bool SaveFile(const std::string &fileName)
+bool
+SaveFile(const std::string &fileName)
 {
     using namespace pajlada::Settings;
 

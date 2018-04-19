@@ -17,6 +17,9 @@
 namespace pajlada {
 namespace Settings {
 
+// Serialize is called when a settings value is being saved
+// Deserialize is called when we load a json file into our library
+
 template <typename Type>
 void AddMember(rapidjson::Value &object, const char *key, const Type &value,
                rapidjson::Document::AllocatorType &a);
@@ -181,7 +184,7 @@ struct Deserialize<bool> {
             return value.GetInt() == 1;
         }
 
-        throw std::runtime_error("Deserialized rapidjson::Value is not an int");
+        throw std::runtime_error("Deserialized rapidjson::Value is not a bool");
     }
 };
 
