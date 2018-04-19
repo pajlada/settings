@@ -61,7 +61,7 @@ public:
     static void clear();
 
     template <typename Type, typename Container>
-    static std::shared_ptr<Container>
+    static std::weak_ptr<Container>
     createSetting(const std::string &path, SettingOption options)
     {
         SettingManager &instance = SettingManager::getInstance();
@@ -92,7 +92,7 @@ public:
     }
 
     template <typename Type, typename Container>
-    static std::shared_ptr<Container>
+    static std::weak_ptr<Container>
     createSetting(const std::string &path, const Type &defaultValue,
                   SettingOption options)
     {
@@ -124,7 +124,7 @@ public:
     }
 
     template <typename Type, typename Container>
-    static std::shared_ptr<Container>
+    static std::weak_ptr<Container>
     createSetting(const std::string &path, const Type &defaultValue,
                   const Type &currentValue, SettingOption options)
     {

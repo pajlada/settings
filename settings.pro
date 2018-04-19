@@ -19,7 +19,10 @@ SOURCES += src/main.cpp \
     src/settings/settingdata.cpp \
     src/settings/settingmanager.cpp \
     src/catchimplementor.cpp \
-    src/testhelpers.cpp
+    src/test-remove.cpp \
+    src/testhelpers.cpp \
+    src/test-exceptions.cpp \
+    src/test-serialize.cpp
 
 HEADERS += \
     include/pajlada/settings/setting.hpp \
@@ -32,6 +35,8 @@ HEADERS += \
     include/pajlada/settings/types.hpp \
     include/pajlada/settings/types.hpp \
     include/pajlada/settings/merger.hpp \
+    include/pajlada/settings.hpp \
+    include/pajlada/settings/exception.hpp \
     src/testhelpers.hpp
 
 win32-msvc* {

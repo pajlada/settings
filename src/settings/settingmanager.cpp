@@ -1,5 +1,5 @@
 #include "pajlada/settings/settingmanager.hpp"
-#include "pajlada/settings/merger.hpp"
+// #include "pajlada/settings/merger.hpp"
 #include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/settingdata.hpp"
 

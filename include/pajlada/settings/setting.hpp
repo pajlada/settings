@@ -1,11 +1,11 @@
 #pragma once
 
 #include "pajlada/settings/equal.hpp"
+#include "pajlada/settings/exception.hpp"
 #include "pajlada/settings/settingdata.hpp"
 #include "pajlada/settings/settingmanager.hpp"
 
 #include <rapidjson/document.h>
-#include <rapidjson/pointer.h>
 #include <pajlada/signals/signal.hpp>
 
 #include <memory>
@@ -50,19 +50,23 @@ public:
 
     ~Setting() override = default;
 
-    const std::string &
+    bool
+    isValid() const
+    {
+        return !this->data.expired();
+    }
+
+    std::string
     getPath() const
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        return this->data->getPath();
+        return lockedSetting->getPath();
     }
 
     Setting &
     setName(const char *newName)
     {
-        assert(this->data != nullptr);
-
         this->name = newName;
 
         return *this;
@@ -71,31 +75,31 @@ public:
     const Type
     getValue() const
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        return this->data->getValue();
+        return lockedSetting->getValue();
     }
 
     bool
     hasBeenSet() const
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        return this->data->hasBeenSet();
+        return lockedSetting->hasBeenSet();
     }
 
     void
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        this->data->setValue(newValue, std::move(args));
+        lockedSetting->setValue(newValue, std::move(args));
     }
 
     Setting &
     operator=(const Type &newValue)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
         this->setValue(newValue);
 
@@ -106,7 +110,7 @@ public:
     Setting &
     operator=(const T2 &newValue)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
         this->setValue(newValue);
 
@@ -114,10 +118,8 @@ public:
     }
 
     Setting &
-    operator=(Type &&newValue) noexcept
+    operator=(Type &&newValue)
     {
-        assert(this->data != nullptr);
-
         this->setValue(std::move(newValue));
 
         return *this;
@@ -126,7 +128,7 @@ public:
     bool
     operator==(const Type &rhs) const
     {
-        assert(this->data != nullptr);
+        assert(this->isValid());
 
         return this->getValue() == rhs;
     }
@@ -134,14 +136,14 @@ public:
     bool
     operator!=(const Type &rhs) const
     {
-        assert(this->data != nullptr);
+        assert(this->isValid());
 
         return this->getValue() != rhs;
     }
 
     operator const Type() const
     {
-        assert(this->data != nullptr);
+        assert(this->isValid());
 
         return this->getValue();
     }
@@ -149,25 +151,25 @@ public:
     void
     resetToDefaultValue(SignalArgs &&args = SignalArgs())
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        this->data->resetToDefaultValue(std::move(args));
+        lockedSetting->resetToDefaultValue(std::move(args));
     }
 
     void
     setDefaultValue(const Type &newDefaultValue)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        this->data->setDefaultValue(newDefaultValue);
+        lockedSetting->setDefaultValue(newDefaultValue);
     }
 
     Type
     getDefaultValue() const
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        return this->data->getDefaultValue();
+        return lockedSetting->getDefaultValue();
     }
 
     // Returns true if the current value is the same as the default value
@@ -175,48 +177,58 @@ public:
     bool
     isDefaultValue() const
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
         return IsEqual<Type>::get(this->getValue(), this->getDefaultValue());
     }
 
-    // Remove this setting
+    // Remove will invalidate this setting and all other settings that point at the same path
+    // If the setting is an object or array, any child settings will also be invalidated
+    // the remove function handles the exception handling in case this setting is already invalid
     bool
     remove()
     {
-        auto uc = this->data.use_count();
-
-        if (uc != 2) {
+        try {
+            SettingManager::removeSetting(this->getPath());
+        } catch (const Exception &) {
             return false;
         }
-
-        this->managedConnections.clear();
-
-        SettingManager::removeSetting(this->getPath());
-
-        this->data.reset();
 
         return true;
     }
 
 protected:
-    std::shared_ptr<Container> data;
+    std::weak_ptr<Container> data;
+
+private:
+    // getLockedData is an internal helper function
+    // It will either return a valid shared_ptr to the underlying SettingData, or throw an exception
+    std::shared_ptr<Container>
+    getLockedData() const
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            throw Exception(Exception::ExpiredSetting);
+        }
+
+        return lockedSetting;
+    }
 
 public:
     Signals::Signal<const Type &, const SignalArgs &> &
     getValueChangedSignal()
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        return this->data->valueChanged;
+        return lockedSetting->valueChanged;
     }
 
     Signals::Signal<const SignalArgs &> &
     getSimpleSignal()
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        return this->data->simpleValueChanged;
+        return lockedSetting->valueChanged;
     }
 
     std::weak_ptr<Container>
@@ -229,15 +241,15 @@ public:
     connect(typename Container::valueChangedCallbackType func,
             bool autoInvoke = true)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        auto connection = this->data->valueChanged.connect(func);
+        auto connection = lockedSetting->valueChanged.connect(func);
 
         if (autoInvoke) {
             SignalArgs invocationArgs;
             invocationArgs.source = SignalArgs::Source::OnConnect;
 
-            connection.invoke(this->data->getValue(), invocationArgs);
+            connection.invoke(lockedSetting->getValue(), invocationArgs);
         }
 
         this->managedConnections.emplace_back(std::move(connection));
@@ -247,9 +259,9 @@ public:
     connectSimple(std::function<void(const SignalArgs &)> func,
                   bool autoInvoke = true)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        auto connection = this->data->simpleValueChanged.connect(func);
+        auto connection = lockedSetting->simpleValueChanged.connect(func);
 
         if (autoInvoke) {
             SignalArgs invocationArgs;
@@ -267,15 +279,15 @@ public:
         std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
         bool autoInvoke = true)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        auto connection = this->data->valueChanged.connect(func);
+        auto connection = lockedSetting->valueChanged.connect(func);
 
         if (autoInvoke) {
             SignalArgs invocationArgs;
             invocationArgs.source = SignalArgs::Source::OnConnect;
 
-            connection.invoke(this->data->getValue(), invocationArgs);
+            connection.invoke(lockedSetting->getValue(), invocationArgs);
         }
 
         userDefinedManagedConnections.emplace_back(std::move(connection));
@@ -287,9 +299,9 @@ public:
         std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
         bool autoInvoke = true)
     {
-        assert(this->data != nullptr);
+        auto lockedSetting = this->getLockedData();
 
-        auto connection = this->data->simpleValueChanged.connect(func);
+        auto connection = lockedSetting->simpleValueChanged.connect(func);
 
         if (autoInvoke) {
             SignalArgs invocationArgs;

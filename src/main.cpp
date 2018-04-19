@@ -1,6 +1,7 @@
 #include "test/channel.hpp"
 #include "test/channelmanager.hpp"
 #include "test/foo.hpp"
+#include "testhelpers.hpp"
 
 #include "pajlada/settings/serialize.hpp"
 #include "pajlada/settings/setting.hpp"
@@ -9,13 +10,14 @@
 
 #include "libs/catch.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
+#include <string>
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 
-TEST_CASE("AdvancedSignals", "[settings")
+TEST_CASE("AdvancedSignals", "[settings]")
 {
     int count = 0;
     auto cb = [&count](auto, auto) { ++count; };
@@ -158,7 +160,8 @@ TEST_CASE("AdvancedSignals", "[settings")
             REQUIRE(count == 12);
 
             {
-                pajlada::Signals::ScopedConnection c4 = b.getValueChangedSignal().connect(cb);
+                pajlada::Signals::ScopedConnection c4 =
+                    b.getValueChangedSignal().connect(cb);
 
                 // c1, c3, and c4 are active
                 b = 10;
@@ -268,8 +271,6 @@ TEST_CASE("AdvancedSignals", "[settings")
 
         REQUIRE(count == 5);
 
-        e.remove();
-
         connections.clear();
 
         // No connection is active
@@ -279,33 +280,9 @@ TEST_CASE("AdvancedSignals", "[settings")
         e = 3;
 
         REQUIRE(count == 5);
+
+        e.remove();
     }
-}
-
-TEST_CASE("RemoveSetting", "[settings]")
-{
-    Setting<int> a("/rs/a");
-    Setting<int> b("/rs/b", 5);
-    Setting<int> c("/rs/c");
-
-    // Before loading
-    REQUIRE(a == 0);
-    REQUIRE(b == 5);
-    REQUIRE(c == 0);
-
-    REQUIRE(SettingManager::loadFrom("files/in.removesetting.json") ==
-            SettingManager::LoadError::NoError);
-
-    // After loading
-    REQUIRE(a == 5);
-    REQUIRE(b == 10);
-    REQUIRE(c == 0);
-
-    REQUIRE(SettingManager::saveAs("files/out.pre.removesetting.json"));
-
-    REQUIRE(a.remove());
-
-    REQUIRE(SettingManager::saveAs("files/out.post.removesetting.json"));
 }
 
 TEST_CASE("ResetToDefault", "[settings]")
@@ -326,7 +303,8 @@ TEST_CASE("ResetToDefault", "[settings]")
     Setting<int> loadedSameCustomDefault("/loadedSameCustomDefault", 5);
 
     // Custom default value, saved in settings file as a different value
-    Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault", 5);
+    Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault",
+                                              5);
 
     REQUIRE(noDefault.getDefaultValue() == 0);
     REQUIRE(customDefault.getDefaultValue() == 5);
@@ -365,8 +343,7 @@ TEST_CASE("ResetToDefault", "[settings]")
     REQUIRE(loadedSameCustomDefault == 5);
     REQUIRE(loadedDifferentCustomDefault == 5);
 
-    REQUIRE(SettingManager::loadFrom("files/in.resettodefault.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.resettodefault.json"));
 
     // After loading
     REQUIRE(noDefault == 0);
@@ -438,8 +415,7 @@ TEST_CASE("IsEqual", "[settings]")
 
     auto v = anyMap.getValue();
 
-    REQUIRE(SettingManager::loadFrom("files/in.isequal.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.isequal.json"));
 
     auto v2 = anyMap.getValue();
 
@@ -452,9 +428,10 @@ TEST_CASE("IsEqual", "[settings]")
 
         int numSignalsFired = 0;
 
-        stringMap.getValueChangedSignal().connect([&numSignalsFired](auto, auto) {
-            ++numSignalsFired;  //
-        });
+        stringMap.getValueChangedSignal().connect(
+            [&numSignalsFired](auto, auto) {
+                ++numSignalsFired;  //
+            });
 
         REQUIRE(numSignalsFired == 0);
 
@@ -507,8 +484,7 @@ TEST_CASE("Simple Map", "[settings]")
 
     Setting<std::map<std::string, boost::any>> test("/map");
 
-    REQUIRE(SettingManager::loadFrom("files/in.simplemap.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.simplemap.json"));
 
     auto map = test.getValue();
     REQUIRE(map.size() == 3);
@@ -525,14 +501,14 @@ TEST_CASE("Complex Map", "[settings]")
 
     Setting<std::map<std::string, boost::any>> test("/map");
 
-    REQUIRE(SettingManager::loadFrom("files/in.complexmap.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.complexmap.json"));
 
     auto map = test.getValue();
     REQUIRE(map.size() == 3);
     REQUIRE(any_cast<int>(map["a"]) == 5);
 
-    auto innerMap = any_cast<std::map<std::string, boost::any>>(map["innerMap"]);
+    auto innerMap =
+        any_cast<std::map<std::string, boost::any>>(map["innerMap"]);
     REQUIRE(innerMap.size() == 3);
     REQUIRE(any_cast<int>(innerMap["a"]) == 420);
     REQUIRE(any_cast<int>(innerMap["b"]) == 320);
@@ -549,7 +525,8 @@ TEST_CASE("Complex Map", "[settings]")
     REQUIRE(any_cast<bool>(innerArray[6]) == false);
     REQUIRE(any_cast<double>(innerArray[7]) == 4.20);
 
-    auto innerArrayMap = any_cast<std::map<std::string, boost::any>>(innerArray[8]);
+    auto innerArrayMap =
+        any_cast<std::map<std::string, boost::any>>(innerArray[8]);
     REQUIRE(innerArrayMap.size() == 3);
     REQUIRE(any_cast<int>(innerArrayMap["a"]) == 1);
     REQUIRE(any_cast<int>(innerArrayMap["b"]) == 2);
@@ -581,8 +558,7 @@ TEST_CASE("Array test", "[settings]")
 
 TEST_CASE("Array size", "[settings]")
 {
-    REQUIRE(SettingManager::loadFrom("files/in.array_size.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.array_size.json"));
 
     REQUIRE(SettingManager::arraySize("/arraySize1") == 1);
     REQUIRE(SettingManager::arraySize("/arraySize2") == 2);
@@ -597,7 +573,7 @@ TEST_CASE("Vector", "[settings]")
 {
     Setting<std::vector<int>> test("/vectorTest");
 
-    REQUIRE(SettingManager::loadFrom("files/in.vector.json") == SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.vector.json"));
 
     auto vec = test.getValue();
 
@@ -689,16 +665,16 @@ TEST_CASE("ChannelManager", "[settings]")
         REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
     }
 
-    REQUIRE(SettingManager::loadFrom("files/channelmanager.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("channelmanager.json"));
 
     REQUIRE(manager.channels.at(0).name.getValue() == "pajlada");
     REQUIRE(manager.channels.at(1).name.getValue() == "hemirt");
     REQUIRE(manager.channels.at(2).name.getValue() == "gempir");
 
     // Last channel should always be unset
-    REQUIRE(manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
-            "Name not loaded");
+    REQUIRE(
+        manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
+        "Name not loaded");
 
     for (auto i = 4; i < pajlada::test::NUM_CHANNELS; ++i) {
         manager.channels.at(i).name = "From file FeelsGoodMan";
@@ -719,15 +695,14 @@ TEST_CASE("Channel", "[settings]")
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load default file
-    REQUIRE(SettingManager::loadFrom("files/d.channels.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("d.channels.json"));
 
     // Post defaults load
     REQUIRE(chHemirt.maxMessageLength.getValue() == 200);
     REQUIRE(chPajlada.maxMessageLength == 240);
 
     // Load custom file
-    REQUIRE(SettingManager::loadFrom("files/channels.json") == SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("channels.json"));
 
     // Post channels load
     REQUIRE(chHemirt.maxMessageLength == 300);
@@ -744,7 +719,8 @@ TEST_CASE("Load files", "[settings]")
                 SettingManager::LoadError::JSONParseError);
         REQUIRE(SettingManager::loadFrom("files/bad-3.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::loadFrom("files/empty.json") == SettingManager::LoadError::NoError);
+        REQUIRE(SettingManager::loadFrom("files/empty.json") ==
+                SettingManager::LoadError::NoError);
     }
 
     SECTION("Non-existant files")
@@ -794,7 +770,7 @@ TEST_CASE("Simple static", "[settings]")
     REQUIRE(Foo::rootInt1.getValue() == 1);
     REQUIRE(Foo::rootInt2.getValue() == 1);
 
-    REQUIRE(SettingManager::loadFrom("files/test.json") == SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("test.json"));
 
     // Floats post-load
     REQUIRE(Foo::f1.getValue() == 1.f);
