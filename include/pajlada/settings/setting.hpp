@@ -14,23 +14,8 @@
 namespace pajlada {
 namespace Settings {
 
-namespace detail {
-
-class ISetting
-{
-public:
-    virtual ~ISetting() = default;
-
-private:
-    // Setting description (i.e. Number of threads to run the application
-    // in)
-    std::string description;
-};
-
-}  // namespace detail
-
 template <typename Type>
-class Setting : public detail::ISetting
+class Setting
 {
     using Container = SettingData<Type>;
 
@@ -48,7 +33,7 @@ public:
             const Type &currentValue,
             SettingOption options = SettingOption::Default);
 
-    ~Setting() override = default;
+    ~Setting() = default;
 
     bool
     isValid() const
@@ -62,14 +47,6 @@ public:
         auto lockedSetting = this->getLockedData();
 
         return lockedSetting->getPath();
-    }
-
-    Setting &
-    setName(const char *newName)
-    {
-        this->name = newName;
-
-        return *this;
     }
 
     const Type
@@ -332,8 +309,6 @@ public:
     }
 
 private:
-    std::string name;
-
     std::vector<Signals::ScopedConnection> managedConnections;
 
     friend class ISettingData;
