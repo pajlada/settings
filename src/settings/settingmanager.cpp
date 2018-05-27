@@ -357,15 +357,14 @@ SettingManager::loadFrom(const char *path)
     }
 
     // Create vector of appropriate size
-    char *fileBuffer = new char[fileSize];
+    std::unique_ptr<char[]>  fileBuffer(new char[fileSize]);
 
     // Read file data into buffer
-    auto readBytes = fread(fileBuffer, 1, fileSize, fh);
+    auto readBytes = fread(fileBuffer.get(), 1, fileSize, fh);
 
     if (readBytes != static_cast<size_t>(fileSize)) {
         // Error reading the buffer
         fclose(fh);
-        delete[] fileBuffer;
 
         return LoadError::FileReadError;
     }
@@ -379,7 +378,7 @@ SettingManager::loadFrom(const char *path)
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok = instance.document.Parse(fileBuffer, fileSize);
+    rapidjson::ParseResult ok = instance.document.Parse(fileBuffer.get(), fileSize);
 
     // Make sure the file parsed okay
     if (!ok) {
