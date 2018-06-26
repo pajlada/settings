@@ -10,11 +10,13 @@ set(PajladaSettings_SOURCES
     src/test/channel.cpp
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
+    src/testhelpers.cpp
     )
 
 include_directories(include)
 
 add_definitions(-DPAJLADA_SETTINGS_DEBUG)
+add_definitions(-DPAJLADA_SETTINGS_ENABLE_EXCEPTIONS)
 
 add_executable(settings
     ${PajladaSettings_SOURCES}
