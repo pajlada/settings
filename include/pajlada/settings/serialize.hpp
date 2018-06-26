@@ -187,7 +187,7 @@ struct Serialize<boost::any> {
             return Serialize<std::vector<std::string>>::get(
                 any_cast<std::vector<std::string>>(value), a);
         } else {
-            PS_DEBUG("[boost::any] Deserialize: Unknown type of value");
+            PS_DEBUG("[boost::any] Serialize: Unknown type of value");
         }
 
         return rapidjson::Value(rapidjson::kNullType);
