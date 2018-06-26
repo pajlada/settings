@@ -23,6 +23,13 @@
 #define PAJLADA_THROW_EXCEPTION(x)
 #endif
 
+#ifndef PAJLADA_REPORT_ERROR
+#define PAJLADA_REPORT_ERROR(x) \
+    if (x != nullptr) {         \
+        *x = true;              \
+    }
+#endif
+
 #include <cassert>
 #include <cmath>
 #include <map>
@@ -200,12 +207,15 @@ struct Serialize<boost::any> {
 template <typename Type, typename Enable = void>
 struct Deserialize {
     static Type
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
-        static_assert("Unimplemented deserialize type");
+        // static_assert(false, "Unimplemented deserialize type");
 
-        // printf("%s\n", typeid(Type).name());
-        // throw std::runtime_error("Unimplemented deserialize for type");
+        printf("%s\n", typeid(Type).name());
+        throw std::runtime_error("Unimplemented deserialize for type");
+        PAJLADA_THROW_EXCEPTION("Unimplemented deserialize for type")
+        PAJLADA_REPORT_ERROR(error)
+        return Type{};
     }
 };
 
@@ -213,9 +223,10 @@ template <typename Type>
 struct Deserialize<
     Type, typename std::enable_if<std::is_integral<Type>::value>::type> {
     static Type
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (!value.IsNumber()) {
+            PAJLADA_REPORT_ERROR(error)
             PAJLADA_THROW_EXCEPTION(
                 "Invalid json type read for integral deserializer")
             return Type{};
@@ -228,7 +239,7 @@ struct Deserialize<
 template <>
 struct Deserialize<bool> {
     static bool
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (value.IsBool()) {
             // No conversion needed
@@ -242,6 +253,7 @@ struct Deserialize<bool> {
             return value.GetInt() == 1;
         }
 
+        PAJLADA_REPORT_ERROR(error)
         PAJLADA_THROW_EXCEPTION("Invalid json type read for bool deserializer")
         return false;
     }
@@ -250,9 +262,10 @@ struct Deserialize<bool> {
 template <>
 struct Deserialize<double> {
     static double
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (!value.IsNumber()) {
+            PAJLADA_REPORT_ERROR(error)
             PAJLADA_THROW_EXCEPTION(
                 "Invalid json type read for double deserializer")
             return double{};
@@ -265,9 +278,10 @@ struct Deserialize<double> {
 template <>
 struct Deserialize<float> {
     static float
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (!value.IsNumber()) {
+            PAJLADA_REPORT_ERROR(error)
             PAJLADA_THROW_EXCEPTION(
                 "Invalid json type read for float deserializer")
             return float{};
@@ -280,9 +294,10 @@ struct Deserialize<float> {
 template <>
 struct Deserialize<std::string> {
     static std::string
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (!value.IsString()) {
+            PAJLADA_REPORT_ERROR(error)
             PAJLADA_THROW_EXCEPTION(
                 "Invalid json type read for string deserializer")
             return std::string{};
@@ -295,7 +310,7 @@ struct Deserialize<std::string> {
 template <typename ValueType>
 struct Deserialize<std::map<std::string, ValueType>> {
     static std::map<std::string, ValueType>
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         std::map<std::string, ValueType> ret;
 
@@ -319,7 +334,7 @@ struct Deserialize<std::map<std::string, ValueType>> {
 template <typename ValueType>
 struct Deserialize<std::vector<ValueType>> {
     static std::vector<ValueType>
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         std::vector<ValueType> ret;
 
@@ -341,7 +356,7 @@ struct Deserialize<std::vector<ValueType>> {
 template <typename Arg1, typename Arg2>
 struct Deserialize<std::pair<Arg1, Arg2>> {
     static std::pair<Arg1, Arg2>
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (!value.IsArray()) {
             PS_DEBUG("[std::pair: Value is not a 2-size array");
@@ -362,7 +377,7 @@ struct Deserialize<std::pair<Arg1, Arg2>> {
 template <>
 struct Deserialize<boost::any> {
     static boost::any
-    get(const rapidjson::Value &value)
+    get(const rapidjson::Value &value, bool *error = nullptr)
     {
         if (value.IsInt()) {
             return value.GetInt();
