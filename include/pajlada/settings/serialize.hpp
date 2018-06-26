@@ -8,7 +8,23 @@
 #include <boost/any.hpp>
 #endif
 
+#define PAJLADA_SETTINGS_ROUNDING_METHOD_ROUND 0
+#define PAJLADA_SETTINGS_ROUNDING_METHOD_CEIL 1
+#define PAJLADA_SETTINGS_ROUNDING_METHOD_FLOOR 2
+
+// valid values: ceil/floor/round
+#ifndef PAJLADA_SETTINGS_ROUNDING_METHOD
+#define PAJLADA_SETTINGS_ROUNDING_METHOD PAJLADA_SETTINGS_ROUNDING_METHOD_ROUND
+#endif
+
+#ifdef PAJLADA_SETTINGS_ENABLE_EXCEPTIONS
+#define PAJLADA_THROW_EXCEPTION(x) throw std::runtime_error(x);
+#else
+#define PAJLADA_THROW_EXCEPTION(x)
+#endif
+
 #include <cassert>
+#include <cmath>
 #include <map>
 #include <stdexcept>
 #include <typeinfo>
@@ -16,6 +32,44 @@
 
 namespace pajlada {
 namespace Settings {
+
+namespace {
+
+template <typename T1, typename T2>
+typename std::enable_if<std::is_integral<T1>::value, T1>::type
+Round(T2 value)
+{
+#if PAJLADA_SETTINGS_ROUNDING_METHOD == PAJLADA_SETTINGS_ROUNDING_METHOD_ROUND
+    return round(value);
+#elif PAJLADA_SETTINGS_ROUNDING_METHOD == PAJLADA_SETTINGS_ROUNDING_METHOD_CEIL
+    return ceil(value);
+#elif PAJLADA_SETTINGS_ROUNDING_METHOD == PAJLADA_SETTINGS_ROUNDING_METHOD_FLOOR
+    return floor(value);
+#else
+    static_assert(
+        "Invalid rounding method selected in PAJLADA_SETTINGS_ROUNDING_METHOD");
+#endif
+}
+
+template <typename Type, typename std::enable_if<
+                             std::is_integral<Type>::value>::type * = nullptr>
+Type
+GetNumber(const rapidjson::Value &value)
+{
+    if (value.IsDouble()) {
+        return Round<Type>(value.GetDouble());
+    }
+    if (value.IsFloat()) {
+        return Round<Type>(value.GetFloat());
+    }
+    if (value.IsInt()) {
+        return value.GetInt();
+    }
+
+    return Type{};
+}
+
+}  // namespace
 
 // Serialize is called when a settings value is being saved
 // Deserialize is called when we load a json file into our library
@@ -143,27 +197,31 @@ struct Serialize<boost::any> {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename Type>
+template <typename Type, typename Enable = void>
 struct Deserialize {
     static Type
     get(const rapidjson::Value &value)
     {
-        printf("%s\n", typeid(Type).name());
-        throw std::runtime_error("Unimplemented deserialize for type");
+        static_assert("Unimplemented deserialize type");
+
+        // printf("%s\n", typeid(Type).name());
+        // throw std::runtime_error("Unimplemented deserialize for type");
     }
 };
 
-template <>
-struct Deserialize<int> {
-    static int
+template <typename Type>
+struct Deserialize<
+    Type, typename std::enable_if<std::is_integral<Type>::value>::type> {
+    static Type
     get(const rapidjson::Value &value)
     {
-        if (!value.IsInt()) {
-            throw std::runtime_error(
-                "Deserialized rapidjson::Value is not an int");
+        if (!value.IsNumber()) {
+            PAJLADA_THROW_EXCEPTION(
+                "Invalid json type read for integral deserializer")
+            return Type{};
         }
 
-        return value.GetInt();
+        return GetNumber<Type>(value);
     }
 };
 
@@ -184,7 +242,8 @@ struct Deserialize<bool> {
             return value.GetInt() == 1;
         }
 
-        throw std::runtime_error("Deserialized rapidjson::Value is not a bool");
+        PAJLADA_THROW_EXCEPTION("Invalid json type read for bool deserializer")
+        return false;
     }
 };
 
@@ -193,9 +252,10 @@ struct Deserialize<double> {
     static double
     get(const rapidjson::Value &value)
     {
-        if (!value.IsFloat() && !value.IsDouble() && !value.IsNumber()) {
-            throw std::runtime_error(
-                "Deserialized rapidjson::Value is not a double");
+        if (!value.IsNumber()) {
+            PAJLADA_THROW_EXCEPTION(
+                "Invalid json type read for double deserializer")
+            return double{};
         }
 
         return value.GetDouble();
@@ -207,9 +267,10 @@ struct Deserialize<float> {
     static float
     get(const rapidjson::Value &value)
     {
-        if (!value.IsFloat() && !value.IsDouble() && !value.IsNumber()) {
-            throw std::runtime_error(
-                "Deserialized rapidjson::Value is not a float");
+        if (!value.IsNumber()) {
+            PAJLADA_THROW_EXCEPTION(
+                "Invalid json type read for float deserializer")
+            return float{};
         }
 
         return value.GetFloat();
@@ -222,8 +283,9 @@ struct Deserialize<std::string> {
     get(const rapidjson::Value &value)
     {
         if (!value.IsString()) {
-            throw std::runtime_error(
-                "Deserialized rapidjson::Value is not a string");
+            PAJLADA_THROW_EXCEPTION(
+                "Invalid json type read for string deserializer")
+            return std::string{};
         }
 
         return value.GetString();
