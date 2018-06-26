@@ -11,6 +11,9 @@ set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
     src/testhelpers.cpp
+    src/test-remove.cpp
+    src/test-exceptions.cpp
+    src/test-serialize.cpp
     )
 
 include_directories(include)
