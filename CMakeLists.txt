@@ -14,6 +14,7 @@ set(PajladaSettings_SOURCES
     src/test-remove.cpp
     src/test-exceptions.cpp
     src/test-serialize.cpp
+    src/test-deserialize.cpp
     )
 
 include_directories(include)
