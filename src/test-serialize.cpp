@@ -191,7 +191,7 @@ TEST_CASE("Serialize int", "[settings][serialize]")
 
     SECTION("Try to read string into int")
     {
-        REQUIRE_THROWS(LoadFile("in.serialize.string.json"));
+        DD_THROWS(LoadFile("in.serialize.string.json"));
     }
 }
 
@@ -264,5 +264,5 @@ TEST_CASE("Serialize bool", "[settings][serialize]")
     REQUIRE(
         FilesMatch("in.serialize.bool.false.json", "out.serialize.bool.json"));
 
-    REQUIRE_THROWS(LoadFile("in.serialize.string.json"));
+    DD_THROWS(LoadFile("in.serialize.string.json"));
 }

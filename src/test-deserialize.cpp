@@ -4,6 +4,7 @@
 #include <pajlada/settings.hpp>
 
 using namespace pajlada::Settings;
+using namespace std;
 
 TEST_CASE("Deserialize", "[settings]")
 {
@@ -82,5 +83,65 @@ TEST_CASE("Deserialize", "[settings]")
         REQUIRE_IF_NOEXCEPT(a2, "");
         REQUIRE(a3->getValue() == "xd");
         REQUIRE_IF_NOEXCEPT(a4, "");
+    }
+}
+
+TEST_CASE("Deserialize error-checking", "[settings]")
+{
+    rapidjson::Value jString("asd");
+    rapidjson::Value jInt(5);
+    rapidjson::Value jBool(true);
+    rapidjson::Value jDouble(6.4);
+
+    bool error = false;
+
+    SECTION("int")
+    {
+        int v = 0;
+
+        error = false;
+        DD_THROWS(v = Deserialize<int>::get(jString, &error));
+        REQUIRE(error == true);
+        REQUIRE_IF_NOEXCEPT2(v, 0);
+
+        error = false;
+        v = Deserialize<int>::get(jInt, &error);
+        REQUIRE(error == false);
+        REQUIRE(v == 5);
+
+        error = false;
+        DD_THROWS(v = Deserialize<int>::get(jBool, &error));
+        REQUIRE(error == true);
+        REQUIRE_IF_NOEXCEPT2(v, 0);
+
+        error = false;
+        v = Deserialize<int>::get(jDouble, &error);
+        REQUIRE(error == false);
+        REQUIRE(v == 6);
+    }
+
+    SECTION("string")
+    {
+        string v = "";
+
+        error = false;
+        v = Deserialize<string>::get(jString, &error);
+        REQUIRE(error == false);
+        REQUIRE(v == "asd");
+
+        error = false;
+        DD_THROWS(v = Deserialize<string>::get(jInt, &error));
+        REQUIRE(error == true);
+        REQUIRE_IF_NOEXCEPT2(v, "");
+
+        error = false;
+        DD_THROWS(v = Deserialize<string>::get(jBool, &error));
+        REQUIRE(error == true);
+        REQUIRE_IF_NOEXCEPT2(v, "");
+
+        error = false;
+        DD_THROWS(v = Deserialize<string>::get(jDouble, &error));
+        REQUIRE(error == true);
+        REQUIRE_IF_NOEXCEPT2(v, "");
     }
 }
