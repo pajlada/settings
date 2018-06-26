@@ -710,14 +710,6 @@ TEST_CASE("Channel", "[settings]")
     REQUIRE(chPajlada.maxMessageLength == 500);
 }
 
-#ifdef PAJLADA_SETTINGS_ENABLE_EXCEPTIONS
-#define DD_THROWS(x) REQUIRE_THROWS(x)
-#define REQUIRE_IF_NOEXCEPT(x, y)
-#else
-#define DD_THROWS(x) x
-#define REQUIRE_IF_NOEXCEPT(x, y) REQUIRE(x->getValue() == y)
-#endif
-
 TEST_CASE("Load files", "[settings]")
 {
     SECTION("Invalid files")
