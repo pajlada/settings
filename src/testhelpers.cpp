@@ -47,7 +47,7 @@ LoadFile(const std::string &fileName)
 
     std::string path = initialPath + fileName;
 
-    return SettingManager::loadFrom(path.c_str()) ==
+    return SettingManager::gLoadFrom(path.c_str()) ==
            SettingManager::LoadError::NoError;
 }
 
@@ -58,5 +58,5 @@ SaveFile(const std::string &fileName)
 
     std::string path = initialPath + fileName;
 
-    return SettingManager::saveAs(path.c_str());
+    return SettingManager::gSaveAs(path.c_str());
 }

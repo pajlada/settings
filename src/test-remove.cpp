@@ -16,19 +16,18 @@ TEST_CASE("RemoveSetting", "[settings][remove]")
     REQUIRE(b == 5);
     REQUIRE(c == 0);
 
-    REQUIRE(SettingManager::loadFrom("files/in.removesetting.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.removesetting.json"));
 
     // After loading
     REQUIRE(a == 5);
     REQUIRE(b == 10);
     REQUIRE(c == 0);
 
-    REQUIRE(SettingManager::saveAs("files/out.pre.removesetting.json"));
+    REQUIRE(SettingManager::gSaveAs("files/out.pre.removesetting.json"));
 
     REQUIRE(a.remove());
 
-    REQUIRE(SettingManager::saveAs("files/out.post.removesetting.json"));
+    REQUIRE(SettingManager::gSaveAs("files/out.post.removesetting.json"));
 
     REQUIRE(!FilesMatch("out.pre.removesetting.json",
                         "out.post.removesetting.json"));
@@ -49,8 +48,7 @@ TEST_CASE("RemoveNestedSetting", "[settings][remove]")
     REQUIRE(d == 0);
     REQUIRE(e == 20);
 
-    REQUIRE(SettingManager::loadFrom("files/in.removenestedsetting.json") ==
-            SettingManager::LoadError::NoError);
+    REQUIRE(LoadFile("in.removenestedsetting.json"));
 
     // After loading
     REQUIRE(a == 6);
@@ -66,7 +64,7 @@ TEST_CASE("RemoveNestedSetting", "[settings][remove]")
     REQUIRE(e.isValid());
 
     REQUIRE(
-        SettingManager::saveAs("files/out.removenestedsetting.state1.json"));
+        SettingManager::gSaveAs("files/out.removenestedsetting.state1.json"));
     REQUIRE(FilesMatch("out.removenestedsetting.state1.json",
                        "in.removenestedsetting.state1.json"));
 
@@ -79,7 +77,7 @@ TEST_CASE("RemoveNestedSetting", "[settings][remove]")
     REQUIRE(e.isValid());
 
     REQUIRE(
-        SettingManager::saveAs("files/out.removenestedsetting.state2.json"));
+        SettingManager::gSaveAs("files/out.removenestedsetting.state2.json"));
     REQUIRE(FilesMatch("out.removenestedsetting.state2.json",
                        "in.removenestedsetting.state2.json"));
 
@@ -92,7 +90,7 @@ TEST_CASE("RemoveNestedSetting", "[settings][remove]")
     REQUIRE(e.isValid());
 
     REQUIRE(
-        SettingManager::saveAs("files/out.removenestedsetting.state3.json"));
+        SettingManager::gSaveAs("files/out.removenestedsetting.state3.json"));
     REQUIRE(FilesMatch("out.removenestedsetting.state3.json",
                        "in.removenestedsetting.state3.json"));
 

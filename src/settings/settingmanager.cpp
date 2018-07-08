@@ -25,14 +25,14 @@ SettingManager::~SettingManager()
     // Or on each setting change?
     // Or only manually?
     if (this->checkSaveMethodFlag(SaveMethod::SaveOnExitFlag)) {
-        SettingManager::save();
+        this->save();
     }
 }
 
 void
 SettingManager::pp(const string &prefix)
 {
-    SettingManager::ppDocument(SettingManager::getInstance().document, prefix);
+    SettingManager::ppDocument(SettingManager::getInstance()->document, prefix);
 }
 
 void
@@ -59,9 +59,9 @@ SettingManager::stringify(const rapidjson::Value &v)
 rapidjson::Value *
 SettingManager::rawValue(const char *path)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    return rapidjson::Pointer(path).Get(instance.document);
+    return rapidjson::Pointer(path).Get(instance->document);
 }
 
 rapidjson::Value *
@@ -80,17 +80,18 @@ SettingManager::set(const char *path, rapidjson::Value &&value,
 void
 SettingManager::set(const char *path, rapidjson::Value &&value)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    rapidjson::Pointer(path).Set(instance.document, value);
+    rapidjson::Pointer(path).Set(instance->document, value);
 }
 
 rapidjson::SizeType
 SettingManager::arraySize(const string &path)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    auto valuePointer = rapidjson::Pointer(path.c_str()).Get(instance.document);
+    auto valuePointer =
+        rapidjson::Pointer(path.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
         return false;
     }
@@ -109,9 +110,9 @@ SettingManager::arraySize(const string &path)
 bool
 SettingManager::isNull(const string &path)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    return instance._isNull(path);
+    return instance->_isNull(path);
 }
 
 bool
@@ -128,18 +129,19 @@ SettingManager::_isNull(const string &path)
 void
 SettingManager::setNull(const string &path)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    rapidjson::Pointer(path.c_str()).Set(instance.document, rapidjson::Value());
+    rapidjson::Pointer(path.c_str())
+        .Set(instance->document, rapidjson::Value());
 }
 
 bool
 SettingManager::removeArrayValue(const string &arrayPath,
                                  rapidjson::SizeType index)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    instance.clearSettings(arrayPath + "/" + to_string(index) + "/");
+    instance->clearSettings(arrayPath + "/" + to_string(index) + "/");
 
     rapidjson::SizeType size = SettingManager::arraySize(arrayPath);
 
@@ -154,7 +156,7 @@ SettingManager::removeArrayValue(const string &arrayPath,
     }
 
     auto valuePointer =
-        rapidjson::Pointer(arrayPath.c_str()).Get(instance.document);
+        rapidjson::Pointer(arrayPath.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
         return false;
     }
@@ -168,7 +170,7 @@ SettingManager::removeArrayValue(const string &arrayPath,
         SettingManager::setNull(arrayPath + "/" + to_string(index));
     }
 
-    instance.clearSettings(arrayPath + "/" + to_string(index) + "/");
+    instance->clearSettings(arrayPath + "/" + to_string(index) + "/");
 
     return true;
 }
@@ -183,12 +185,12 @@ SettingManager::cleanArray(const string &arrayPath)
         return 0;
     }
 
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
     rapidjson::SizeType numValuesRemoved = 0;
 
     for (rapidjson::SizeType i = size - 1; i > 0; --i) {
-        if (instance._isNull(arrayPath + "/" + to_string(i))) {
+        if (instance->_isNull(arrayPath + "/" + to_string(i))) {
             SettingManager::removeArrayValue(arrayPath, i);
             ++numValuesRemoved;
         }
@@ -219,23 +221,23 @@ SettingManager::getObjectKeys(const string &objectPath)
 void
 SettingManager::clear()
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
     // Clear document
-    rapidjson::Value(rapidjson::kObjectType).Swap(instance.document);
+    rapidjson::Value(rapidjson::kObjectType).Swap(instance->document);
 
     // Clear map of settings
-    lock_guard<mutex> lock(instance.settingsMutex);
+    lock_guard<mutex> lock(instance->settingsMutex);
 
-    instance.settings.clear();
+    instance->settings.clear();
 }
 
 bool
 SettingManager::removeSetting(const string &path)
 {
-    SettingManager &instance = SettingManager::getInstance();
+    const auto &instance = SettingManager::getInstance();
 
-    return instance._removeSetting(path);
+    return instance->_removeSetting(path);
 }
 
 bool
@@ -308,30 +310,25 @@ SettingManager::clearSettings(const string &root)
     }
 }
 
+void
+SettingManager::setPath(const char *newFilePath)
+{
+    this->filePath = newFilePath;
+}
+
 SettingManager::LoadError
 SettingManager::load(const char *path)
 {
-    SettingManager &instance = SettingManager::getInstance();
-
     if (path != nullptr) {
-        instance.filePath = path;
+        this->filePath = path;
     }
 
-    return SettingManager::loadFrom(instance.filePath.c_str());
+    return this->loadFrom(this->filePath.c_str());
 }
-
-/* get current working directory
-#include <direct.h>
-char pBuf[512];
-_getcwd(pBuf, 512);
-cout << pBuf << endl;
-*/
 
 SettingManager::LoadError
 SettingManager::loadFrom(const char *path)
 {
-    SettingManager &instance = SettingManager::getInstance();
-
     // Open file
     FILE *fh = fopen(path, "rb");
     if (fh == nullptr) {
@@ -357,7 +354,7 @@ SettingManager::loadFrom(const char *path)
     }
 
     // Create vector of appropriate size
-    std::unique_ptr<char[]>  fileBuffer(new char[fileSize]);
+    std::unique_ptr<char[]> fileBuffer(new char[fileSize]);
 
     // Read file data into buffer
     auto readBytes = fread(fileBuffer.get(), 1, fileSize, fh);
@@ -378,7 +375,8 @@ SettingManager::loadFrom(const char *path)
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok = instance.document.Parse(fileBuffer.get(), fileSize);
+    rapidjson::ParseResult ok =
+        this->document.Parse(fileBuffer.get(), fileSize);
 
     // Make sure the file parsed okay
     if (!ok) {
@@ -386,7 +384,7 @@ SettingManager::loadFrom(const char *path)
     }
 
     // This restricts config files a bit. They NEED to have an object root
-    if (!instance.document.IsObject()) {
+    if (!this->document.IsObject()) {
         return LoadError::JSONParseError;
     }
 
@@ -395,16 +393,16 @@ SettingManager::loadFrom(const char *path)
 
     {
         // Fill in any settings that registered before we called load
-        instance.settingsMutex.lock();
+        this->settingsMutex.lock();
 
-        auto settingsCopy = instance.settings;
+        auto settingsCopy = this->settings;
 
-        instance.settingsMutex.unlock();
+        this->settingsMutex.unlock();
 
         for (const auto &it : settingsCopy) {
             const shared_ptr<ISettingData> &setting = it.second;
 
-            setting->unmarshalFrom(instance.document);
+            setting->unmarshalFrom(this->document);
         }
     }
 
@@ -414,21 +412,17 @@ SettingManager::loadFrom(const char *path)
 bool
 SettingManager::save(const char *path)
 {
-    SettingManager &instance = SettingManager::getInstance();
-
     if (path != nullptr) {
-        instance.filePath = path;
+        this->filePath = path;
     }
 
-    return SettingManager::saveAs(instance.filePath.c_str());
+    return this->saveAs(this->filePath.c_str());
 }
 
 bool
 SettingManager::saveAs(const char *path)
 {
     PS_DEBUG("Saving to " << path);
-
-    SettingManager &instance = SettingManager::getInstance();
 
     FILE *fh = fopen(path, "wb+");
     if (fh == nullptr) {
@@ -438,7 +432,7 @@ SettingManager::saveAs(const char *path)
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    instance.document.Accept(writer);
+    this->document.Accept(writer);
 
     auto writtenBytes = fwrite(buffer.GetString(), 1, buffer.GetSize(), fh);
 
@@ -446,6 +440,38 @@ SettingManager::saveAs(const char *path)
     fclose(fh);
 
     return writtenBytes == buffer.GetSize();
+}
+
+SettingManager::LoadError
+SettingManager::gLoad(const char *path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->load(instance->filePath.c_str());
+}
+
+SettingManager::LoadError
+SettingManager::gLoadFrom(const char *path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->loadFrom(path);
+}
+
+bool
+SettingManager::gSave(const char *path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->save(instance->filePath.c_str());
+}
+
+bool
+SettingManager::gSaveAs(const char *path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->saveAs(path);
 }
 
 }  // namespace Settings

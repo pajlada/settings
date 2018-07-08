@@ -14,10 +14,10 @@ namespace Settings {
 
 class SettingManager
 {
+public:
     SettingManager();
     ~SettingManager();
 
-public:
     enum class LoadError {
         NoError,
         CannotOpenFile,
@@ -62,33 +62,35 @@ public:
 
     template <typename Type, typename Container>
     static std::weak_ptr<Container>
-    getSetting(const std::string &path, SettingOption options)
+    getSetting(const std::string &path, SettingOption options,
+               std::shared_ptr<SettingManager> instance)
     {
         const auto creator = [](auto &setting) {
             setting.reset(new Container);  //
         };
 
         return SettingManager::_getSetting<Type, Container>(path, options,
-                                                            creator);
+                                                            creator, instance);
     }
 
     template <typename Type, typename Container>
     static std::weak_ptr<Container>
     getSetting(const std::string &path, const Type &defaultValue,
-               SettingOption options)
+               SettingOption options, std::shared_ptr<SettingManager> instance)
     {
         const auto creator = [&defaultValue](auto &setting) {
             setting.reset(new Container(defaultValue));  //
         };
 
         return SettingManager::_getSetting<Type, Container>(path, options,
-                                                            creator);
+                                                            creator, instance);
     }
 
     template <typename Type, typename Container>
     static std::weak_ptr<Container>
     getSetting(const std::string &path, const Type &defaultValue,
-               const Type &currentValue, SettingOption options)
+               const Type &currentValue, SettingOption options,
+               std::shared_ptr<SettingManager> instance)
     {
         const auto creator = [&defaultValue, &currentValue](
                                  std::shared_ptr<Container> &setting) {
@@ -96,7 +98,7 @@ public:
         };
 
         return SettingManager::_getSetting<Type, Container>(path, options,
-                                                            creator);
+                                                            creator, instance);
     }
 
     static bool removeSetting(const std::string &path);
@@ -112,20 +114,29 @@ private:
     void clearSettings(const std::string &root);
 
 public:
+    void setPath(const char *newFilePath);
+
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    static LoadError load(const char *filePath = nullptr);
+    LoadError load(const char *filePath = nullptr);
     // Load from given path
-    static LoadError loadFrom(const char *filePath);
+    LoadError loadFrom(const char *filePath);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your application
     // is crash free
     // Save to given path and set path as the default path (or save from default
     // path if filePath is a nullptr)
-    static bool save(const char *filePath = nullptr);
+    bool save(const char *filePath = nullptr);
     // Save to given path
-    static bool saveAs(const char *filePath);
+    bool saveAs(const char *filePath);
+
+    // Functions prefixed with g are static functions that work
+    // on the statically initialized SettingManager instance
+    static LoadError gLoad(const char *filePath = nullptr);
+    static LoadError gLoadFrom(const char *filePath);
+    static bool gSave(const char *filePath = nullptr);
+    static bool gSaveAs(const char *filePath);
 
     enum class SaveMethod : uint64_t {
         SaveOnExitFlag = (1ull << 1ull),
@@ -146,10 +157,10 @@ private:
                 static_cast<uint64_t>(testSaveMethod)) != 0;
     }
 
-    static SettingManager &
+    static const std::shared_ptr<SettingManager> &
     getInstance()
     {
-        static SettingManager m;
+        static auto m = std::make_shared<SettingManager>();
 
         return m;
     }
@@ -157,14 +168,15 @@ private:
     template <typename Type, typename Container, typename Functor>
     static std::weak_ptr<Container>
     _getSetting(const std::string &path, SettingOption options,
-                Functor creatorFunc)
+                Functor creatorFunc, std::shared_ptr<SettingManager> instance)
     {
-        SettingManager &instance = SettingManager::getInstance();
-        // Check if a setting with the given path is already created
+        if (!instance) {
+            instance = SettingManager::getInstance();
+        }
 
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
+        std::lock_guard<std::mutex> lock(instance->settingsMutex);
 
-        auto &setting = instance.settings[path];
+        auto &setting = instance->settings[path];
 
         if (setting == nullptr) {
             // No setting has been created with this path
@@ -176,7 +188,7 @@ private:
             setting->options = options;
 
             if (!setting->optionEnabled(SettingOption::Remote)) {
-                instance.registerSetting(setting);
+                instance->registerSetting(setting);
             }
         } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
             setting->options = options;

@@ -493,7 +493,7 @@ TEST_CASE("Simple Map", "[settings]")
     REQUIRE(any_cast<std::string>(map["b"]) == "asd");
     REQUIRE(any_cast<double>(map["c"]) == 3.14);
 
-    REQUIRE(SettingManager::saveAs("files/out.simplemap.json"));
+    REQUIRE(SettingManager::gSaveAs("files/out.simplemap.json"));
 }
 
 TEST_CASE("Complex Map", "[settings]")
@@ -533,7 +533,7 @@ TEST_CASE("Complex Map", "[settings]")
     REQUIRE(any_cast<int>(innerArrayMap["b"]) == 2);
     REQUIRE(any_cast<int>(innerArrayMap["c"]) == 3);
 
-    REQUIRE(SettingManager::saveAs("files/out.complexmap.json"));
+    REQUIRE(SettingManager::gSaveAs("files/out.complexmap.json"));
 }
 
 TEST_CASE("Array test", "[settings]")
@@ -552,7 +552,7 @@ TEST_CASE("Array test", "[settings]")
     // been changed
     REQUIRE(SettingManager::arraySize("/array") == 3);
 
-    REQUIRE(SettingManager::saveAs("files/out.array_test.json") == true);
+    REQUIRE(SettingManager::gSaveAs("files/out.array_test.json") == true);
 
     REQUIRE(SettingManager::arraySize("/array") == 3);
 }
@@ -588,7 +588,7 @@ TEST_CASE("Vector", "[settings]")
 
     test = x;
 
-    REQUIRE(SettingManager::saveAs("files/out.vector.json") == true);
+    REQUIRE(SettingManager::gSaveAs("files/out.vector.json") == true);
 }
 
 TEST_CASE("Scoped settings", "[settings]")
@@ -682,7 +682,7 @@ TEST_CASE("ChannelManager", "[settings]")
     }
 
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
-    REQUIRE(SettingManager::saveAs("files/out.test3.json"));
+    REQUIRE(SettingManager::gSaveAs("files/out.test3.json"));
     REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 }
 
@@ -714,25 +714,26 @@ TEST_CASE("Load files", "[settings]")
 {
     SECTION("Invalid files")
     {
-        REQUIRE(SettingManager::loadFrom("files/bad-1.json") ==
+        REQUIRE(SettingManager::gLoadFrom("files/bad-1.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::loadFrom("files/bad-2.json") ==
+        REQUIRE(SettingManager::gLoadFrom("files/bad-2.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::loadFrom("files/bad-3.json") ==
+        REQUIRE(SettingManager::gLoadFrom("files/bad-3.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::loadFrom("files/empty.json") ==
+        REQUIRE(SettingManager::gLoadFrom("files/empty.json") ==
                 SettingManager::LoadError::NoError);
     }
 
     SECTION("Non-existant files")
     {
-        REQUIRE(SettingManager::loadFrom("files/test-non-existant-file.json") ==
-                SettingManager::LoadError::CannotOpenFile);
+        REQUIRE(
+            SettingManager::gLoadFrom("files/test-non-existant-file.json") ==
+            SettingManager::LoadError::CannotOpenFile);
     }
 
     SECTION("Valid files")
     {
-        REQUIRE(SettingManager::loadFrom("files/default.json") ==
+        REQUIRE(SettingManager::gLoadFrom("files/default.json") ==
                 SettingManager::LoadError::NoError);
     }
 }
@@ -822,7 +823,7 @@ TEST_CASE("Simple static", "[settings]")
 
     Foo::f7 = 0.f;
 
-    REQUIRE(SettingManager::saveAs("files/out.test2.json") == true);
+    REQUIRE(SettingManager::gSaveAs("files/out.test2.json") == true);
 }
 
 // NOTE: This must be at the bottom to not disrupt with other
@@ -835,5 +836,5 @@ TEST_CASE("Test save/loading stuff", "[settings]")
 
     Setting<int>::set("/lol", 10, SettingOption::DoNotWriteToJSON);
 
-    REQUIRE(SettingManager::saveAs("files/out.test.json") == true);
+    REQUIRE(SettingManager::gSaveAs("files/out.test.json") == true);
 }

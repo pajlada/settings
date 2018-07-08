@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pajlada/settings/common.hpp"
 #include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/internal.hpp"
 #include "pajlada/settings/serialize.hpp"
@@ -206,6 +207,25 @@ public:
         this->simpleValueChanged.invoke(invocationArgs);
     }
 
+    // Implement vector helper stuff
+    template <class T = Type,
+              typename = std::enable_if_t<is_stl_container<T>::value>>
+    void
+    push_back(typename T::value_type &&newValue)
+    {
+        this->valueHasBeenSet = true;
+
+        this->value.push_back(newValue);
+
+        SignalArgs invocationArgs;
+        invocationArgs.source = SignalArgs::Source::Setter;
+
+        invocationArgs.path = this->path;
+
+        this->valueChanged.invoke(this->value, invocationArgs);
+        this->simpleValueChanged.invoke(invocationArgs);
+    }
+
     void
     resetToDefaultValue(SignalArgs &&args)
     {
@@ -235,6 +255,12 @@ public:
         return this->value;
     }
 
+    const Type &
+    getConstValueRef() const
+    {
+        return this->value;
+    }
+
     Signals::Signal<const Type &, const SignalArgs &> valueChanged;
 
 private:
@@ -248,6 +274,9 @@ private:
     }
 
     friend class SettingManager;
+
+    template <typename T>
+    friend class Setting;
 };
 
 }  // namespace Settings

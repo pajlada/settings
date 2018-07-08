@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pajlada/settings/common.hpp"
 #include "pajlada/settings/equal.hpp"
 #include "pajlada/settings/exception.hpp"
 #include "pajlada/settings/settingdata.hpp"
@@ -7,9 +8,6 @@
 
 #include <rapidjson/document.h>
 #include <pajlada/signals/signal.hpp>
-
-#include <memory>
-#include <string>
 
 namespace pajlada {
 namespace Settings {
@@ -22,16 +20,19 @@ class Setting
 public:
     // Path, Setting Options
     Setting(const std::string &path,
-            SettingOption options = SettingOption::Default);
+            SettingOption options = SettingOption::Default,
+            std::shared_ptr<SettingManager> instance = nullptr);
 
     // Path, Default Value, Setting Options
     Setting(const std::string &path, const Type &defaultValue,
-            SettingOption options = SettingOption::Default);
+            SettingOption options = SettingOption::Default,
+            std::shared_ptr<SettingManager> instance = nullptr);
 
     // Path, Default Value, Current Value, Setting Options
     Setting(const std::string &path, const Type &defaultValue,
             const Type &currentValue,
-            SettingOption options = SettingOption::Default);
+            SettingOption options = SettingOption::Default,
+            std::shared_ptr<SettingManager> instance = nullptr);
 
     ~Setting() = default;
 
@@ -55,6 +56,27 @@ public:
         auto lockedSetting = this->getLockedData();
 
         return lockedSetting->getValue();
+    }
+
+    template <class T = Type,
+              typename = std::enable_if_t<is_stl_container<T>::value>>
+    const Type &
+    getArray() const
+    {
+        auto lockedSetting = this->getLockedData();
+
+        return lockedSetting->getConstValueRef();
+    }
+
+    // Implement vector helper stuff
+    template <class T = Type,
+              typename = std::enable_if_t<is_stl_container<T>::value>>
+    void
+    push_back(typename T::value_type &&value) const
+    {
+        auto lockedSetting = this->getLockedData();
+
+        lockedSetting->push_back(std::move(value));
     }
 
     bool
@@ -100,6 +122,13 @@ public:
         this->setValue(std::move(newValue));
 
         return *this;
+    }
+
+    const Type *const operator->() const
+    {
+        auto lockedSetting = this->getLockedData();
+
+        return lockedSetting->getValuePointer();
     }
 
     bool
@@ -316,26 +345,29 @@ private:
 
 // Path, Setting Options
 template <typename Type>
-Setting<Type>::Setting(const std::string &path, SettingOption options)
-    : data(SettingManager::createSetting<Type, Container>(path, options))
+Setting<Type>::Setting(const std::string &path, SettingOption options,
+                       std::shared_ptr<SettingManager> instance)
+    : data(SettingManager::getSetting<Type, Container>(path, options, instance))
 {
 }
 
 // Path, Default Value, Setting Options
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
-                       SettingOption options)
-    : data(SettingManager::createSetting<Type, Container>(path, defaultValue,
-                                                          options))
+                       SettingOption options,
+                       std::shared_ptr<SettingManager> instance)
+    : data(SettingManager::getSetting<Type, Container>(path, defaultValue,
+                                                       options, instance))
 {
 }
 
 // Path, Default Value, Current Value, Setting Options
 template <typename Type>
 Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
-                       const Type &currentValue, SettingOption options)
-    : data(SettingManager::createSetting<Type, Container>(
-          path, defaultValue, currentValue, options))
+                       const Type &currentValue, SettingOption options,
+                       std::shared_ptr<SettingManager> instance)
+    : data(SettingManager::getSetting<Type, Container>(
+          path, defaultValue, currentValue, options, instance))
 {
 }
 
