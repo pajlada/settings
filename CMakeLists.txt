@@ -40,3 +40,5 @@ else()
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS YES)

@@ -58,3 +58,5 @@ CMakeLists.txt.user
 
 # Ignore vim-plugin files
 .ycm_*
+
+compile_commands.json
