@@ -62,97 +62,41 @@ public:
 
     template <typename Type, typename Container>
     static std::weak_ptr<Container>
-    createSetting(const std::string &path, SettingOption options)
+    getSetting(const std::string &path, SettingOption options)
     {
-        SettingManager &instance = SettingManager::getInstance();
+        const auto creator = [](auto &setting) {
+            setting.reset(new Container);  //
+        };
 
-        // Check if a setting with the given path is already created
-
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
-
-        auto &setting = instance.settings[path];
-
-        if (setting == nullptr) {
-            // No setting has been created with this path
-            setting.reset(new Container());
-
-            // TODO: This should be in the constructor
-            setting->setPath(path);
-
-            setting->options = options;
-
-            if (!setting->optionEnabled(SettingOption::Remote)) {
-                instance.registerSetting(setting);
-            }
-        } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
-            setting->options = options;
-        }
-
-        return std::static_pointer_cast<Container>(setting);
+        return SettingManager::_getSetting<Type, Container>(path, options,
+                                                            creator);
     }
 
     template <typename Type, typename Container>
     static std::weak_ptr<Container>
-    createSetting(const std::string &path, const Type &defaultValue,
-                  SettingOption options)
+    getSetting(const std::string &path, const Type &defaultValue,
+               SettingOption options)
     {
-        SettingManager &instance = SettingManager::getInstance();
+        const auto creator = [&defaultValue](auto &setting) {
+            setting.reset(new Container(defaultValue));  //
+        };
 
-        // Check if a setting with the given path is already created
-
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
-
-        auto &setting = instance.settings[path];
-
-        if (setting == nullptr) {
-            // No setting has been created with this path
-            setting.reset(new Container(defaultValue));
-
-            // TODO: This should be in the constructor
-            setting->setPath(path);
-
-            setting->options = options;
-
-            if (!setting->optionEnabled(SettingOption::Remote)) {
-                instance.registerSetting(setting);
-            }
-        } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
-            setting->options = options;
-        }
-
-        return std::static_pointer_cast<Container>(setting);
+        return SettingManager::_getSetting<Type, Container>(path, options,
+                                                            creator);
     }
 
     template <typename Type, typename Container>
     static std::weak_ptr<Container>
-    createSetting(const std::string &path, const Type &defaultValue,
-                  const Type &currentValue, SettingOption options)
+    getSetting(const std::string &path, const Type &defaultValue,
+               const Type &currentValue, SettingOption options)
     {
-        SettingManager &instance = SettingManager::getInstance();
+        const auto creator = [&defaultValue, &currentValue](
+                                 std::shared_ptr<Container> &setting) {
+            setting.reset(new Container(defaultValue, currentValue));  //
+        };
 
-        // Check if a setting with the given path is already created
-
-        std::lock_guard<std::mutex> lock(instance.settingsMutex);
-
-        auto &setting = instance.settings[path];
-
-        if (setting == nullptr) {
-            // No setting has been created with this path
-            setting.reset(new Container(defaultValue, currentValue));
-
-            // TODO: This should be in the constructor
-            setting->setPath(path);
-
-            setting->options = options;
-
-            if (!setting->optionEnabled(SettingOption::Remote)) {
-                instance.registerSetting(setting);
-            }
-        } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
-            setting->options = options;
-        }
-
-        return std::static_pointer_cast<Container>(setting);
+        return SettingManager::_getSetting<Type, Container>(path, options,
+                                                            creator);
     }
 
     static bool removeSetting(const std::string &path);
@@ -208,6 +152,37 @@ private:
         static SettingManager m;
 
         return m;
+    }
+
+    template <typename Type, typename Container, typename Functor>
+    static std::weak_ptr<Container>
+    _getSetting(const std::string &path, SettingOption options,
+                Functor creatorFunc)
+    {
+        SettingManager &instance = SettingManager::getInstance();
+        // Check if a setting with the given path is already created
+
+        std::lock_guard<std::mutex> lock(instance.settingsMutex);
+
+        auto &setting = instance.settings[path];
+
+        if (setting == nullptr) {
+            // No setting has been created with this path
+            creatorFunc(setting);
+
+            // TODO: This should be in the constructor
+            setting->setPath(path);
+
+            setting->options = options;
+
+            if (!setting->optionEnabled(SettingOption::Remote)) {
+                instance.registerSetting(setting);
+            }
+        } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
+            setting->options = options;
+        }
+
+        return std::static_pointer_cast<Container>(setting);
     }
 
     rapidjson::Document document;
