@@ -248,16 +248,7 @@ public:
     connect(typename Container::valueChangedCallbackType func,
             bool autoInvoke = true)
     {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->valueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(lockedSetting->getValue(), invocationArgs);
-        }
+        auto connection = this->_connect(func, autoInvoke);
 
         this->managedConnections.emplace_back(std::move(connection));
     }
@@ -266,16 +257,7 @@ public:
     connectSimple(std::function<void(const SignalArgs &)> func,
                   bool autoInvoke = true)
     {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->simpleValueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(invocationArgs);
-        }
+        auto connection = this->_connectSimple(func, autoInvoke);
 
         this->managedConnections.emplace_back(std::move(connection));
     }
@@ -286,16 +268,7 @@ public:
         std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
         bool autoInvoke = true)
     {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->valueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(lockedSetting->getValue(), invocationArgs);
-        }
+        auto connection = this->_connect(func, autoInvoke);
 
         userDefinedManagedConnections.emplace_back(std::move(connection));
     }
@@ -306,16 +279,7 @@ public:
         std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
         bool autoInvoke = true)
     {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->simpleValueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(invocationArgs);
-        }
+        auto connection = this->_connectSimple(func, autoInvoke);
 
         userDefinedManagedConnections.emplace_back(std::move(connection));
     }
@@ -324,16 +288,7 @@ public:
     connect(typename Container::valueChangedCallbackType func,
             Signals::SignalHolder &signalHolder, bool autoInvoke = true)
     {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->valueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(lockedSetting->getValue(), invocationArgs);
-        }
+        auto connection = this->_connect(func, autoInvoke);
 
         signalHolder.addConnection(std::move(connection));
     }
@@ -342,16 +297,7 @@ public:
     connectSimple(std::function<void(const SignalArgs &)> func,
                   Signals::SignalHolder &signalHolder, bool autoInvoke = true)
     {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->simpleValueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(invocationArgs);
-        }
+        auto connection = this->_connectSimple(func, autoInvoke);
 
         signalHolder.addConnection(std::move(connection));
     }
@@ -376,6 +322,41 @@ public:
 
 private:
     std::vector<Signals::ScopedConnection> managedConnections;
+
+    Signals::Connection
+    _connect(typename Container::valueChangedCallbackType func, bool autoInvoke)
+    {
+        auto lockedSetting = this->getLockedData();
+
+        auto connection = lockedSetting->valueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            connection.invoke(lockedSetting->getValue(), invocationArgs);
+        }
+
+        return connection;
+    }
+
+    Signals::Connection
+    _connectSimple(std::function<void(const SignalArgs &)> func,
+                   bool autoInvoke)
+    {
+        auto lockedSetting = this->getLockedData();
+
+        auto connection = lockedSetting->simpleValueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            connection.invoke(invocationArgs);
+        }
+
+        return connection;
+    }
 
     friend class ISettingData;
 };
