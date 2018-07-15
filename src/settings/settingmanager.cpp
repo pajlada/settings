@@ -447,7 +447,7 @@ SettingManager::gLoad(const char *path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    return instance->load(instance->filePath.c_str());
+    return instance->load(path);
 }
 
 SettingManager::LoadError
@@ -463,7 +463,7 @@ SettingManager::gSave(const char *path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    return instance->save(instance->filePath.c_str());
+    return instance->save(path);
 }
 
 bool
