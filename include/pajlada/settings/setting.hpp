@@ -50,7 +50,7 @@ public:
         return lockedSetting->getPath();
     }
 
-    const Type
+    Type
     getValue() const
     {
         auto lockedSetting = this->getLockedData();
@@ -147,7 +147,7 @@ public:
         return this->getValue() != rhs;
     }
 
-    operator const Type() const
+    operator Type() const
     {
         assert(this->isValid());
 
