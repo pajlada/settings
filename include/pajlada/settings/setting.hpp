@@ -8,6 +8,7 @@
 
 #include <rapidjson/document.h>
 #include <pajlada/signals/signal.hpp>
+#include <pajlada/signals/signalholder.hpp>
 
 namespace pajlada {
 namespace Settings {
@@ -317,6 +318,42 @@ public:
         }
 
         userDefinedManagedConnections.emplace_back(std::move(connection));
+    }
+
+    void
+    connect(typename Container::valueChangedCallbackType func,
+            Signals::SignalHolder &signalHolder, bool autoInvoke = true)
+    {
+        auto lockedSetting = this->getLockedData();
+
+        auto connection = lockedSetting->valueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            connection.invoke(lockedSetting->getValue(), invocationArgs);
+        }
+
+        signalHolder.addConnection(std::move(connection));
+    }
+
+    void
+    connectSimple(std::function<void(const SignalArgs &)> func,
+                  Signals::SignalHolder &signalHolder, bool autoInvoke = true)
+    {
+        auto lockedSetting = this->getLockedData();
+
+        auto connection = lockedSetting->simpleValueChanged.connect(func);
+
+        if (autoInvoke) {
+            SignalArgs invocationArgs;
+            invocationArgs.source = SignalArgs::Source::OnConnect;
+
+            connection.invoke(invocationArgs);
+        }
+
+        signalHolder.addConnection(std::move(connection));
     }
 
     // Static helper methods for one-offs (get or set setting)
