@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pajlada/settings/settingdata.hpp"
+#include <pajlada/settings/common.hpp>
 
 #include <rapidjson/pointer.h>
 
@@ -8,9 +8,12 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace pajlada {
 namespace Settings {
+
+class SettingData;
 
 class SettingManager
 {
@@ -28,19 +31,25 @@ public:
     };
 
     // Print given document json data prettily
-    static void pp(const std::string &prefix = std::string());
-    static void ppDocument(const rapidjson::Document &document,
-                           const std::string &prefix = std::string());
+    void pp(const std::string &prefix = std::string());
+    static void gPP(const std::string &prefix = std::string());
     static std::string stringify(const rapidjson::Value &v);
 
     static rapidjson::Value *rawValue(const char *path);
-    static rapidjson::Value *get(const char *path, rapidjson::Document &d);
-    static void set(const char *path, rapidjson::Value &&value,
-                    rapidjson::Document &d);
-    static void set(const char *path, rapidjson::Value &&value);
+    static rapidjson::Value *gGet(const char *path, rapidjson::Document &d);
+    static void gSet(const char *path, rapidjson::Value &&value);
 
-    static void setWithPointer(const char *path, rapidjson::Value &&value);
+    rapidjson::Value *get(const char *path);
+    bool set(const char *path, const rapidjson::Value &value);
 
+private:
+    // Called from set
+    void notifyUpdate(const std::string &path, const rapidjson::Value &value);
+
+    // Called from load
+    void notifyLoadedValues();
+
+public:
     // Useful array helper methods
     static rapidjson::SizeType arraySize(const std::string &path);
     static bool isNull(const std::string &path);
@@ -60,54 +69,14 @@ public:
 
     static void clear();
 
-    template <typename Type, typename Container>
-    static std::weak_ptr<Container>
-    getSetting(const std::string &path, SettingOption options,
-               std::shared_ptr<SettingManager> instance)
-    {
-        const auto creator = [](auto &setting) {
-            setting.reset(new Container);  //
-        };
-
-        return SettingManager::_getSetting<Type, Container>(path, options,
-                                                            creator, instance);
-    }
-
-    template <typename Type, typename Container>
-    static std::weak_ptr<Container>
-    getSetting(const std::string &path, const Type &defaultValue,
-               SettingOption options, std::shared_ptr<SettingManager> instance)
-    {
-        const auto creator = [&defaultValue](auto &setting) {
-            setting.reset(new Container(defaultValue));  //
-        };
-
-        return SettingManager::_getSetting<Type, Container>(path, options,
-                                                            creator, instance);
-    }
-
-    template <typename Type, typename Container>
-    static std::weak_ptr<Container>
-    getSetting(const std::string &path, const Type &defaultValue,
-               const Type &currentValue, SettingOption options,
-               std::shared_ptr<SettingManager> instance)
-    {
-        const auto creator = [&defaultValue, &currentValue](
-                                 std::shared_ptr<Container> &setting) {
-            setting.reset(new Container(defaultValue, currentValue));  //
-        };
-
-        return SettingManager::_getSetting<Type, Container>(path, options,
-                                                            creator, instance);
-    }
+    static std::weak_ptr<SettingData> getSetting(
+        const std::string &path, std::shared_ptr<SettingManager> instance);
 
     static bool removeSetting(const std::string &path);
 
 private:
     template <typename Type>
     friend class Setting;
-
-    void registerSetting(std::shared_ptr<ISettingData> &setting);
 
     bool _removeSetting(const std::string &path);
 
@@ -157,6 +126,7 @@ private:
                 static_cast<uint64_t>(testSaveMethod)) != 0;
     }
 
+public:
     static const std::shared_ptr<SettingManager> &
     getInstance()
     {
@@ -165,46 +135,19 @@ private:
         return m;
     }
 
-    template <typename Type, typename Container, typename Functor>
-    static std::weak_ptr<Container>
-    _getSetting(const std::string &path, SettingOption options,
-                Functor creatorFunc, std::shared_ptr<SettingManager> instance)
-    {
-        if (!instance) {
-            instance = SettingManager::getInstance();
-        }
+private:
+    std::shared_ptr<SettingData> getSetting(const std::string &path);
 
-        std::lock_guard<std::mutex> lock(instance->settingsMutex);
-
-        auto &setting = instance->settings[path];
-
-        if (setting == nullptr) {
-            // No setting has been created with this path
-            creatorFunc(setting);
-
-            // TODO: This should be in the constructor
-            setting->setPath(path);
-
-            setting->options = options;
-
-            if (!setting->optionEnabled(SettingOption::Remote)) {
-                instance->registerSetting(setting);
-            }
-        } else if (setting->optionEnabled(SettingOption::ForceSetOptions)) {
-            setting->options = options;
-        }
-
-        return std::static_pointer_cast<Container>(setting);
-    }
-
+public:
     rapidjson::Document document;
 
+private:
     std::string filePath = "settings.json";
 
     std::mutex settingsMutex;
 
     //       path         setting
-    std::map<std::string, std::shared_ptr<ISettingData>> settings;
+    std::map<std::string, std::shared_ptr<SettingData>> settings;
 };
 
 }  // namespace Settings

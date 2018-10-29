@@ -18,6 +18,47 @@
 
 namespace pajlada {
 
+namespace Settings {
+
+template <typename Type>
+struct ValueResult {
+    std::optional<Type> value;
+    int updateIteration;
+};
+
+template <typename Type>
+inline bool
+operator==(const ValueResult<Type> &lhs, const ValueResult<Type> &rhs)
+{
+    return std::tie(lhs.value, lhs.updateIteration) ==
+           std::tie(rhs.value, rhs.updateIteration);
+}
+
+enum class SettingOption : uint32_t {
+    DoNotWriteToJSON = (1ull << 1ull),
+
+    /// A remote setting is a setting that is never saved locally, nor registered locally with any callbacks or anything
+    Remote = (1ull << 2ull),
+
+    Default = 0,
+};
+
+inline SettingOption
+operator|(const SettingOption &lhs, const SettingOption &rhs)
+{
+    return static_cast<SettingOption>(
+        (static_cast<uint64_t>(lhs) | static_cast<uint64_t>(rhs)));
+}
+
+inline SettingOption operator&(const SettingOption &lhs,
+                               const SettingOption &rhs)
+{
+    return static_cast<SettingOption>(
+        (static_cast<uint64_t>(lhs) & static_cast<uint64_t>(rhs)));
+}
+
+}  // namespace Settings
+
 // specialize a type for all of the STL containers.
 namespace is_stl_container_impl {
 

@@ -1,7 +1,7 @@
-#include "pajlada/settings/settingmanager.hpp"
-// #include "pajlada/settings/merger.hpp"
-#include "pajlada/settings/serialize.hpp"
-#include "pajlada/settings/settingdata.hpp"
+#include <pajlada/settings/settingmanager.hpp>
+
+#include <pajlada/settings/serialize.hpp>
+#include <pajlada/settings/settingdata.hpp>
 
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
@@ -32,18 +32,19 @@ SettingManager::~SettingManager()
 void
 SettingManager::pp(const string &prefix)
 {
-    SettingManager::ppDocument(SettingManager::getInstance()->document, prefix);
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    this->document.Accept(writer);
+
+    cout << prefix << buffer.GetString() << endl;
 }
 
 void
-SettingManager::ppDocument(const rapidjson::Document &_document,
-                           const string &prefix)
+SettingManager::gPP(const string &prefix)
 {
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    _document.Accept(writer);
+    auto instance = SettingManager::getInstance();
 
-    cout << prefix << buffer.GetString() << endl;
+    instance->pp(prefix);
 }
 
 string
@@ -65,24 +66,71 @@ SettingManager::rawValue(const char *path)
 }
 
 rapidjson::Value *
-SettingManager::get(const char *path, rapidjson::Document &d)
+SettingManager::gGet(const char *path, rapidjson::Document &d)
 {
     return rapidjson::Pointer(path).Get(d);
 }
 
 void
-SettingManager::set(const char *path, rapidjson::Value &&value,
-                    rapidjson::Document &d)
-{
-    rapidjson::Pointer(path).Set(d, value);
-}
-
-void
-SettingManager::set(const char *path, rapidjson::Value &&value)
+SettingManager::gSet(const char *path, rapidjson::Value &&value)
 {
     const auto &instance = SettingManager::getInstance();
 
+    instance->set(path, value);
+
     rapidjson::Pointer(path).Set(instance->document, value);
+}
+
+rapidjson::Value *
+SettingManager::get(const char *path)
+{
+    auto ptr = rapidjson::Pointer(path);
+
+    if (!ptr.IsValid()) {
+        // For invalid paths, i.e. "988934jksgrhjkh" or "jgkh34gjk" (missing /)
+        return nullptr;
+    }
+
+    return ptr.Get(this->document);
+}
+
+bool
+SettingManager::set(const char *path, const rapidjson::Value &value)
+{
+    rapidjson::Pointer(path).Set(this->document, value);
+
+    this->notifyUpdate(path, value);
+
+    return true;
+}
+
+void
+SettingManager::notifyUpdate(const string &path, const rapidjson::Value &value)
+{
+    auto setting = this->getSetting(path);
+    if (!setting) {
+        return;
+    }
+
+    setting->notifyUpdate(value);
+}
+
+void
+SettingManager::notifyLoadedValues()
+{
+    // Fill in any settings that registered before we called load
+    this->settingsMutex.lock();
+
+    for (const auto &it : this->settings) {
+        auto *v = this->get(it.first.c_str());
+        if (v == nullptr) {
+            continue;
+        }
+
+        it.second->notifyUpdate(*v);
+    }
+
+    this->settingsMutex.unlock();
 }
 
 rapidjson::SizeType
@@ -273,26 +321,6 @@ SettingManager::_removeSetting(const string &path)
 }
 
 void
-SettingManager::registerSetting(shared_ptr<ISettingData> &setting)
-{
-    // Save initial value
-    // We might want to have this as a setting?
-    // TODO: Re-implement this
-    // setting->marshalInto(this->document);
-
-    // Set up a signal which updates the rapidjson document with the new
-    // value when the SettingData value is updated
-    setting->registerDocument(this->document);
-
-    // file loaded with SettingManager, this callback will also fire. the
-    // only bad part about that is that the setValue method is called
-    // unnecessarily
-
-    // Load value from currently loaded document
-    setting->unmarshalFrom(this->document);
-}
-
-void
 SettingManager::clearSettings(const string &root)
 {
     lock_guard<mutex> lock(this->settingsMutex);
@@ -354,7 +382,7 @@ SettingManager::loadFrom(const char *path)
     }
 
     // Create vector of appropriate size
-    std::unique_ptr<char[]> fileBuffer(new char[fileSize]);
+    unique_ptr<char[]> fileBuffer(new char[fileSize]);
 
     // Read file data into buffer
     auto readBytes = fread(fileBuffer.get(), 1, fileSize, fh);
@@ -391,20 +419,7 @@ SettingManager::loadFrom(const char *path)
     // Perform deep merge of objects
     // detail::mergeObjects(document, d, document.GetAllocator());
 
-    {
-        // Fill in any settings that registered before we called load
-        this->settingsMutex.lock();
-
-        auto settingsCopy = this->settings;
-
-        this->settingsMutex.unlock();
-
-        for (const auto &it : settingsCopy) {
-            const shared_ptr<ISettingData> &setting = it.second;
-
-            setting->unmarshalFrom(this->document);
-        }
-    }
+    this->notifyLoadedValues();
 
     return LoadError::NoError;
 }
@@ -422,8 +437,6 @@ SettingManager::save(const char *path)
 bool
 SettingManager::saveAs(const char *path)
 {
-    PS_DEBUG("Saving to " << path);
-
     FILE *fh = fopen(path, "wb+");
     if (fh == nullptr) {
         // Unable to open file at `path`
@@ -472,6 +485,41 @@ SettingManager::gSaveAs(const char *path)
     const auto &instance = SettingManager::getInstance();
 
     return instance->saveAs(path);
+}
+
+weak_ptr<SettingData>
+SettingManager::getSetting(const string &path,
+                           shared_ptr<SettingManager> instance)
+{
+    if (!instance) {
+        instance = SettingManager::getInstance();
+    }
+
+    lock_guard<mutex> lock(instance->settingsMutex);
+
+    auto &setting = instance->settings[path];
+
+    if (setting == nullptr) {
+        // No setting has been created with this path
+        setting.reset(new SettingData(path, instance));
+    }
+
+    return static_pointer_cast<SettingData>(setting);
+}
+
+shared_ptr<SettingData>
+SettingManager::getSetting(const string &path)
+{
+    lock_guard<mutex> lock(this->settingsMutex);
+
+    auto it = this->settings.find(path);
+
+    if (it == this->settings.end()) {
+        // no setting found at this path
+        return nullptr;
+    }
+
+    return it->second;
 }
 
 }  // namespace Settings

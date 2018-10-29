@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pajlada/settings/setting.hpp"
-#include "pajlada/settings/settingdata.hpp"
+#include <pajlada/settings/setting.hpp>
+#include <pajlada/settings/settingdata.hpp>
 
 #include <pajlada/signals/connection.hpp>
 
@@ -54,10 +54,10 @@ public:
     SettingListener &operator=(const SettingListener &) = delete;
 
     void
-    addRawSetting(std::shared_ptr<ISettingData> setting)
+    addRawSetting(std::shared_ptr<SettingData> setting)
     {
-        auto connection =
-            setting->simpleValueChanged.connect([this](const SignalArgs &args) {
+        auto connection = setting->updated.connect(
+            [this](const rapidjson::Value &, const SignalArgs &args) {
                 if (this->cb) {
                     this->cb(args);
                 }
@@ -84,7 +84,7 @@ public:
     Callback cb;
 
 private:
-    std::vector<std::weak_ptr<ISettingData>> settings;
+    std::vector<std::weak_ptr<SettingData>> settings;
 
     std::vector<Signals::ScopedConnection> managedConnections;
 };

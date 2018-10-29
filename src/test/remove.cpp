@@ -1,7 +1,4 @@
-#include "libs/catch.hpp"
-#include "testhelpers.hpp"
-
-#include <pajlada/settings.hpp>
+#include "test/common.hpp"
 
 using namespace pajlada::Settings;
 
@@ -93,6 +90,4 @@ TEST_CASE("RemoveNestedSetting", "[settings][remove]")
         SettingManager::gSaveAs("files/out.removenestedsetting.state3.json"));
     REQUIRE(FilesMatch("out.removenestedsetting.state3.json",
                        "in.removenestedsetting.state3.json"));
-
-    // lol
 }

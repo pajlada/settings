@@ -1,7 +1,4 @@
-#include "libs/catch.hpp"
-#include "testhelpers.hpp"
-
-#include <pajlada/settings.hpp>
+#include "test/common.hpp"
 
 #include <iostream>
 
@@ -59,33 +56,27 @@ TEST_CASE("Serialize boost::any vector<std::string>", "[settings][serialize]")
 
     Setting<boost::any> a("/a");
 
-    SECTION("Before loading a")
-    {
-        auto rawAny = a.getValue();
-        REQUIRE(rawAny.empty());
-    }
+    auto rawAny = a.getValue();
+    REQUIRE(rawAny.empty());
 
-    SECTION("Setting")
-    {
-        a = data;
+    a = data;
 
-        auto rawAny = a.getValue();
-        auto vec = any_cast<std::vector<std::string>>(rawAny);
+    rawAny = a.getValue();
 
-        REQUIRE(vec.size() == data.size());
-    }
+    REQUIRE(!rawAny.empty());
+
+    auto vec = any_cast<std::vector<boost::any>>(rawAny);
+
+    REQUIRE(vec.size() == data.size());
 
     REQUIRE(LoadFile("in.serialize.any.vector.str.json"));
 
-    SECTION("After loading")
-    {
-        auto rawAny = a.getValue();
-        auto vec = any_cast<std::vector<boost::any>>(rawAny);
+    rawAny = a.getValue();
+    vec = any_cast<std::vector<boost::any>>(rawAny);
 
-        REQUIRE(vec.size() == 2);
-        REQUIRE(any_cast<std::string>(vec[0]) == "x");
-        REQUIRE(any_cast<std::string>(vec[1]) == "D");
-    }
+    REQUIRE(vec.size() == 2);
+    REQUIRE(any_cast<std::string>(vec[0]) == "x");
+    REQUIRE(any_cast<std::string>(vec[1]) == "D");
 
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
@@ -107,37 +98,29 @@ TEST_CASE("Serialize boost::any vector<boost::any>", "[settings][serialize]")
 
     Setting<boost::any> a("/a");
 
-    SECTION("Before loading a")
-    {
-        auto rawAny = a.getValue();
-        REQUIRE(rawAny.empty());
-    }
+    auto rawAny = a.getValue();
+    REQUIRE(rawAny.empty());
 
-    SECTION("Setting")
-    {
-        a = data;
+    a = data;
 
-        auto rawAny = a.getValue();
-        auto vec = any_cast<std::vector<boost::any>>(rawAny);
+    rawAny = a.getValue();
+    auto vec = any_cast<std::vector<boost::any>>(rawAny);
 
-        REQUIRE(vec.size() == data.size());
+    REQUIRE(vec.size() == data.size());
 
-        REQUIRE(strcmp(any_cast<const char *>(vec[0]), "test") == 0);
-        REQUIRE(any_cast<int>(vec[1]) == 5);
-        REQUIRE(any_cast<double>(vec[2]) == Approx(13.37));
-    }
+    REQUIRE(vec[0].type().name() == typeid(std::string).name());
+    REQUIRE(any_cast<std::string>(vec[0]) == "test");
+    REQUIRE(any_cast<int>(vec[1]) == 5);
+    REQUIRE(any_cast<double>(vec[2]) == Approx(13.37));
 
     REQUIRE(LoadFile("in.serialize.any.vector.str.json"));
 
-    SECTION("After loading")
-    {
-        auto rawAny = a.getValue();
-        auto vec = any_cast<std::vector<boost::any>>(rawAny);
+    rawAny = a.getValue();
+    vec = any_cast<std::vector<boost::any>>(rawAny);
 
-        REQUIRE(vec.size() == 2);
-        REQUIRE(any_cast<std::string>(vec[0]) == "x");
-        REQUIRE(any_cast<std::string>(vec[1]) == "D");
-    }
+    REQUIRE(vec.size() == 2);
+    REQUIRE(any_cast<std::string>(vec[0]) == "x");
+    REQUIRE(any_cast<std::string>(vec[1]) == "D");
 
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
@@ -188,11 +171,6 @@ TEST_CASE("Serialize int", "[settings][serialize]")
     REQUIRE(SaveFile("out.serialize.int.json"));
 
     REQUIRE(FilesMatch("in.serialize.int.json", "out.serialize.int.json"));
-
-    SECTION("Try to read string into int")
-    {
-        DD_THROWS(LoadFile("in.serialize.string.json"));
-    }
 }
 
 TEST_CASE("Serialize bool", "[settings][serialize]")
@@ -263,6 +241,4 @@ TEST_CASE("Serialize bool", "[settings][serialize]")
     REQUIRE(SaveFile("out.serialize.bool.json"));
     REQUIRE(
         FilesMatch("in.serialize.bool.false.json", "out.serialize.bool.json"));
-
-    DD_THROWS(LoadFile("in.serialize.string.json"));
 }

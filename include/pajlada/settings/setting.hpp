@@ -1,39 +1,75 @@
 #pragma once
 
-#include "pajlada/settings/common.hpp"
-#include "pajlada/settings/equal.hpp"
-#include "pajlada/settings/exception.hpp"
-#include "pajlada/settings/settingdata.hpp"
-#include "pajlada/settings/settingmanager.hpp"
+#include <pajlada/settings/common.hpp>
+#include <pajlada/settings/equal.hpp>
+#include <pajlada/settings/settingdata.hpp>
+#include <pajlada/settings/settingmanager.hpp>
 
 #include <rapidjson/document.h>
 #include <pajlada/signals/signal.hpp>
-#include <pajlada/signals/signalholder.hpp>
+
+#include <iostream>
+#include <optional>
+#include <type_traits>
 
 namespace pajlada {
 namespace Settings {
 
+namespace {
+
+SignalArgs
+onConnectArgs()
+{
+    static SignalArgs a = []() {
+        SignalArgs v;
+        v.source = SignalArgs::Source::OnConnect;
+
+        return v;
+    }();
+
+    return a;
+}
+
+}  // namespace
+
+// A default value passed to a setting is only local to this specific instance of the setting
+// it is never shared between other settings at the same path
 template <typename Type>
 class Setting
 {
-    using Container = SettingData<Type>;
+    const std::string path;
 
 public:
-    // Path, Setting Options
-    Setting(const std::string &path,
-            SettingOption options = SettingOption::Default,
-            std::shared_ptr<SettingManager> instance = nullptr);
+    Setting(const std::string &_path,
+            SettingOption _options = SettingOption::Default,
+            std::shared_ptr<SettingManager> instance = nullptr)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+        , options(_options)
+    {
+    }
 
-    // Path, Default Value, Setting Options
-    Setting(const std::string &path, const Type &defaultValue,
-            SettingOption options = SettingOption::Default,
-            std::shared_ptr<SettingManager> instance = nullptr);
+    Setting(const std::string &_path, Type _defaultValue,
+            SettingOption _options = SettingOption::Default,
+            std::shared_ptr<SettingManager> instance = nullptr)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+        , options(_options)
+        , defaultValue(std::move(_defaultValue))
+    {
+    }
 
-    // Path, Default Value, Current Value, Setting Options
-    Setting(const std::string &path, const Type &defaultValue,
-            const Type &currentValue,
-            SettingOption options = SettingOption::Default,
-            std::shared_ptr<SettingManager> instance = nullptr);
+    Setting(const std::string &_path, std::shared_ptr<SettingManager> instance)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+    {
+    }
+
+    inline bool
+    optionEnabled(SettingOption option) const
+    {
+        return (this->options & option) == option;
+    }
 
     ~Setting() = default;
 
@@ -43,34 +79,76 @@ public:
         return !this->data.expired();
     }
 
-    std::string
+    const std::string &
     getPath() const
     {
-        auto lockedSetting = this->getLockedData();
-
-        return lockedSetting->getPath();
+        return this->path;
     }
 
-    Type
+    const Type &
     getValue() const
     {
-        auto lockedSetting = this->getLockedData();
+        auto lockedSetting = this->data.lock();
 
-        return lockedSetting->getValue();
+        if (!lockedSetting) {
+            if (this->value) {
+                return *this->value;
+            }
+
+            return this->defaultValue;
+        }
+
+        if (this->updateIteration == lockedSetting->getUpdateIteration()) {
+            // Value hasn't been updated
+            if (this->value) {
+                return *this->value;
+            }
+
+            return this->defaultValue;
+        }
+
+        auto p = lockedSetting->template unmarshal<Type>();
+        if (p.value) {
+            this->value = p.value;
+            this->updateIteration = p.updateIteration;
+        }
+
+        if (this->value) {
+            return *this->value;
+        }
+
+        return this->defaultValue;
     }
 
-    template <class T = Type,
+    template <typename T = Type,
               typename = std::enable_if_t<is_stl_container<T>::value>>
     const Type &
     getArray() const
     {
-        auto lockedSetting = this->getLockedData();
+        auto lockedSetting = this->data.lock();
 
-        return lockedSetting->getConstValueRef();
+        if (!lockedSetting) {
+            if (this->defaultValue) {
+                return *this->defaultValue;
+            }
+
+            return this->value;
+        }
+
+        auto p = lockedSetting->template unmarshal<Type>();
+        if (p.second) {
+            return p.first;
+        }
+
+        if (this->defaultValue) {
+            return *this->defaultValue;
+        }
+
+        return p.first;
     }
 
     // Implement vector helper stuff
-    template <class T = Type,
+    template <typename T = Type,
               typename = std::enable_if_t<is_stl_container<T>::value>>
     void
     push_back(typename T::value_type &&value) const
@@ -81,26 +159,26 @@ public:
     }
 
     bool
-    hasBeenSet() const
-    {
-        auto lockedSetting = this->getLockedData();
-
-        return lockedSetting->hasBeenSet();
-    }
-
-    void
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
-        auto lockedSetting = this->getLockedData();
+        this->value = newValue;
 
-        lockedSetting->setValue(newValue, std::move(args));
+        if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
+            return true;
+        }
+
+        auto lockedSetting = this->data.lock();
+
+        if (lockedSetting) {
+            return lockedSetting->marshal(newValue /*, std::move(args)*/);
+        }
+
+        return false;
     }
 
     Setting &
     operator=(const Type &newValue)
     {
-        auto lockedSetting = this->getLockedData();
-
         this->setValue(newValue);
 
         return *this;
@@ -110,9 +188,7 @@ public:
     Setting &
     operator=(const T2 &newValue)
     {
-        auto lockedSetting = this->getLockedData();
-
-        this->setValue(newValue);
+        this->setValue(Type(newValue));
 
         return *this;
     }
@@ -123,13 +199,6 @@ public:
         this->setValue(std::move(newValue));
 
         return *this;
-    }
-
-    const Type *const operator->() const
-    {
-        auto lockedSetting = this->getLockedData();
-
-        return lockedSetting->getValuePointer();
     }
 
     bool
@@ -158,25 +227,19 @@ public:
     void
     resetToDefaultValue(SignalArgs &&args = SignalArgs())
     {
-        auto lockedSetting = this->getLockedData();
-
-        lockedSetting->resetToDefaultValue(std::move(args));
+        this->setValue(this->defaultValue, std::move(args));
     }
 
     void
     setDefaultValue(const Type &newDefaultValue)
     {
-        auto lockedSetting = this->getLockedData();
-
-        lockedSetting->setDefaultValue(newDefaultValue);
+        this->defaultValue = newDefaultValue;
     }
 
     Type
     getDefaultValue() const
     {
-        auto lockedSetting = this->getLockedData();
-
-        return lockedSetting->getDefaultValue();
+        return this->defaultValue;
     }
 
     // Returns true if the current value is the same as the default value
@@ -184,8 +247,6 @@ public:
     bool
     isDefaultValue() const
     {
-        auto lockedSetting = this->getLockedData();
-
         return IsEqual<Type>::get(this->getValue(), this->getDefaultValue());
     }
 
@@ -195,111 +256,253 @@ public:
     bool
     remove()
     {
-        try {
-            SettingManager::removeSetting(this->getPath());
-        } catch (const Exception &) {
-            return false;
-        }
-
-        return true;
+        return SettingManager::removeSetting(this->getPath());
     }
-
-protected:
-    std::weak_ptr<Container> data;
 
 private:
-    // getLockedData is an internal helper function
-    // It will either return a valid shared_ptr to the underlying SettingData, or throw an exception
-    std::shared_ptr<Container>
-    getLockedData() const
-    {
-        auto lockedSetting = this->data.lock();
-        if (!lockedSetting) {
-            throw Exception(Exception::ExpiredSetting);
-        }
+    std::weak_ptr<SettingData> data;
+    SettingOption options = SettingOption::Default;
+    Type defaultValue{};
 
-        return lockedSetting;
-    }
+    // These two are mutable because they can be modified from the "getValue" function
+    mutable std::optional<Type> value;
+    mutable int updateIteration = -1;
 
 public:
-    Signals::Signal<const Type &, const SignalArgs &> &
-    getValueChangedSignal()
-    {
-        auto lockedSetting = this->getLockedData();
-
-        return lockedSetting->valueChanged;
-    }
-
-    Signals::Signal<const SignalArgs &> &
-    getSimpleSignal()
-    {
-        auto lockedSetting = this->getLockedData();
-
-        return lockedSetting->valueChanged;
-    }
-
-    std::weak_ptr<Container>
+    std::weak_ptr<SettingData>
     getData()
     {
         return this->data;
     }
 
+    // ConnectJSON: Connect with rapidjson::Value and SignalArgs as arguments
+    // No deserialization is made by the setting
     void
-    connect(typename Container::valueChangedCallbackType func,
-            bool autoInvoke = true)
+    connectJSON(
+        std::function<void(const rapidjson::Value &, const SignalArgs &)> func,
+        bool autoInvoke = true)
     {
-        auto connection = this->_connect(func, autoInvoke);
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(func);
+
+        if (autoInvoke) {
+            auto ptr = lockedSetting->unmarshalJSON();
+            rapidjson::Document d;
+            if (ptr != nullptr) {
+                d.CopyFrom(*ptr, d.GetAllocator());
+            }
+            connection.invoke(std::move(d), onConnectArgs());
+        }
 
         this->managedConnections.emplace_back(std::move(connection));
     }
 
+    template <typename ConnectionManager>
+    void
+    connectJSON(
+        std::function<void(const rapidjson::Value &, const SignalArgs &)> func,
+        ConnectionManager &userDefinedManagedConnections,
+        bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(func);
+
+        if (autoInvoke) {
+            auto ptr = lockedSetting->unmarshalJSON();
+            rapidjson::Document d;
+            if (ptr != nullptr) {
+                d.CopyFrom(*ptr, d.GetAllocator());
+            }
+            connection.invoke(std::move(d), onConnectArgs());
+        }
+
+        userDefinedManagedConnections.emplace_back(std::move(connection));
+    }
+
+    // Connect: Value and SignalArgs
+    void
+    connect(std::function<void(const Type &, const SignalArgs &)> func,
+            bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &value, const SignalArgs &args) {
+                func(Deserialize<Type>::get(value), args);  //
+            });
+
+        if (autoInvoke) {
+            func(this->getValue(), onConnectArgs());
+        }
+
+        this->managedConnections.emplace_back(std::move(connection));
+    }
+
+    template <typename ConnectionManager>
+    void
+    connect(std::function<void(const Type &, const SignalArgs &)> func,
+            ConnectionManager &userDefinedManagedConnections,
+            bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &value, const SignalArgs &args) {
+                func(Deserialize<Type>::get(value), args);  //
+            });
+
+        if (autoInvoke) {
+            func(this->getValue(), onConnectArgs());
+        }
+
+        userDefinedManagedConnections.emplace_back(std::move(connection));
+    }
+
+    // Connect: Value
+    void
+    connect(std::function<void(const Type &)> func, bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &value, const SignalArgs &) {
+                func(Deserialize<Type>::get(value));  //
+            });
+
+        if (autoInvoke) {
+            func(this->getValue());
+        }
+
+        this->managedConnections.emplace_back(std::move(connection));
+    }
+
+    template <typename ConnectionManager>
+    void
+    connect(std::function<void(const Type &)> func,
+            ConnectionManager &userDefinedManagedConnections,
+            bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &value, const SignalArgs &) {
+                func(Deserialize<Type>::get(value));  //
+            });
+
+        if (autoInvoke) {
+            func(this->getValue());
+        }
+
+        userDefinedManagedConnections.emplace_back(std::move(connection));
+    }
+
+    // Connect: no args
+    void
+    connect(std::function<void()> func, bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &, const SignalArgs &) {
+                func();  //
+            });
+
+        if (autoInvoke) {
+            func();
+        }
+
+        this->managedConnections.emplace_back(std::move(connection));
+    }
+
+    template <typename ConnectionManager>
+    void
+    connect(std::function<void()> func,
+            ConnectionManager &userDefinedManagedConnections,
+            bool autoInvoke = true)
+    {
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &, const SignalArgs &) {
+                func();  //
+            });
+
+        if (autoInvoke) {
+            func();
+        }
+
+        this->managedConnections.emplace_back(std::move(connection));
+    }
+
+    // ConnectSimple: Signal args only
     void
     connectSimple(std::function<void(const SignalArgs &)> func,
                   bool autoInvoke = true)
     {
-        auto connection = this->_connectSimple(func, autoInvoke);
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
+
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &, const SignalArgs &args) {
+                func(args);  //
+            });
+
+        if (autoInvoke) {
+            func(onConnectArgs());
+        }
 
         this->managedConnections.emplace_back(std::move(connection));
     }
 
-    void
-    connect(
-        typename Container::valueChangedCallbackType func,
-        std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
-        bool autoInvoke = true)
-    {
-        auto connection = this->_connect(func, autoInvoke);
-
-        userDefinedManagedConnections.emplace_back(std::move(connection));
-    }
-
-    void
-    connectSimple(
-        std::function<void(const SignalArgs &)> func,
-        std::vector<Signals::ScopedConnection> &userDefinedManagedConnections,
-        bool autoInvoke = true)
-    {
-        auto connection = this->_connectSimple(func, autoInvoke);
-
-        userDefinedManagedConnections.emplace_back(std::move(connection));
-    }
-
-    void
-    connect(typename Container::valueChangedCallbackType func,
-            Signals::SignalHolder &signalHolder, bool autoInvoke = true)
-    {
-        auto connection = this->_connect(func, autoInvoke);
-
-        signalHolder.addConnection(std::move(connection));
-    }
-
+    template <typename ConnectionManager>
     void
     connectSimple(std::function<void(const SignalArgs &)> func,
-                  Signals::SignalHolder &signalHolder, bool autoInvoke = true)
+                  ConnectionManager &userDefinedManagedConnections,
+                  bool autoInvoke = true)
     {
-        auto connection = this->_connectSimple(func, autoInvoke);
+        auto lockedSetting = this->data.lock();
+        if (!lockedSetting) {
+            return;
+        }
 
-        signalHolder.addConnection(std::move(connection));
+        auto connection = lockedSetting->updated.connect(
+            [=](const rapidjson::Value &, const SignalArgs &args) {
+                func(args);  //
+            });
+
+        if (autoInvoke) {
+            func(onConnectArgs());
+        }
+
+        userDefinedManagedConnections.emplace_back(std::move(connection));
     }
 
     // Static helper methods for one-offs (get or set setting)
@@ -322,72 +525,7 @@ public:
 
 private:
     std::vector<Signals::ScopedConnection> managedConnections;
-
-    Signals::Connection
-    _connect(typename Container::valueChangedCallbackType func, bool autoInvoke)
-    {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->valueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(lockedSetting->getValue(), invocationArgs);
-        }
-
-        return connection;
-    }
-
-    Signals::Connection
-    _connectSimple(std::function<void(const SignalArgs &)> func,
-                   bool autoInvoke)
-    {
-        auto lockedSetting = this->getLockedData();
-
-        auto connection = lockedSetting->simpleValueChanged.connect(func);
-
-        if (autoInvoke) {
-            SignalArgs invocationArgs;
-            invocationArgs.source = SignalArgs::Source::OnConnect;
-
-            connection.invoke(invocationArgs);
-        }
-
-        return connection;
-    }
-
-    friend class ISettingData;
 };
-
-// Path, Setting Options
-template <typename Type>
-Setting<Type>::Setting(const std::string &path, SettingOption options,
-                       std::shared_ptr<SettingManager> instance)
-    : data(SettingManager::getSetting<Type, Container>(path, options, instance))
-{
-}
-
-// Path, Default Value, Setting Options
-template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
-                       SettingOption options,
-                       std::shared_ptr<SettingManager> instance)
-    : data(SettingManager::getSetting<Type, Container>(path, defaultValue,
-                                                       options, instance))
-{
-}
-
-// Path, Default Value, Current Value, Setting Options
-template <typename Type>
-Setting<Type>::Setting(const std::string &path, const Type &defaultValue,
-                       const Type &currentValue, SettingOption options,
-                       std::shared_ptr<SettingManager> instance)
-    : data(SettingManager::getSetting<Type, Container>(
-          path, defaultValue, currentValue, options, instance))
-{
-}
 
 }  // namespace Settings
 }  // namespace pajlada

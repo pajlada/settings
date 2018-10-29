@@ -1,5 +1,9 @@
 #pragma once
 
+#include "test/catch.hpp"
+
+#include <pajlada/settings.hpp>
+
 #include <string>
 
 std::string ReadFile(const std::string &path);

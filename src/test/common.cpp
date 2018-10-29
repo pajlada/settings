@@ -1,11 +1,13 @@
-#include "testhelpers.hpp"
-
-#include <pajlada/settings/settingmanager.hpp>
+#include "test/common.hpp"
 
 #include <fstream>
 #include <iostream>
 
-static std::string initialPath = "files/";
+namespace {
+
+std::string initialPath = "files/";
+
+}  // namespace
 
 std::string
 ReadFile(const std::string &path)

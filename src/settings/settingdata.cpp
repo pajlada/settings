@@ -1,59 +1,48 @@
-#include "pajlada/settings/settingdata.hpp"
-#include "pajlada/settings/setting.hpp"
-
-#include <algorithm>
-#include <string>
+#include <pajlada/settings/settingdata.hpp>
 
 using namespace std;
 
 namespace pajlada {
 namespace Settings {
 
+SettingData::SettingData(string _path, weak_ptr<SettingManager> _instance)
+    : path(move(_path))
+    , instance(_instance)
+{
+}
+
 const string &
-ISettingData::getPath() const
+SettingData::getPath() const
 {
     return this->path;
 }
 
-bool
-ISettingData::hasBeenSet() const
+void
+SettingData::notifyUpdate(const rapidjson::Value &value)
 {
-    return this->valueHasBeenSet;
+    ++this->updateIteration;
+
+    // TODO: fill out signal args
+    SignalArgs args;
+
+    this->updated.invoke(value, args);
 }
 
-void
-ISettingData::marshal(rapidjson::Document &d)
+int
+SettingData::getUpdateIteration() const
 {
-    if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
-        PS_DEBUG("[" << this->path
-                     << "] Skipping marshal due to `DoNotWriteToJSON` setting");
-        return;
-    }
-
-    PS_DEBUG("[" << this->path << "] Marshalling into document");
-
-    rapidjson::Value v = this->marshalInto(d);
-
-    SettingManager::set(this->getPath().c_str(), std::move(v), d);
-}
-
-void
-ISettingData::setPath(const string &_path)
-{
-    static string prefix = "/";
-
-    // If _path begins with a /
-    if (equal(begin(prefix), end(prefix), begin(_path))) {
-        this->path = _path;
-    } else {
-        this->path = "/" + _path;
-    }
+    return this->updateIteration;
 }
 
 rapidjson::Value *
-ISettingData::get(rapidjson::Document &d)
+SettingData::get() const
 {
-    return SettingManager::get(this->path.c_str(), d);
+    auto locked = this->instance.lock();
+    if (!locked) {
+        return nullptr;
+    }
+
+    return locked->get(this->path.c_str());
 }
 
 }  // namespace Settings

@@ -1,8 +1,6 @@
 {
-    "rootSetting1": 2,
-    "rootSetting2": 3,
-    "rootSetting3": 4,
-    "rootSetting4": "Loaded string",
+    "iNoDefault": 2,
+    "iDefault": 3,
 
     "float1": 1,
     "float2": -1,
@@ -22,11 +20,5 @@
     "bool2": true,
     "bool3": 0,
     "bool4": 1,
-    "bool5": 50291,
-
-    "root": {
-        "a": "b",
-        "i1": 2,
-        "i2": 2
-    }
+    "bool5": 50291
 }

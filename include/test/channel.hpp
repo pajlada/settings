@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pajlada/settings/setting.hpp"
+#include <pajlada/settings/setting.hpp>
 
 namespace pajlada {
 namespace test {
