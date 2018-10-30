@@ -16,13 +16,29 @@
 #include <utility>
 #include <vector>
 
+#ifdef PAJLADA_SETTINGS_BOOST_OPTIONAL
+#include <boost/optional.hpp>
+#else
+#include <optional>
+#endif
+
 namespace pajlada {
 
 namespace Settings {
 
+#ifdef PAJLADA_SETTINGS_BOOST_OPTIONAL
+    template <typename T>
+    using OptionalType = boost::optional<T>;
+    const boost::none_t OptionalNull = boost::none;
+#else
+    template <typename T>
+    using OptionalType = std::optional<T>;
+    using OptionalNull = std::nullopt;
+#endif
+
 template <typename Type>
 struct ValueResult {
-    std::optional<Type> value;
+    OptionalType<Type> value;
     int updateIteration;
 };
 

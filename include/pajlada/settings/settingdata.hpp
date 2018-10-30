@@ -97,7 +97,7 @@ public:
         auto *ptr = this->get();
 
         if (ptr == nullptr) {
-            return {std::nullopt, -1};
+            return {OptionalNull, -1};
         }
 
         return {Deserialize<Type>::get(*ptr), this->getUpdateIteration()};

@@ -9,7 +9,6 @@
 #include <pajlada/signals/signal.hpp>
 
 #include <iostream>
-#include <optional>
 #include <type_traits>
 
 namespace pajlada {
@@ -265,7 +264,7 @@ private:
     Type defaultValue{};
 
     // These two are mutable because they can be modified from the "getValue" function
-    mutable std::optional<Type> value;
+    mutable OptionalType<Type> value;
     mutable int updateIteration = -1;
 
 public:
