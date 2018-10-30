@@ -36,7 +36,7 @@ public:
 
     const std::string &getPath() const;
 
-    void notifyUpdate(const rapidjson::Value &value);
+    void notifyUpdate(const rapidjson::Value &value, SignalArgs args);
 
     // Implement vector helper stuff
     /*
@@ -71,7 +71,7 @@ public:
 
     template <typename Type>
     bool
-    marshal(const Type &v)
+    marshal(const Type &v, SignalArgs args = SignalArgs())
     {
         auto locked = this->instance.lock();
         if (!locked) {
@@ -81,7 +81,7 @@ public:
         auto jsonValue =
             Serialize<Type>::get(v, locked->document.GetAllocator());
 
-        return locked->set(this->path.c_str(), jsonValue);
+        return locked->set(this->path.c_str(), jsonValue, std::move(args));
     }
 
     rapidjson::Value *

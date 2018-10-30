@@ -169,7 +169,10 @@ public:
         auto lockedSetting = this->data.lock();
 
         if (lockedSetting) {
-            return lockedSetting->marshal(newValue /*, std::move(args)*/);
+            if (args.source == SignalArgs::Source::Unset) {
+                args.source = SignalArgs::Source::Setter;
+            }
+            return lockedSetting->marshal(newValue, std::move(args));
         }
 
         return false;

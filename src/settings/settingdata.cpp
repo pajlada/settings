@@ -18,12 +18,9 @@ SettingData::getPath() const
 }
 
 void
-SettingData::notifyUpdate(const rapidjson::Value &value)
+SettingData::notifyUpdate(const rapidjson::Value &value, SignalArgs args)
 {
     ++this->updateIteration;
-
-    // TODO: fill out signal args
-    SignalArgs args;
 
     this->updated.invoke(value, args);
 }

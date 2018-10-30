@@ -94,24 +94,26 @@ SettingManager::get(const char *path)
 }
 
 bool
-SettingManager::set(const char *path, const rapidjson::Value &value)
+SettingManager::set(const char *path, const rapidjson::Value &value,
+                    SignalArgs args)
 {
     rapidjson::Pointer(path).Set(this->document, value);
 
-    this->notifyUpdate(path, value);
+    this->notifyUpdate(path, value, std::move(args));
 
     return true;
 }
 
 void
-SettingManager::notifyUpdate(const string &path, const rapidjson::Value &value)
+SettingManager::notifyUpdate(const string &path, const rapidjson::Value &value,
+                             SignalArgs args)
 {
     auto setting = this->getSetting(path);
     if (!setting) {
         return;
     }
 
-    setting->notifyUpdate(value);
+    setting->notifyUpdate(value, std::move(args));
 }
 
 void
@@ -126,7 +128,11 @@ SettingManager::notifyLoadedValues()
             continue;
         }
 
-        it.second->notifyUpdate(*v);
+        // Maybe a "Load" source would make sense?
+        SignalArgs args;
+        args.source = SignalArgs::Source::Setter;
+
+        it.second->notifyUpdate(*v, std::move(args));
     }
 
     this->settingsMutex.unlock();

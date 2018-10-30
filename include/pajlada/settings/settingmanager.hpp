@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pajlada/settings/common.hpp>
+#include <pajlada/settings/signalargs.hpp>
 
 #include <rapidjson/pointer.h>
 
@@ -40,11 +41,13 @@ public:
     static void gSet(const char *path, rapidjson::Value &&value);
 
     rapidjson::Value *get(const char *path);
-    bool set(const char *path, const rapidjson::Value &value);
+    bool set(const char *path, const rapidjson::Value &value,
+             SignalArgs args = SignalArgs());
 
 private:
     // Called from set
-    void notifyUpdate(const std::string &path, const rapidjson::Value &value);
+    void notifyUpdate(const std::string &path, const rapidjson::Value &value,
+                      SignalArgs args = SignalArgs());
 
     // Called from load
     void notifyLoadedValues();
