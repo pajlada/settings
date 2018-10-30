@@ -1,9 +1,9 @@
 #pragma once
 
+#include <pajlada/serialize.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/equal.hpp>
 #include <pajlada/settings/internal.hpp>
-#include <pajlada/settings/serialize.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <pajlada/settings/signalargs.hpp>
 

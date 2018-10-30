@@ -1,3 +1,6 @@
 [submodule "external/signals"]
 	path = external/signals
 	url = https://github.com/pajlada/signals
+[submodule "external/serialize"]
+	path = external/serialize
+	url = https://github.com/pajlada/serialize

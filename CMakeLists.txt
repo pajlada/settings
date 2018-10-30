@@ -41,6 +41,8 @@ add_executable(settings
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 
 
+if (MSVC)
+else()
 include(CodeCoverage)
 APPEND_COVERAGE_COMPILER_FLAGS()
 
@@ -52,6 +54,7 @@ SETUP_TARGET_FOR_COVERAGE_LCOV(
     EXECUTABLE settings
     DEPENDENCIES settings
     )
+endif()
 
 # Dependencies
 find_package(PajladaSignals REQUIRED)

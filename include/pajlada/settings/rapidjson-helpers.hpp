@@ -2,7 +2,7 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
-#include <pajlada/settings/serialize.hpp>
+#include <pajlada/serialize.hpp>
 
 #include <cassert>
 #include <string>

@@ -5,7 +5,7 @@
 #include "test/common.hpp"
 #include "test/foo.hpp"
 
-#include <pajlada/settings/serialize.hpp>
+#include <pajlada/serialize.hpp>
 #include <pajlada/settings/setting.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
