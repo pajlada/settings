@@ -30,7 +30,7 @@ set(rapidjson::Value &obj, const char *key, const Type &value,
 {
     assert(obj.IsObject());
 
-    addMember(obj, key, pajlada::Settings::Serialize<Type>::get(value, a), a);
+    addMember(obj, key, pajlada::Serialize<Type>::get(value, a), a);
 }
 
 template <>
@@ -51,7 +51,7 @@ set(rapidjson::Document &obj, const char *key, const Type &value)
 
     auto &a = obj.GetAllocator();
 
-    addMember(obj, key, pajlada::Settings::Serialize<Type>::get(value, a), a);
+    addMember(obj, key, pajlada::Serialize<Type>::get(value, a), a);
 }
 
 template <>
@@ -72,7 +72,7 @@ add(rapidjson::Value &arr, const Type &value,
 {
     assert(arr.IsArray());
 
-    arr.PushBack(pajlada::Settings::Serialize<Type>::get(value, a), a);
+    arr.PushBack(pajlada::Serialize<Type>::get(value, a), a);
 }
 
 template <typename Type>
@@ -92,7 +92,7 @@ get(const rapidjson::Value &obj, const char *key, Type &out)
     }
 
     bool error = false;
-    out = pajlada::Settings::Deserialize<Type>::get(obj[key], &error);
+    out = pajlada::Deserialize<Type>::get(obj[key], &error);
 
     return !error;
 }
@@ -114,7 +114,7 @@ getSafe(const rapidjson::Value &obj, const char *key, Type &out)
     }
 
     bool error = false;
-    out = pajlada::Settings::Deserialize<Type>::get(obj[key], &error);
+    out = pajlada::Deserialize<Type>::get(obj[key], &error);
 
     return !error;
 }
@@ -124,7 +124,7 @@ bool
 getSafe(const rapidjson::Value &value, Type &out)
 {
     bool error = false;
-    out = pajlada::Settings::Deserialize<Type>::get(value, &error);
+    out = pajlada::Deserialize<Type>::get(value, &error);
 
     return !error;
 }

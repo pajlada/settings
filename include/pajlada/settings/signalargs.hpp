@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef PAJLADA_SETTINGS_NO_BOOST
+#ifdef PAJLADA_BOOST_ANY_SUPPORT
 #include <boost/any.hpp>
 #endif
 
@@ -12,7 +12,7 @@ namespace Settings {
 struct SignalArgs {
     SignalArgs() = default;
 
-#ifndef PAJLADA_SETTINGS_NO_BOOST
+#ifdef PAJLADA_BOOST_ANY_SUPPORT
     SignalArgs(boost::any &&_userData)
         : userData(std::move(_userData))
     {
@@ -27,7 +27,7 @@ struct SignalArgs {
         External,
     } source = Source::Unset;
 
-#ifndef PAJLADA_SETTINGS_NO_BOOST
+#ifdef PAJLADA_BOOST_ANY_SUPPORT
     boost::any userData;
 #endif
     std::string path;

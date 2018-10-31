@@ -46,6 +46,7 @@ TEST_CASE("Serialize vector", "[settings][serialize]")
                        "out.serialize.vector.str.json"));
 }
 
+#ifdef PAJLADA_BOOST_ANY_SUPPORT
 TEST_CASE("Serialize boost::any vector<std::string>", "[settings][serialize]")
 {
     using boost::any_cast;
@@ -131,6 +132,7 @@ TEST_CASE("Serialize boost::any vector<boost::any>", "[settings][serialize]")
     REQUIRE(FilesMatch("in.serialize.vector.str.state1.json",
                        "out.serialize.any.vector.str.json"));
 }
+#endif
 
 TEST_CASE("Serialize int", "[settings][serialize]")
 {

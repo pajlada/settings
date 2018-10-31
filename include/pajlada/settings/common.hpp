@@ -33,7 +33,7 @@ namespace Settings {
 #else
     template <typename T>
     using OptionalType = std::optional<T>;
-    using OptionalNull = std::nullopt;
+    const std::nullopt_t OptionalNull = std::nullopt;
 #endif
 
 template <typename Type>

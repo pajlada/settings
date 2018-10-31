@@ -39,6 +39,7 @@ add_executable(settings
 
 # Enable C++17
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
+set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 if (MSVC)
@@ -59,6 +60,13 @@ endif()
 # Dependencies
 find_package(PajladaSignals REQUIRED)
 include_directories(${PajladaSignals_INCLUDE_DIRS})
+
+find_package(PajladaSerialize REQUIRED)
+include_directories(${PajladaSerialize_INCLUDE_DIRS})
+
+# rapidjson = c++ json library
+find_package(RapidJSON REQUIRED)
+include_directories(${RAPIDJSON_INCLUDE_DIRS})
 
 if (MSVC)
 

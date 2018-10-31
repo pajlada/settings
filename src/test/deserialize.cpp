@@ -1,6 +1,7 @@
 #include "test/common.hpp"
 
 using namespace pajlada::Settings;
+using namespace pajlada;
 using namespace std;
 
 TEST_CASE("Deserialize", "[settings]")

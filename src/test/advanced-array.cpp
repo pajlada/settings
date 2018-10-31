@@ -105,7 +105,6 @@ TEST_CASE("Multi files", "[settings][advanced]")
 }
 
 namespace pajlada {
-namespace Settings {
 
 template <>
 struct IsEqual<MyWindow> {
@@ -138,7 +137,6 @@ struct Deserialize<MyWindow> {
 
         if (!value.IsObject()) {
             PAJLADA_REPORT_ERROR(error)
-            PAJLADA_THROW_EXCEPTION("not object")
             return ret;
         }
 
@@ -148,5 +146,4 @@ struct Deserialize<MyWindow> {
     }
 };
 
-}  // namespace Settings
 }  // namespace pajlada

@@ -18,6 +18,7 @@ using namespace pajlada::Settings;
 using namespace pajlada::test;
 using namespace std;
 
+#ifdef PAJLADA_BOOST_ANY_SUPPORT
 TEST_CASE("Any", "[settings]")
 {
     Setting<boost::any> test("/anyTest");
@@ -26,6 +27,7 @@ TEST_CASE("Any", "[settings]")
     auto v1 = test.getValue();
     auto v2 = test2->getValue();
 }
+#endif
 
 TEST_CASE("Array test", "[settings]")
 {
