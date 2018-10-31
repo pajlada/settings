@@ -5,32 +5,35 @@ using namespace std;
 
 namespace {
 
-Setting<int> iNoDefault("/iNoDefault");
-Setting<int> iDefault("/iDefault", 5);
+// The static settings have been delegated to their own setting manager to not mess up other tests
+auto ssm = std::make_shared<SettingManager>();
 
-Setting<float> f1("/float1", 1.0101f);
-Setting<float> f2("/float2", 1.0101010101f);
-Setting<float> f3("/float3", 1.123456789f);
-Setting<float> f4("/float4", 1.f);
-Setting<float> f5("/float5", 0.f);
-Setting<float> f6("/float6", -.1f);
-Setting<float> f7("/float7", 1.0f);
+Setting<int> iNoDefault("/iNoDefault", ssm);
+Setting<int> iDefault("/iDefault", 5, ssm);
 
-Setting<double> d1("/double1", 1.0101);
-Setting<double> d2("/double2", 1.0101010101);
-Setting<double> d3("/double3", 1.123456789);
-Setting<double> d4("/double4", 1.);
-Setting<double> d5("/double5", 0.);
-Setting<double> d6("/double6", -.1);
-Setting<double> d7("/double7", 123.456);
+Setting<float> f1("/float1", 1.0101f, ssm);
+Setting<float> f2("/float2", 1.0101010101f, ssm);
+Setting<float> f3("/float3", 1.123456789f, ssm);
+Setting<float> f4("/float4", 1.f, ssm);
+Setting<float> f5("/float5", 0.f, ssm);
+Setting<float> f6("/float6", -.1f, ssm);
+Setting<float> f7("/float7", 1.0f, ssm);
 
-Setting<bool> b1("/bool1", true);
-Setting<bool> b2("/bool2", false);
-Setting<bool> b3("/bool3", true);
-Setting<bool> b4("/bool4", false);
-Setting<bool> b5("/bool5", true);
-Setting<bool> b6("/bool6", false);
-Setting<bool> b7("/bool7", true);
+Setting<double> d1("/double1", 1.0101, ssm);
+Setting<double> d2("/double2", 1.0101010101, ssm);
+Setting<double> d3("/double3", 1.123456789, ssm);
+Setting<double> d4("/double4", 1., ssm);
+Setting<double> d5("/double5", 0., ssm);
+Setting<double> d6("/double6", -.1, ssm);
+Setting<double> d7("/double7", 123.456, ssm);
+
+Setting<bool> b1("/bool1", true, ssm);
+Setting<bool> b2("/bool2", false, ssm);
+Setting<bool> b3("/bool3", true, ssm);
+Setting<bool> b4("/bool4", false, ssm);
+Setting<bool> b5("/bool5", true, ssm);
+Setting<bool> b6("/bool6", false, ssm);
+Setting<bool> b7("/bool7", true, ssm);
 
 }  // namespace
 
@@ -63,7 +66,7 @@ TEST_CASE("static", "[settings][static]")
     REQUIRE(b6.getValue() == false);
     REQUIRE(b7.getValue() == true);
 
-    REQUIRE(LoadFile("test.json"));
+    REQUIRE(LoadFile("test.json", ssm.get()));
 
     // Floats post-load
     REQUIRE(f1.getValue() == 1.f);
@@ -108,5 +111,5 @@ TEST_CASE("static", "[settings][static]")
 
     f7 = 0.f;
 
-    REQUIRE(SettingManager::gSaveAs("files/out.test2.json") == true);
+    REQUIRE(SaveFile("out.test2.json", ssm.get()));
 }

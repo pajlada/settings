@@ -39,18 +39,27 @@ class Setting
     const std::string path;
 
 public:
-    Setting(const std::string &_path,
-            SettingOption _options = SettingOption::Default,
-            std::shared_ptr<SettingManager> instance = nullptr)
+    explicit Setting(const std::string &_path,
+                     SettingOption _options = SettingOption::Default,
+                     std::shared_ptr<SettingManager> instance = nullptr)
         : path(_path)
         , data(SettingManager::getSetting(_path, instance))
         , options(_options)
     {
     }
 
-    Setting(const std::string &_path, Type _defaultValue,
-            SettingOption _options = SettingOption::Default,
-            std::shared_ptr<SettingManager> instance = nullptr)
+    explicit Setting(const char *_path,
+                     SettingOption _options = SettingOption::Default,
+                     std::shared_ptr<SettingManager> instance = nullptr)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+        , options(_options)
+    {
+    }
+
+    explicit Setting(const std::string &_path, Type _defaultValue,
+                     SettingOption _options = SettingOption::Default,
+                     std::shared_ptr<SettingManager> instance = nullptr)
         : path(_path)
         , data(SettingManager::getSetting(_path, instance))
         , options(_options)
@@ -58,9 +67,43 @@ public:
     {
     }
 
-    Setting(const std::string &_path, std::shared_ptr<SettingManager> instance)
+    explicit Setting(const char *_path, Type _defaultValue,
+                     SettingOption _options = SettingOption::Default,
+                     std::shared_ptr<SettingManager> instance = nullptr)
         : path(_path)
         , data(SettingManager::getSetting(_path, instance))
+        , options(_options)
+        , defaultValue(std::move(_defaultValue))
+    {
+    }
+
+    explicit Setting(const std::string &_path,
+                     std::shared_ptr<SettingManager> instance)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+    {
+    }
+
+    explicit Setting(const char *_path,
+                     std::shared_ptr<SettingManager> instance)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+    {
+    }
+
+    explicit Setting(const std::string &_path, Type _defaultValue,
+                     std::shared_ptr<SettingManager> instance)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+        , defaultValue(std::move(_defaultValue))
+    {
+    }
+
+    explicit Setting(const char *_path, Type _defaultValue,
+                     std::shared_ptr<SettingManager> instance)
+        : path(_path)
+        , data(SettingManager::getSetting(_path, instance))
+        , defaultValue(std::move(_defaultValue))
     {
     }
 

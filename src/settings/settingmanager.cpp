@@ -57,30 +57,6 @@ SettingManager::stringify(const rapidjson::Value &v)
 }
 
 rapidjson::Value *
-SettingManager::rawValue(const char *path)
-{
-    const auto &instance = SettingManager::getInstance();
-
-    return rapidjson::Pointer(path).Get(instance->document);
-}
-
-rapidjson::Value *
-SettingManager::gGet(const char *path, rapidjson::Document &d)
-{
-    return rapidjson::Pointer(path).Get(d);
-}
-
-void
-SettingManager::gSet(const char *path, rapidjson::Value &&value)
-{
-    const auto &instance = SettingManager::getInstance();
-
-    instance->set(path, value);
-
-    rapidjson::Pointer(path).Set(instance->document, value);
-}
-
-rapidjson::Value *
 SettingManager::get(const char *path)
 {
     auto ptr = rapidjson::Pointer(path);
@@ -255,9 +231,11 @@ SettingManager::cleanArray(const string &arrayPath)
 vector<string>
 SettingManager::getObjectKeys(const string &objectPath)
 {
+    auto instance = SettingManager::getInstance();
+
     vector<string> ret;
 
-    auto root = SettingManager::rawValue(objectPath.c_str());
+    auto root = instance->get(objectPath.c_str());
 
     if (root == nullptr || !root->IsObject()) {
         return ret;

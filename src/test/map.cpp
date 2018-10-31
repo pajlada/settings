@@ -5,6 +5,7 @@
 using namespace pajlada::Settings;
 using namespace std;
 
+#ifdef PAJLADA_BOOST_ANY_SUPPORT
 TEST_CASE("Simple Map", "[settings]")
 {
     using boost::any_cast;
@@ -18,6 +19,10 @@ TEST_CASE("Simple Map", "[settings]")
     REQUIRE(any_cast<int>(myMap["a"]) == 1);
     REQUIRE(any_cast<string>(myMap["b"]) == "asd");
     REQUIRE(any_cast<double>(myMap["c"]) == 3.14);
+
+    vector<string> keys{"a", "b", "c"};
+
+    REQUIRE(keys == SettingManager::getObjectKeys("/map"));
 
     REQUIRE(SettingManager::gSaveAs("files/out.simplemap.json"));
 }
@@ -59,3 +64,4 @@ TEST_CASE("Complex Map", "[settings]")
 
     REQUIRE(SettingManager::gSaveAs("files/out.complexmap.json"));
 }
+#endif

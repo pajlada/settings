@@ -36,10 +36,6 @@ public:
     static void gPP(const std::string &prefix = std::string());
     static std::string stringify(const rapidjson::Value &v);
 
-    static rapidjson::Value *rawValue(const char *path);
-    static rapidjson::Value *gGet(const char *path, rapidjson::Document &d);
-    static void gSet(const char *path, rapidjson::Value &&value);
-
     rapidjson::Value *get(const char *path);
     bool set(const char *path, const rapidjson::Value &value,
              SignalArgs args = SignalArgs());

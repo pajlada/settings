@@ -174,4 +174,39 @@ TEST_CASE("Misc", "[settings]")
     REQUIRE(test1.getData().lock()->getPath() == test1.getPath());
 }
 
-// TODO(pajlada): Test disconnecting signals properly. See "createCheckBox in chatterino"
+TEST_CASE("Stringify", "[settings]")
+{
+    rapidjson::Value test(5);
+
+    REQUIRE(SettingManager::stringify(test) == "5");
+}
+
+TEST_CASE("Move set", "[settings]")
+{
+    int v = 69;
+    Setting<int> test1("/test");
+    REQUIRE(test1 == 0);
+    test1 = 3;
+    REQUIRE(test1 == 3);
+    test1 = std::move(v);
+    REQUIRE(test1 == 69);
+
+    std::string v2("lol");
+    Setting<std::string> test2("/test");
+    REQUIRE(test2 == "");
+    REQUIRE(test2.getValue() == "");
+    test2 = "hej";
+    REQUIRE(test2 == "hej");
+    REQUIRE(test2.getValue() == "hej");
+    test2 = std::move(v2);
+    REQUIRE(test2 == "lol");
+    REQUIRE(test2.getValue() == "lol");
+
+    const auto &lol = test2;
+
+    const auto &hehe = lol.getValue();
+    REQUIRE(hehe == "lol");
+    REQUIRE(lol.getValue() == "lol");
+    REQUIRE(lol.getValue() == "lol");
+    REQUIRE(lol.getValue() == "lol");
+}

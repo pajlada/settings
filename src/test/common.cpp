@@ -3,24 +3,27 @@
 #include <fstream>
 #include <iostream>
 
+using namespace pajlada::Settings;
+using namespace std;
+
 namespace {
 
-std::string initialPath = "files/";
+string initialPath = "files/";
 
 }  // namespace
 
-std::string
-ReadFile(const std::string &path)
+string
+ReadFile(const string &path)
 {
-    std::ifstream fh(path, std::ios::in | std::ios::binary);
+    ifstream fh(path, ios::in | ios::binary);
     if (!fh) {
         return "";
     }
 
-    std::string contents;
-    fh.seekg(0, std::ios::end);
+    string contents;
+    fh.seekg(0, ios::end);
     contents.resize(fh.tellg());
-    fh.seekg(0, std::ios::beg);
+    fh.seekg(0, ios::beg);
     fh.read(&contents[0], contents.size());
     fh.close();
 
@@ -28,37 +31,40 @@ ReadFile(const std::string &path)
 }
 
 bool
-FilesMatch(const std::string &fileName1, const std::string &fileName2)
+FilesMatch(const string &fileName1, const string &fileName2)
 {
-    std::string path1 = initialPath + fileName1;
-    std::string path2 = initialPath + fileName2;
+    string path1 = initialPath + fileName1;
+    string path2 = initialPath + fileName2;
 
     auto content1 = ReadFile(path1);
     auto content2 = ReadFile(path2);
 
-    // std::cout << path1 << ": " << content1 << '\n';
-    // std::cout << path2 << ": " << content2 << '\n';
+    // cout << path1 << ": " << content1 << '\n';
+    // cout << path2 << ": " << content2 << '\n';
 
     return content1 == content2;
 }
 
 bool
-LoadFile(const std::string &fileName)
+LoadFile(const string &fileName, SettingManager *sm)
 {
-    using namespace pajlada::Settings;
+    if (sm == nullptr) {
+        sm = SettingManager::getInstance().get();
+    }
 
-    std::string path = initialPath + fileName;
+    string path = initialPath + fileName;
 
-    return SettingManager::gLoadFrom(path.c_str()) ==
-           SettingManager::LoadError::NoError;
+    return sm->loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
 }
 
 bool
-SaveFile(const std::string &fileName)
+SaveFile(const string &fileName, SettingManager *sm)
 {
-    using namespace pajlada::Settings;
+    if (sm == nullptr) {
+        sm = SettingManager::getInstance().get();
+    }
 
-    std::string path = initialPath + fileName;
+    string path = initialPath + fileName;
 
-    return SettingManager::gSaveAs(path.c_str());
+    return sm->saveAs(path.c_str());
 }

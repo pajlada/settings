@@ -16,7 +16,7 @@ files/correct.*.json
 *.gcno
 *.gcda
 /res/
-test.info
+test.info*
 
 ## Generated
 # C++ objects and libs

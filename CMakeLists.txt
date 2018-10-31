@@ -10,6 +10,7 @@ set(PajladaSettings_SOURCES
 
     src/test/main.cpp
 
+    src/test/map.cpp
     src/test/save.cpp
     src/test/static.cpp
     src/test/signal.cpp
@@ -31,6 +32,7 @@ set(PajladaSettings_SOURCES
 include_directories(include)
 
 add_definitions(-DPAJLADA_SETTINGS_DEBUG)
+add_definitions(-DPAJLADA_BOOST_ANY_SUPPORT)
 # add_definitions(-DPAJLADA_SETTINGS_ENABLE_EXCEPTIONS)
 
 add_executable(settings
@@ -42,21 +44,6 @@ set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
-if (MSVC)
-else()
-include(CodeCoverage)
-APPEND_COVERAGE_COMPILER_FLAGS()
-
-set(COVERAGE_LCOV_EXCLUDES
-    'external/*' '/usr/include/*' 'external/signals/include/pajlada/signals/connection.hpp' 'external/signals/include/pajlada/signals/*' 'src/test/*' 'include/libs/*' 'include/test/*')
-
-SETUP_TARGET_FOR_COVERAGE_LCOV(
-    NAME coverage
-    EXECUTABLE settings
-    DEPENDENCIES settings
-    )
-endif()
-
 # Dependencies
 find_package(PajladaSignals REQUIRED)
 include_directories(${PajladaSignals_INCLUDE_DIRS})
@@ -67,6 +54,9 @@ include_directories(${PajladaSerialize_INCLUDE_DIRS})
 # rapidjson = c++ json library
 find_package(RapidJSON REQUIRED)
 include_directories(${RAPIDJSON_INCLUDE_DIRS})
+
+find_package(Boost REQUIRED )
+include_directories(${Boost_INCLUDE_DIRS})
 
 if (MSVC)
 

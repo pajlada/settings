@@ -7,6 +7,7 @@ using namespace std;
 
 TEST_CASE("save_int", "[settings][save]")
 {
+    SettingManager::clear();
     // This will not be part of the final file, since we clear the settings right afterwards
     // Setting<int>::set("/asd", 5);
 
