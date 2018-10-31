@@ -70,3 +70,15 @@ endif()
 set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+
+# Make a symlink for files
+add_custom_command(
+        OUTPUT symlink_generated_successfully
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_LIST_DIR}/files files
+        )
+
+add_custom_target(
+        make_files_symlink
+        DEPENDS symlink_generated_successfully)
+
+add_dependencies(settings make_files_symlink)
