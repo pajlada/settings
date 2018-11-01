@@ -112,7 +112,11 @@ SettingManager::notifyLoadedValues()
     // Fill in any settings that registered before we called load
     this->settingsMutex.lock();
 
-    for (const auto &it : this->settings) {
+    auto loadedSettings = this->settings;
+
+    this->settingsMutex.unlock();
+
+    for (const auto &it : loadedSettings) {
         auto *v = this->get(it.first.c_str());
         if (v == nullptr) {
             continue;
@@ -124,8 +128,6 @@ SettingManager::notifyLoadedValues()
 
         it.second->notifyUpdate(*v, std::move(args));
     }
-
-    this->settingsMutex.unlock();
 }
 
 rapidjson::SizeType
