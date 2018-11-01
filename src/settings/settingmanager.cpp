@@ -422,6 +422,22 @@ SettingManager::loadFrom(const char *path)
 }
 
 bool
+SettingManager::gSave(const std::string &path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->save(path);
+}
+
+bool
+SettingManager::gSaveAs(const std::string &path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->saveAs(path);
+}
+
+bool
 SettingManager::save(const std::string &path)
 {
     if (!path.empty()) {
@@ -502,22 +518,6 @@ SettingManager::gLoadFrom(const char *path)
     const auto &instance = SettingManager::getInstance();
 
     return instance->loadFrom(path);
-}
-
-bool
-SettingManager::gSave(const char *path)
-{
-    const auto &instance = SettingManager::getInstance();
-
-    return instance->save(path);
-}
-
-bool
-SettingManager::gSaveAs(const char *path)
-{
-    const auto &instance = SettingManager::getInstance();
-
-    return instance->saveAs(path);
 }
 
 void

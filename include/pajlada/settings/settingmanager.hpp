@@ -90,6 +90,9 @@ public:
     // Load from given path
     LoadError loadFrom(const char *filePath);
 
+    static bool gSave(const std::string &path = std::string());
+    static bool gSaveAs(const std::string &path);
+
     // Force a settings save
     // It is recommended to run this every now and then unless your application
     // is crash free
@@ -107,8 +110,6 @@ public:
     // on the statically initialized SettingManager instance
     static LoadError gLoad(const char *filePath = nullptr);
     static LoadError gLoadFrom(const char *filePath);
-    static bool gSave(const char *filePath = nullptr);
-    static bool gSaveAs(const char *filePath);
 
     enum class SaveMethod : uint64_t {
         SaveOnExit = (1ull << 1ull),
