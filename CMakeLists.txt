@@ -32,8 +32,8 @@ set(PajladaSettings_SOURCES
 include_directories(include)
 
 add_definitions(-DPAJLADA_SETTINGS_DEBUG)
-add_definitions(-DPAJLADA_BOOST_ANY_SUPPORT)
-# add_definitions(-DPAJLADA_SETTINGS_ENABLE_EXCEPTIONS)
+# add_definitions(-DPAJLADA_BOOST_ANY_SUPPORT)
+# add_definitions(-DPAJLADA_SETTINGS_BOOST_FILESYSTEM)
 
 add_executable(settings
     ${PajladaSettings_SOURCES}
@@ -55,17 +55,23 @@ include_directories(${PajladaSerialize_INCLUDE_DIRS})
 find_package(RapidJSON REQUIRED)
 include_directories(${RAPIDJSON_INCLUDE_DIRS})
 
-find_package(Boost REQUIRED )
-include_directories(${Boost_INCLUDE_DIRS})
+set(USE_BOOST_COMPONENTS "")
 
 if (MSVC)
-
+    # TODO: Figure out right way to go about this for windows
 else()
-    # list(APPEND CMAKE_CXX_FLAGS "-Wall -Wno-unused-function -Wno-switch")
-
-
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--dynamic-list-data")
+    get_directory_property( DirDefs COMPILE_DEFINITIONS )
+    if (DirDefs MATCHES "PAJLADA_SETTINGS_BOOST_FILESYSTEM")
+        set(USE_BOOST_COMPONENTS system filesystem)
+    else()
+        target_link_libraries(settings stdc++fs)
+    endif()
 endif()
+
+
+find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
+include_directories(${Boost_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(settings LINK_PUBLIC ${Boost_LIBRARIES})
 
 set(CMAKE_BUILD_TYPE Debug)
 

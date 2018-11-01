@@ -95,10 +95,14 @@ public:
     // is crash free
     // Save to given path and set path as the default path (or save from default
     // path if filePath is a nullptr)
-    bool save(const char *filePath = nullptr);
+    bool save(const std::string &path = std::string());
     // Save to given path
-    bool saveAs(const char *filePath);
+    bool saveAs(const std::string &path);
 
+private:
+    bool _save(const std::string &path);
+
+public:
     // Functions prefixed with g are static functions that work
     // on the statically initialized SettingManager instance
     static LoadError gLoad(const char *filePath = nullptr);
@@ -125,7 +129,15 @@ private:
                 static_cast<uint64_t>(testSaveMethod)) != 0;
     }
 
+    struct {
+        bool enabled{};
+        uint8_t slots = 3;
+    } backup;
+
 public:
+    void setBackupEnabled(bool enabled = true);
+    void setBackupSlots(uint8_t numSlots);
+
     static const std::shared_ptr<SettingManager> &
     getInstance()
     {

@@ -39,6 +39,7 @@ Setting<bool> b7("/bool7", true, ssm);
 
 TEST_CASE("static", "[settings][static]")
 {
+    ssm->setBackupEnabled(true);
     REQUIRE(iNoDefault.getValue() == 0);
     REQUIRE(iDefault.getValue() == 5);
 

@@ -8,6 +8,16 @@
 #include <iostream>
 #include <string>
 
+#ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+using fs_error_code = boost::system::error_code;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+using fs_error_code = std::error_code;
+#endif
+
 using namespace std;
 
 namespace pajlada {
@@ -408,19 +418,55 @@ SettingManager::loadFrom(const char *path)
 }
 
 bool
-SettingManager::save(const char *path)
+SettingManager::save(const std::string &path)
 {
-    if (path != nullptr) {
+    if (!path.empty()) {
         this->filePath = path;
     }
 
-    return this->saveAs(this->filePath.c_str());
+    return this->saveAs(this->filePath);
 }
 
 bool
-SettingManager::saveAs(const char *path)
+SettingManager::saveAs(const std::string &path)
 {
-    FILE *fh = fopen(path, "wb+");
+    auto res = this->_save(path + ".tmp");
+    if (!res) {
+        return res;
+    }
+
+    fs_error_code ec;
+
+    if (this->backup.enabled) {
+        if (this->backup.slots > 1) {
+            // Remove top slot backup
+            fs::remove(path + ".bkp-" + std::to_string(this->backup.slots), ec);
+
+            // Shift backups one slot up
+            for (uint8_t slotIndex = this->backup.slots - 1; slotIndex >= 1;
+                 --slotIndex) {
+                auto p1 = path + ".bkp-" + std::to_string(slotIndex);
+                auto p2 = path + ".bkp-" + std::to_string(slotIndex + 1);
+                fs::rename(p1, p2, ec);
+            }
+        }
+
+        // Move current save to first backup slot
+        fs::rename(path, path + ".bkp-1", ec);
+    }
+
+    fs::rename(path + ".tmp", path, ec);
+
+    if (ec) {
+        return false;
+    }
+
+    return true;
+}
+bool
+SettingManager::_save(const std::string &path)
+{
+    FILE *fh = fopen(path.c_str(), "wb+");
     if (fh == nullptr) {
         // Unable to open file at `path`
         return false;
@@ -468,6 +514,18 @@ SettingManager::gSaveAs(const char *path)
     const auto &instance = SettingManager::getInstance();
 
     return instance->saveAs(path);
+}
+
+void
+SettingManager::setBackupEnabled(bool enabled)
+{
+    this->backup.enabled = enabled;
+}
+
+void
+SettingManager::setBackupSlots(uint8_t numSlots)
+{
+    this->backup.slots = numSlots;
 }
 
 weak_ptr<SettingData>
