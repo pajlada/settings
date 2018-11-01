@@ -82,13 +82,16 @@ private:
     void clearSettings(const std::string &root);
 
 public:
-    void setPath(const char *newFilePath);
+    void setPath(const std::string &newPath);
+
+    static LoadError gLoad(const std::string &path = std::string());
+    static LoadError gLoadFrom(const std::string &path);
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    LoadError load(const char *filePath = nullptr);
+    LoadError load(const std::string &path = std::string());
     // Load from given path
-    LoadError loadFrom(const char *filePath);
+    LoadError loadFrom(const std::string &path);
 
     static bool gSave(const std::string &path = std::string());
     static bool gSaveAs(const std::string &path);
@@ -108,8 +111,6 @@ private:
 public:
     // Functions prefixed with g are static functions that work
     // on the statically initialized SettingManager instance
-    static LoadError gLoad(const char *filePath = nullptr);
-    static LoadError gLoadFrom(const char *filePath);
 
     enum class SaveMethod : uint64_t {
         SaveOnExit = (1ull << 1ull),

@@ -336,26 +336,42 @@ SettingManager::clearSettings(const string &root)
 }
 
 void
-SettingManager::setPath(const char *newFilePath)
+SettingManager::setPath(const std::string &newPath)
 {
-    this->filePath = newFilePath;
+    this->filePath = newPath;
 }
 
 SettingManager::LoadError
-SettingManager::load(const char *path)
+SettingManager::gLoad(const std::string &path)
 {
-    if (path != nullptr) {
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->load(path);
+}
+
+SettingManager::LoadError
+SettingManager::gLoadFrom(const std::string &path)
+{
+    const auto &instance = SettingManager::getInstance();
+
+    return instance->loadFrom(path);
+}
+
+SettingManager::LoadError
+SettingManager::load(const std::string &path)
+{
+    if (!path.empty()) {
         this->filePath = path;
     }
 
-    return this->loadFrom(this->filePath.c_str());
+    return this->loadFrom(this->filePath);
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const char *path)
+SettingManager::loadFrom(const std::string &path)
 {
     // Open file
-    FILE *fh = fopen(path, "rb");
+    FILE *fh = fopen(path.c_str(), "rb");
     if (fh == nullptr) {
         // Unable to open file at `path`
         return LoadError::CannotOpenFile;
@@ -502,22 +518,6 @@ SettingManager::_save(const std::string &path)
     fclose(fh);
 
     return writtenBytes == buffer.GetSize();
-}
-
-SettingManager::LoadError
-SettingManager::gLoad(const char *path)
-{
-    const auto &instance = SettingManager::getInstance();
-
-    return instance->load(path);
-}
-
-SettingManager::LoadError
-SettingManager::gLoadFrom(const char *path)
-{
-    const auto &instance = SettingManager::getInstance();
-
-    return instance->loadFrom(path);
 }
 
 void
