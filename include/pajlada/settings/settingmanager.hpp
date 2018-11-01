@@ -111,19 +111,18 @@ public:
     static bool gSaveAs(const char *filePath);
 
     enum class SaveMethod : uint64_t {
-        SaveOnExitFlag = (1ull << 1ull),
-        SaveOnSettingChangeFlag = (1ull << 2ull),
-        SaveInitialValue = (1ull << 3ull),
+        SaveOnExit = (1ull << 1ull),
+        SaveOnSettingChange = (1ull << 2ull),
 
         // Force user to manually call SettingsManager::save() to save
         SaveManually = 0,
-        SaveAllTheTime = SaveOnExitFlag | SaveOnSettingChangeFlag,
+        SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
     } saveMethod = SaveMethod::SaveAllTheTime;
 
 private:
     // Returns true if the given save method is activated
     inline bool
-    checkSaveMethodFlag(SettingManager::SaveMethod testSaveMethod) const
+    hasSaveMethodFlag(SettingManager::SaveMethod testSaveMethod) const
     {
         return (static_cast<uint64_t>(this->saveMethod) &
                 static_cast<uint64_t>(testSaveMethod)) != 0;

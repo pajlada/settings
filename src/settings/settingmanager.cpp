@@ -33,7 +33,7 @@ SettingManager::~SettingManager()
     // XXX(pajlada): Should settings automatically save on exit?
     // Or on each setting change?
     // Or only manually?
-    if (this->checkSaveMethodFlag(SaveMethod::SaveOnExitFlag)) {
+    if (this->hasSaveMethodFlag(SaveMethod::SaveOnExit)) {
         this->save();
     }
 }
@@ -84,6 +84,10 @@ SettingManager::set(const char *path, const rapidjson::Value &value,
                     SignalArgs args)
 {
     rapidjson::Pointer(path).Set(this->document, value);
+
+    if (this->hasSaveMethodFlag(SaveMethod::SaveOnSettingChange)) {
+        this->save();
+    }
 
     this->notifyUpdate(path, value, std::move(args));
 
