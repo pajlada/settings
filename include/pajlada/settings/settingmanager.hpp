@@ -6,6 +6,7 @@
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
+#include <cinttypes>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -132,7 +133,7 @@ private:
 
     struct {
         bool enabled{};
-        uint8_t slots = 3;
+        uint8_t numSlots = 3;
     } backup;
 
 public:

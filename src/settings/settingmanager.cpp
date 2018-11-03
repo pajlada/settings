@@ -476,12 +476,13 @@ SettingManager::saveAs(const std::string &path)
     fs_error_code ec;
 
     if (this->backup.enabled) {
-        if (this->backup.slots > 1) {
+        if (this->backup.numSlots > 1) {
             // Remove top slot backup
-            fs::remove(path + ".bkp-" + std::to_string(this->backup.slots), ec);
+            fs::remove(path + ".bkp-" + std::to_string(this->backup.numSlots),
+                       ec);
 
             // Shift backups one slot up
-            for (uint8_t slotIndex = this->backup.slots - 1; slotIndex >= 1;
+            for (uint8_t slotIndex = this->backup.numSlots - 1; slotIndex >= 1;
                  --slotIndex) {
                 auto p1 = path + ".bkp-" + std::to_string(slotIndex);
                 auto p2 = path + ".bkp-" + std::to_string(slotIndex + 1);
@@ -531,7 +532,7 @@ SettingManager::setBackupEnabled(bool enabled)
 void
 SettingManager::setBackupSlots(uint8_t numSlots)
 {
-    this->backup.slots = numSlots;
+    this->backup.numSlots = numSlots;
 }
 
 weak_ptr<SettingData>
