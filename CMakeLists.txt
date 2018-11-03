@@ -43,6 +43,11 @@ add_executable(settings
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
 
+if (DEFINED COVERAGE)
+    message("Coverage flags enabled")
+    target_compile_options(settings PRIVATE --coverage -fno-inline -O0 -g)
+    target_link_libraries(settings PRIVATE --coverage)
+endif()
 
 # Dependencies
 find_package(PajladaSignals REQUIRED)
@@ -64,7 +69,7 @@ else()
     if (DirDefs MATCHES "PAJLADA_SETTINGS_BOOST_FILESYSTEM")
         set(USE_BOOST_COMPONENTS system filesystem)
     else()
-        target_link_libraries(settings stdc++fs)
+        target_link_libraries(settings PRIVATE stdc++fs)
     endif()
 endif()
 

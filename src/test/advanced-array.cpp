@@ -1,7 +1,6 @@
 #include "test/common.hpp"
 
 #include <pajlada/settings.hpp>
-#include <pajlada/settings/rapidjson-helpers.hpp>
 
 using namespace pajlada::Settings;
 using namespace std;
@@ -122,7 +121,8 @@ struct Serialize<MyWindow> {
     {
         rapidjson::Value ret(rapidjson::kObjectType);
 
-        rj::set(ret, "x", value.x, a);
+        ret.AddMember(rapidjson::Value("x", a).Move(),
+                      pajlada::Serialize<int>::get(value.x, a), a);
 
         return ret;
     }
@@ -140,7 +140,14 @@ struct Deserialize<MyWindow> {
             return ret;
         }
 
-        rj::get(value, "x", ret.x);
+        if (value.HasMember("x")) {
+            bool error = false;
+            auto out = pajlada::Deserialize<int>::get(value["x"], &error);
+
+            if (!error) {
+                ret.x = out;
+            }
+        }
 
         return ret;
     }
