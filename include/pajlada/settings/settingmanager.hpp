@@ -120,7 +120,7 @@ public:
         // Force user to manually call SettingsManager::save() to save
         SaveManually = 0,
         SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
-    } saveMethod = SaveMethod::SaveAllTheTime;
+    } saveMethod = SaveMethod::SaveOnExit;
 
 private:
     // Returns true if the given save method is activated
