@@ -502,7 +502,7 @@ public:
             func();
         }
 
-        this->managedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(std::move(connection));
     }
 
     // ConnectSimple: Signal args only
