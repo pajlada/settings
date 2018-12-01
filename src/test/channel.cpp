@@ -6,7 +6,7 @@ namespace test {
 
 using namespace Settings;
 
-IndexedChannel::IndexedChannel(const unsigned &&_index)
+IndexedChannel::IndexedChannel(const unsigned _index)
     : index(_index)
     , xDIndex("/channelsArray/" + std::to_string(index) + "/index", _index)
     , name("/channelsArray/" + std::to_string(index) + "/name",

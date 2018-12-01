@@ -8,7 +8,7 @@ namespace test {
 class IndexedChannel
 {
 public:
-    IndexedChannel(const unsigned &&_index);
+    IndexedChannel(const unsigned _index);
 
     unsigned index;
 
