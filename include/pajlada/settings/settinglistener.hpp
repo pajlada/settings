@@ -2,48 +2,48 @@
 
 #include <pajlada/signals/connection.hpp>
 
+#include <mutex>
+
 namespace pajlada {
-
-namespace detail {
-
-struct CallbackCaller {
-    std::function<void()> cb;
-
-    void
-    CallCallback()
-    {
-        this->cb();
-    }
-};
-
-}  // namespace detail
 
 class SettingListener
 {
+    std::mutex cbMutex;
+    std::function<void()> cb;
+
 public:
     using Callback = std::function<void()>;
 
-    SettingListener()
+    SettingListener() = default;
+
+    ~SettingListener()
     {
-        this->callbackCaller = std::make_unique<detail::CallbackCaller>();
+        this->resetCB();
     }
 
     SettingListener(Callback cb)
     {
-        this->callbackCaller = std::make_unique<detail::CallbackCaller>();
-
-        this->callbackCaller->cb = cb;
+        std::unique_lock<std::mutex> lock(this->cbMutex);
+        this->cb = cb;
     }
 
     void
     setCB(Callback cb)
     {
-        this->callbackCaller->cb = cb;
+        std::unique_lock<std::mutex> lock(this->cbMutex);
+        this->cb = cb;
+    }
+
+    void
+    resetCB()
+    {
+        std::unique_lock<std::mutex> lock(this->cbMutex);
+        this->cb = std::function<void()>();
     }
 
     SettingListener(SettingListener &&other) noexcept
     {
-        this->callbackCaller = std::move(other.callbackCaller);
+        this->cb = std::move(other.cb);
 
         this->managedConnections.swap(other.managedConnections);
     }
@@ -51,7 +51,8 @@ public:
     SettingListener &
     operator=(SettingListener &&other) noexcept
     {
-        this->callbackCaller = std::move(other.callbackCaller);
+        this->cb = std::move(other.cb);
+
         this->managedConnections.swap(other.managedConnections);
 
         return *this;
@@ -60,19 +61,27 @@ public:
     SettingListener(const SettingListener &) = delete;
     SettingListener &operator=(const SettingListener &) = delete;
 
+    // templated function that can take any sort of pajlada::Setting
     template <typename AnySetting>
     void
     addSetting(AnySetting &setting, bool autoInvoke = false)
     {
-        setting.connectSimple(std::bind(&detail::CallbackCaller::CallCallback,
-                                        this->callbackCaller.get()),
+        setting.connectSimple(std::bind(&SettingListener::invoke, this),
                               this->managedConnections, autoInvoke);
+    }
+
+    void
+    invoke()
+    {
+        std::unique_lock<std::mutex> lock(this->cbMutex);
+
+        if (this->cb) {
+            this->cb();
+        }
     }
 
 private:
     std::vector<Signals::ScopedConnection> managedConnections;
-
-    std::unique_ptr<detail::CallbackCaller> callbackCaller{};
 };
 
 }  // namespace pajlada
