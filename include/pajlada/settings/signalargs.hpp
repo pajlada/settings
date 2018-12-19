@@ -31,6 +31,8 @@ struct SignalArgs {
     boost::any userData;
 #endif
     std::string path;
+
+    bool writeToFile{true};
 };
 
 }  // namespace Settings

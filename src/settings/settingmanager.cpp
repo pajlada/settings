@@ -83,10 +83,12 @@ bool
 SettingManager::set(const char *path, const rapidjson::Value &value,
                     SignalArgs args)
 {
-    rapidjson::Pointer(path).Set(this->document, value);
+    if (args.writeToFile) {
+        rapidjson::Pointer(path).Set(this->document, value);
 
-    if (this->hasSaveMethodFlag(SaveMethod::SaveOnSettingChange)) {
-        this->save();
+        if (this->hasSaveMethodFlag(SaveMethod::SaveOnSettingChange)) {
+            this->save();
+        }
     }
 
     this->notifyUpdate(path, value, std::move(args));

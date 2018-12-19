@@ -206,7 +206,7 @@ public:
         this->value = newValue;
 
         if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
-            return true;
+            args.writeToFile = false;
         }
 
         auto lockedSetting = this->data.lock();
