@@ -141,6 +141,12 @@ public:
         return this->path;
     }
 
+    Type
+    getValueCopy() const
+    {
+        return this->getValue();
+    }
+
     const Type &
     getValue() const
     {
