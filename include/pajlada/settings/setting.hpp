@@ -9,6 +9,7 @@
 #include <pajlada/signals/signal.hpp>
 
 #include <iostream>
+#include <mutex>
 #include <type_traits>
 
 namespace pajlada {
@@ -107,6 +108,19 @@ public:
     {
     }
 
+    // Copy constructor
+    Setting(const Setting &other)
+        : path(other.path)
+        , data(other.data)
+        , options(other.options)
+        , defaultValue(other.defaultValue)
+        , value(other.value)
+        , updateIteration(other.updateIteration)
+    {
+        // managedConnections is not copied on purpose
+        // valueMutex is not copied on purpose
+    }
+
     inline bool
     optionEnabled(SettingOption option) const
     {
@@ -130,6 +144,8 @@ public:
     const Type &
     getValue() const
     {
+        std::unique_lock<std::mutex> lock(this->valueMutex);
+
         auto lockedSetting = this->data.lock();
 
         if (!lockedSetting) {
@@ -203,7 +219,10 @@ public:
     bool
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
-        this->value = newValue;
+        {
+            std::unique_lock<std::mutex> lock(this->valueMutex);
+            this->value = newValue;
+        }
 
         if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
             args.writeToFile = false;
@@ -309,7 +328,8 @@ private:
     SettingOption options = SettingOption::Default;
     Type defaultValue{};
 
-    // These two are mutable because they can be modified from the "getValue" function
+    // These are mutable because they can be modified from the "getValue" function
+    mutable std::mutex valueMutex;
     mutable OptionalType<Type> value;
     mutable int updateIteration = -1;
 
