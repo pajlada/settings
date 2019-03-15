@@ -38,26 +38,6 @@ public:
 
     void notifyUpdate(const rapidjson::Value &value, SignalArgs args);
 
-    // Implement vector helper stuff
-    /*
-    template <class T, typename = std::enable_if_t<is_stl_container<T>::value>>
-    void
-    push_back(typename T::value_type &&newValue)
-    {
-        this->valueHasBeenSet = true;
-
-        this->value.push_back(newValue);
-
-        SignalArgs invocationArgs;
-        invocationArgs.source = SignalArgs::Source::Setter;
-
-        invocationArgs.path = this->path;
-
-        this->valueChanged.invoke(this->value, invocationArgs);
-        this->simpleValueChanged.invoke(invocationArgs);
-    }
-    */
-
     bool
     marshalJSON(const rapidjson::Value &v)
     {

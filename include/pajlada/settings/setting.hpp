@@ -215,13 +215,77 @@ public:
     template <typename T = Type,
               typename = std::enable_if_t<is_stl_container<T>::value>>
     void
-    push_back(typename T::value_type &&value) const
+    push_back(typename T::value_type newItem, SignalArgs &&args = SignalArgs())
     {
-        auto lockedSetting = this->getLockedData();
+        // TODO: refresh this->value first?
+        this->valueMutex.lock();
+        if (!this->value) {
+            this->value = Type{};
+        }
 
-        lockedSetting->push_back(std::move(value));
+        (*this->value).push_back(std::move(newItem));
+        auto copy = *this->value;
+        this->valueMutex.unlock();
+        this->updateValue(copy, std::move(args));
     }
 
+    template <typename T = Type,
+              typename = std::enable_if_t<is_stl_container<T>::value>>
+    void
+    removeByValue(const typename T::value_type &key,
+                  SignalArgs &&args = SignalArgs())
+    {
+        // TODO: refresh this->value first?
+
+        T copy;
+
+        {
+            std::unique_lock<std::mutex> lock(this->valueMutex);
+            if (!this->value) {
+                return;
+            }
+
+            copy = (*this->value);
+        }
+
+        auto valueSize = copy.size();
+
+        copy.erase(std::remove(copy.begin(), copy.end(), key), copy.end());
+
+        if (copy.size() == valueSize) {
+            // nothing was removed
+            return;
+        }
+
+        {
+            this->valueMutex.lock();
+            this->value = copy;
+            this->valueMutex.unlock();
+            this->updateValue(copy, std::move(args));
+        }
+    }
+
+private:
+    bool
+    updateValue(const Type &newValue, SignalArgs &&args)
+    {
+        if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
+            args.writeToFile = false;
+        }
+
+        auto lockedSetting = this->data.lock();
+
+        if (lockedSetting) {
+            if (args.source == SignalArgs::Source::Unset) {
+                args.source = SignalArgs::Source::Setter;
+            }
+            return lockedSetting->marshal(newValue, std::move(args));
+        }
+
+        return false;
+    }
+
+public:
     bool
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
