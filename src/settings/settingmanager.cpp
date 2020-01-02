@@ -340,13 +340,13 @@ SettingManager::clearSettings(const string &root)
 }
 
 void
-SettingManager::setPath(const std::string &newPath)
+SettingManager::setPath(const fs::wpath &newPath)
 {
     this->filePath = newPath;
 }
 
 SettingManager::LoadError
-SettingManager::gLoad(const std::string &path)
+SettingManager::gLoad(const fs::wpath &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -354,7 +354,7 @@ SettingManager::gLoad(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::gLoadFrom(const std::string &path)
+SettingManager::gLoadFrom(const fs::wpath &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -362,7 +362,7 @@ SettingManager::gLoadFrom(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::load(const std::string &path)
+SettingManager::load(const fs::wpath &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -372,7 +372,7 @@ SettingManager::load(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const std::string &path)
+SettingManager::loadFrom(const fs::wpath &path)
 {
     // Open file
     FILE *fh = fopen(path.c_str(), "rb");
@@ -442,7 +442,7 @@ SettingManager::loadFrom(const std::string &path)
 }
 
 bool
-SettingManager::gSave(const std::string &path)
+SettingManager::gSave(const fs::wpath &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -450,7 +450,7 @@ SettingManager::gSave(const std::string &path)
 }
 
 bool
-SettingManager::gSaveAs(const std::string &path)
+SettingManager::gSaveAs(const fs::wpath &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -458,7 +458,7 @@ SettingManager::gSaveAs(const std::string &path)
 }
 
 bool
-SettingManager::save(const std::string &path)
+SettingManager::save(const fs::wpath &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -468,7 +468,7 @@ SettingManager::save(const std::string &path)
 }
 
 bool
-SettingManager::saveAs(const std::string &path)
+SettingManager::saveAs(const fs::wpath &path)
 {
     auto res = this->_save(path + ".tmp");
     if (!res) {
@@ -505,7 +505,7 @@ SettingManager::saveAs(const std::string &path)
     return true;
 }
 bool
-SettingManager::_save(const std::string &path)
+SettingManager::_save(const fs::wpath &path)
 {
     FILE *fh = fopen(path.c_str(), "wb+");
     if (fh == nullptr) {

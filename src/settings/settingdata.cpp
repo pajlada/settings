@@ -1,17 +1,19 @@
+#include <boost/filesystem.hpp>
 #include <pajlada/settings/settingdata.hpp>
 
+namespace fs = boost::filesystem;
 using namespace std;
 
 namespace pajlada {
 namespace Settings {
 
-SettingData::SettingData(string _path, weak_ptr<SettingManager> _instance)
+SettingData::SettingData(fs::wpath _path, weak_ptr<SettingManager> _instance)
     : path(move(_path))
     , instance(_instance)
 {
 }
 
-const string &
+const fs::wpath &
 SettingData::getPath() const
 {
     return this->path;
