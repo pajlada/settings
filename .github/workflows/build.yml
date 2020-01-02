@@ -64,7 +64,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake ..
+            cmake -DPAJLADA_SETTINGS_BOOST_FILESYSTEM=1 ..
             make -j8
         shell: bash
 
