@@ -1,0 +1,99 @@
+---
+name: Build
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      # WINDOWS
+      - name: Install dependencies (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+            REM We use this source (temporarily?) until choco has updated their version of conan
+            choco source add -n=AFG -s="https://api.bintray.com/nuget/anotherfoxguy/choco-pkg"
+            choco install conan -y
+
+            refreshenv
+        shell: cmd
+
+      - name: Build (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+            call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            mkdir build
+            cd build
+            "C:\Program Files\Conan\conan\conan.exe" install ..
+            cmake ..
+            set cl=/MP
+            nmake /S /NOLOGO
+        shell: cmd
+
+      - name: Test (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+            cd build
+            ./settings.exe
+        shell: cmd
+
+      # LINUX
+      - name: Install dependencies (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get -y install libssl-dev libboost-dev libboost-system-dev libboost-filesystem-dev libpulse-dev libxkbcommon-x11-0 libgstreamer-plugins-base1.0-0
+
+      - name: Build (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+            mkdir build
+            cd build
+            qmake PREFIX=/usr ..
+            make -j8
+        shell: bash
+
+      - name: Test (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+            cd build
+            ./settings
+        shell: bash
+
+      # MACOS
+      - name: Install dependencies (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+            brew install boost rapidjson
+        shell: bash
+
+      - name: Build (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+            mkdir build
+            cd build
+            cmake ..
+            make -j8
+        shell: bash
+
+      - name: Test (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+            cd build
+            ./settings
+        shell: bash

@@ -4,6 +4,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(settings)
 
+if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake")
+    message(STATUS "Using CONAN")
+    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup()
+endif()
+
 set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
