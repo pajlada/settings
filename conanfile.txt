@@ -4,3 +4,4 @@ boost/1.71.0
 
 [generators]
 cmake
+pkg_config
