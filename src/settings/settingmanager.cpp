@@ -5,6 +5,7 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
 
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -364,24 +365,20 @@ SettingManager::load(const fs::path &path)
 SettingManager::LoadError
 SettingManager::loadFrom(const fs::path &path)
 {
+    fs_error_code ec;
+
     // Open file
-    FILE *fh = fopen(path.c_str(), "rb");
-    if (fh == nullptr) {
+    std::ifstream fh(path, std::ios::binary | std::ios::in);
+    if (!fh) {
         // Unable to open file at `path`
         return LoadError::CannotOpenFile;
     }
 
     // Read size of file
-    if (fseek(fh, 0, SEEK_END) != 0) {
-        return LoadError::FileSeekError;
-    }
-
-    auto fileSize = ftell(fh);
-    if (fileSize == -1L) {
-        // An error occured when ftelling
+    auto fileSize = fs::file_size(path, ec);
+    if (ec) {
         return LoadError::FileHandleError;
     }
-    fseek(fh, 0, SEEK_SET);
 
     if (fileSize == 0) {
         // Nothing to load
@@ -389,29 +386,16 @@ SettingManager::loadFrom(const fs::path &path)
     }
 
     // Create vector of appropriate size
-    unique_ptr<char[]> fileBuffer(new char[fileSize]);
+    std::vector<char> fileBuffer;
+    fileBuffer.resize(fileSize);
 
     // Read file data into buffer
-    auto readBytes = fread(fileBuffer.get(), 1, fileSize, fh);
-
-    if (readBytes != static_cast<size_t>(fileSize)) {
-        // Error reading the buffer
-        fclose(fh);
-
-        return LoadError::FileReadError;
-    }
-
-    // Close file
-    fclose(fh);
-
-    // XXX: Temporarily don't delete the buffer
-    // delete[] fileBuffer;
+    fh.read(&fileBuffer[0], fileSize);
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok =
-        this->document.Parse(fileBuffer.get(), fileSize);
+    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
 
     // Make sure the file parsed okay
     if (!ok) {
@@ -509,8 +493,8 @@ SettingManager::saveAs(const fs::path &path)
 bool
 SettingManager::_save(const fs::path &path)
 {
-    FILE *fh = fopen(path.c_str(), "wb+");
-    if (fh == nullptr) {
+    std::ofstream fh(path, std::ios::binary | std::ios::out);
+    if (!fh) {
         // Unable to open file at `path`
         return false;
     }
@@ -519,12 +503,9 @@ SettingManager::_save(const fs::path &path)
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     this->document.Accept(writer);
 
-    auto writtenBytes = fwrite(buffer.GetString(), 1, buffer.GetSize(), fh);
+    fh.write(buffer.GetString(), buffer.GetSize());
 
-    // Close file handle
-    fclose(fh);
-
-    return writtenBytes == buffer.GetSize();
+    return true;
 }
 
 void
