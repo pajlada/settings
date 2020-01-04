@@ -368,7 +368,7 @@ SettingManager::loadFrom(const fs::path &path)
     fs_error_code ec;
 
     // Open file
-    std::ifstream fh(path, std::ios::binary | std::ios::in);
+    std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
     if (!fh) {
         // Unable to open file at `path`
         return LoadError::CannotOpenFile;
@@ -493,7 +493,7 @@ SettingManager::saveAs(const fs::path &path)
 bool
 SettingManager::_save(const fs::path &path)
 {
-    std::ofstream fh(path, std::ios::binary | std::ios::out);
+    std::ofstream fh(path.c_str(), std::ios::binary | std::ios::out);
     if (!fh) {
         // Unable to open file at `path`
         return false;

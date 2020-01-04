@@ -13,7 +13,11 @@ TEST_CASE("unicode", "[settings][load]")
 
     REQUIRE(a == 1);
 
-    REQUIRE(LoadFile("load.ö.json"));
+    auto sm = SettingManager::getInstance().get();
+    fs::path p("files/load.ö.json");
+    REQUIRE(sm->loadFrom(p) == SettingManager::LoadError::NoError);
+
+    // REQUIRE(LoadFile("load.ö.json"));
 
     REQUIRE(a == 5);
 }
