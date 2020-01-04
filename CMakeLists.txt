@@ -49,6 +49,12 @@ add_executable(settings
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
 
+option(USE_BOOST_FILESYSTEM "Use boost::filesystem instead of std filesystem" OFF)
+if (USE_BOOST_FILESYSTEM)
+    message(status "use boost")
+    add_definitions(-DPAJLADA_SETTINGS_BOOST_FILESYSTEM)
+endif()
+
 if (DEFINED COVERAGE)
     message("Coverage flags enabled")
     target_compile_options(settings PRIVATE --coverage -fno-inline -O0 -g)

@@ -57,16 +57,14 @@ jobs:
       # LINUX
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get update && sudo apt-get -y install clang libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
+        run: sudo apt-get update && sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
 
       - name: Build (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
             mkdir build
             cd build
-            export CC=/usr/bin/clang
-            export CXX=/usr/bin/clang++
-            cmake ..
+            cmake -DUSE_BOOST_FILESYSTEM=1 ..
             make -j8
         shell: bash
 
