@@ -61,8 +61,6 @@ if (DEFINED COVERAGE)
     target_link_libraries(settings PRIVATE --coverage)
 endif()
 
-find_package(cdb)
-
 # Dependencies
 find_package(PajladaSignals REQUIRED)
 include_directories(${PajladaSignals_INCLUDE_DIRS})
