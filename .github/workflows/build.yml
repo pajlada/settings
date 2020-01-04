@@ -50,7 +50,7 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
             cd build
-            ./settings.exe
+            settings.exe
         shell: cmd
 
       # LINUX
