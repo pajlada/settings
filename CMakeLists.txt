@@ -61,16 +61,26 @@ if (DEFINED COVERAGE)
     target_link_libraries(settings PRIVATE --coverage)
 endif()
 
+find_package(cdb)
+
 # Dependencies
 find_package(PajladaSignals REQUIRED)
 include_directories(${PajladaSignals_INCLUDE_DIRS})
+
+# break()
 
 find_package(PajladaSerialize REQUIRED)
 include_directories(${PajladaSerialize_INCLUDE_DIRS})
 
 # rapidjson = c++ json library
-find_package(RapidJSON REQUIRED)
-include_directories(${RAPIDJSON_INCLUDE_DIRS})
+if (MSVC)
+    target_link_libraries(settings INTERFACE IMPORTED CONAN_PKG::rapidjson)
+else()
+    find_package(RapidJSON REQUIRED)
+    include_directories(${RAPIDJSON_INCLUDE_DIRS})
+endif()
+
+# TODO: Try find_package, and if not found, do the conan link
 
 set(USE_BOOST_COMPONENTS "")
 
