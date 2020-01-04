@@ -94,9 +94,13 @@ else()
 endif()
 
 
-find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
-include_directories(${Boost_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(settings LINK_PUBLIC ${Boost_LIBRARIES})
+if (MSVC)
+    target_link_libraries(settings INTERFACE IMPORTED CONAN_PKG::Boost)
+else()
+    find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
+    include_directories(${Boost_INCLUDE_DIRS})
+    TARGET_LINK_LIBRARIES(settings LINK_PUBLIC ${Boost_LIBRARIES})
+endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 
