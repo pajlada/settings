@@ -8,16 +8,6 @@
 #include <iostream>
 #include <string>
 
-#ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-using fs_error_code = boost::system::error_code;
-#else
-#include <filesystem>
-namespace fs = std::filesystem;
-using fs_error_code = std::error_code;
-#endif
-
 using namespace std;
 
 namespace pajlada {
@@ -340,13 +330,13 @@ SettingManager::clearSettings(const string &root)
 }
 
 void
-SettingManager::setPath(const std::string &newPath)
+SettingManager::setPath(const fs::path &newPath)
 {
     this->filePath = newPath;
 }
 
 SettingManager::LoadError
-SettingManager::gLoad(const std::string &path)
+SettingManager::gLoad(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -354,7 +344,7 @@ SettingManager::gLoad(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::gLoadFrom(const std::string &path)
+SettingManager::gLoadFrom(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -362,7 +352,7 @@ SettingManager::gLoadFrom(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::load(const std::string &path)
+SettingManager::load(const fs::path &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -372,7 +362,7 @@ SettingManager::load(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const std::string &path)
+SettingManager::loadFrom(const fs::path &path)
 {
     // Open file
     FILE *fh = fopen(path.c_str(), "rb");
@@ -442,7 +432,7 @@ SettingManager::loadFrom(const std::string &path)
 }
 
 bool
-SettingManager::gSave(const std::string &path)
+SettingManager::gSave(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -450,7 +440,7 @@ SettingManager::gSave(const std::string &path)
 }
 
 bool
-SettingManager::gSaveAs(const std::string &path)
+SettingManager::gSaveAs(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -458,7 +448,7 @@ SettingManager::gSaveAs(const std::string &path)
 }
 
 bool
-SettingManager::save(const std::string &path)
+SettingManager::save(const fs::path &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -468,9 +458,15 @@ SettingManager::save(const std::string &path)
 }
 
 bool
-SettingManager::saveAs(const std::string &path)
+SettingManager::saveAs(const fs::path &path)
 {
-    auto res = this->_save(path + ".tmp");
+    fs::path tmpPath(path);
+    tmpPath += ".tmp";
+
+    fs::path bkpPath(path);
+    bkpPath += ".bkp";
+
+    auto res = this->_save(tmpPath);
     if (!res) {
         return res;
     }
@@ -478,25 +474,31 @@ SettingManager::saveAs(const std::string &path)
     fs_error_code ec;
 
     if (this->backup.enabled) {
+        fs::path firstBkpPath(bkpPath);
+        firstBkpPath += "-" + std::to_string(1);
+
         if (this->backup.numSlots > 1) {
+            fs::path topBkpPath(bkpPath);
+            topBkpPath += "-" + std::to_string(this->backup.numSlots);
             // Remove top slot backup
-            fs::remove(path + ".bkp-" + std::to_string(this->backup.numSlots),
-                       ec);
+            fs::remove(topBkpPath, ec);
 
             // Shift backups one slot up
             for (uint8_t slotIndex = this->backup.numSlots - 1; slotIndex >= 1;
                  --slotIndex) {
-                auto p1 = path + ".bkp-" + std::to_string(slotIndex);
-                auto p2 = path + ".bkp-" + std::to_string(slotIndex + 1);
+                fs::path p1(bkpPath);
+                p1 += "-" + std::to_string(slotIndex);
+                fs::path p2(bkpPath);
+                p2 += "-" + std::to_string(slotIndex + 1);
                 fs::rename(p1, p2, ec);
             }
         }
 
         // Move current save to first backup slot
-        fs::rename(path, path + ".bkp-1", ec);
+        fs::rename(path, firstBkpPath, ec);
     }
 
-    fs::rename(path + ".tmp", path, ec);
+    fs::rename(tmpPath, path, ec);
 
     if (ec) {
         return false;
@@ -505,7 +507,7 @@ SettingManager::saveAs(const std::string &path)
     return true;
 }
 bool
-SettingManager::_save(const std::string &path)
+SettingManager::_save(const fs::path &path)
 {
     FILE *fh = fopen(path.c_str(), "wb+");
     if (fh == nullptr) {
