@@ -1,0 +1,7 @@
+[requires]
+rapidjson/1.1.0
+boost/1.71.0
+
+[generators]
+cmake
+pkg_config

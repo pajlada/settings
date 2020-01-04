@@ -4,6 +4,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(settings)
 
+if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake")
+    message(STATUS "Using CONAN")
+    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup()
+endif()
+
 set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
@@ -11,6 +17,7 @@ set(PajladaSettings_SOURCES
     src/test/main.cpp
 
     src/test/map.cpp
+    src/test/load.cpp
     src/test/save.cpp
     src/test/static.cpp
     src/test/signal.cpp
@@ -43,6 +50,12 @@ add_executable(settings
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
 
+option(USE_BOOST_FILESYSTEM "Use boost::filesystem instead of std filesystem" OFF)
+if (USE_BOOST_FILESYSTEM)
+    message(status "use boost")
+    add_definitions(-DPAJLADA_SETTINGS_BOOST_FILESYSTEM)
+endif()
+
 if (DEFINED COVERAGE)
     message("Coverage flags enabled")
     target_compile_options(settings PRIVATE --coverage -fno-inline -O0 -g)
@@ -53,12 +66,20 @@ endif()
 find_package(PajladaSignals REQUIRED)
 include_directories(${PajladaSignals_INCLUDE_DIRS})
 
+# break()
+
 find_package(PajladaSerialize REQUIRED)
 include_directories(${PajladaSerialize_INCLUDE_DIRS})
 
 # rapidjson = c++ json library
-find_package(RapidJSON REQUIRED)
-include_directories(${RAPIDJSON_INCLUDE_DIRS})
+if (MSVC)
+    target_link_libraries(settings INTERFACE IMPORTED CONAN_PKG::rapidjson)
+else()
+    find_package(RapidJSON REQUIRED)
+    include_directories(${RAPIDJSON_INCLUDE_DIRS})
+endif()
+
+# TODO: Try find_package, and if not found, do the conan link
 
 set(USE_BOOST_COMPONENTS "")
 
@@ -74,9 +95,13 @@ else()
 endif()
 
 
-find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
-include_directories(${Boost_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(settings LINK_PUBLIC ${Boost_LIBRARIES})
+if (MSVC)
+    target_link_libraries(settings INTERFACE IMPORTED CONAN_PKG::Boost)
+else()
+    find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
+    include_directories(${Boost_INCLUDE_DIRS})
+    TARGET_LINK_LIBRARIES(settings LINK_PUBLIC ${Boost_LIBRARIES})
+endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 
