@@ -17,6 +17,7 @@ set(PajladaSettings_SOURCES
     src/test/main.cpp
 
     src/test/map.cpp
+    src/test/load.cpp
     src/test/save.cpp
     src/test/static.cpp
     src/test/signal.cpp
