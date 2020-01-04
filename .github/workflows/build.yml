@@ -52,7 +52,7 @@ jobs:
             dir
             cd build
             dir
-            settings.exe
+            bin/settings.exe
         shell: cmd
 
       # LINUX
