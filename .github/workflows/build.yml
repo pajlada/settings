@@ -55,36 +55,18 @@ jobs:
             ".\bin\settings.exe"
         shell: cmd
 
-      # LINUX
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt-get update && sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
 
-      - name: Build (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-            mkdir build
-            cd build
-            cmake -DUSE_BOOST_FILESYSTEM=1 ..
-            make -j8
-        shell: bash
-
-      - name: Test (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-            cd build
-            ./settings
-        shell: bash
-
-      # MACOS
       - name: Install dependencies (MacOS)
         if: startsWith(matrix.os, 'macos')
         run: |
             brew install boost rapidjson
         shell: bash
 
-      - name: Build (MacOS)
-        if: startsWith(matrix.os, 'macos')
+      - name: Build (Ubuntu/MacOS)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: |
             mkdir build
             cd build
@@ -92,8 +74,8 @@ jobs:
             make -j8
         shell: bash
 
-      - name: Test (MacOS)
-        if: startsWith(matrix.os, 'macos')
+      - name: Test (Ubuntu/MacOS)
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: |
             cd build
             ./settings
