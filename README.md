@@ -1,15 +1,19 @@
 # Settings
+
 My C++ Settings library
 
 ## Requirements
+
 pajlada/signals: https://github.com/pajlada/signals
 
 ## Run project with tests
+
 1. `git submodule update --init`
 2. `qmake settings.pro`
 3. `make`
 
 ## Intended usage
+
 Store settings in each relevant class (static and non-static)
 
 ```
