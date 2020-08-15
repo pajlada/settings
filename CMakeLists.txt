@@ -46,6 +46,12 @@ add_executable(settings
     ${PajladaSettings_SOURCES}
     )
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+        message(FATAL_ERROR "GCC version must be at least 8.0")
+    endif()
+endif()
+
 # Enable C++17
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
