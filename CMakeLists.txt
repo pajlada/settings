@@ -96,7 +96,7 @@ else()
     if (DirDefs MATCHES "PAJLADA_SETTINGS_BOOST_FILESYSTEM")
         set(USE_BOOST_COMPONENTS system filesystem)
     else()
-        target_link_libraries(settings PRIVATE stdc++fs)
+		target_link_libraries(settings PRIVATE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
     endif()
 endif()
 
