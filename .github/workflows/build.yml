@@ -49,7 +49,7 @@ jobs:
             mkdir build
             cd build
             "C:\Program Files\Conan\conan\conan.exe" install ..
-            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.use-boost-filesystem }} ..
+            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} ..
             cmake --build .
         shell: cmd
 
