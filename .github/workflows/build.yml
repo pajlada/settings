@@ -66,16 +66,26 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt-get update && sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
 
+      - name: Install GCC 8.3 (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo add-apt-repository ppa:jonathonf/gcc-8.3 && sudo apt-get update && sudo apt-get -y install gcc-8
+
       - name: Install dependencies (MacOS)
         if: startsWith(matrix.os, 'macos')
         run: |
             brew install boost rapidjson
         shell: bash
 
+      - name: Prepare GCC version (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+            echo "::set-env name=CC::/usr/bin/gcc-8"
+            echo "::set-env name=CXX::/usr/bin/g++-8"
+        shell: bash
+
       - name: Build (Ubuntu/MacOS)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: |
-            echo "Penis: ${{ steps.filesystem-backend.outputs.use-boost-filesystem }}"
             mkdir build
             cd build
             cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} ..

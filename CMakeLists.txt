@@ -46,12 +46,6 @@ add_executable(settings
     ${PajladaSettings_SOURCES}
     )
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-        message(FATAL_ERROR "GCC version must be at least 8.0")
-    endif()
-endif()
-
 # Enable C++17
 set_property(TARGET settings PROPERTY CXX_STANDARD 17)
 set_property(TARGET settings PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -96,13 +90,20 @@ else()
     if (DirDefs MATCHES "PAJLADA_SETTINGS_BOOST_FILESYSTEM")
         set(USE_BOOST_COMPONENTS system filesystem)
     else()
+		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+			if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+				message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
+			endif()
+		endif()
 		target_link_libraries(settings PRIVATE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
     endif()
 endif()
 
 
 if (MSVC)
-    target_link_libraries(settings INTERFACE IMPORTED CONAN_PKG::Boost)
+    # target_link_libraries(settings INTERFACE IMPORTED CONAN_PKG::Boost)
+    message(STATUS "Conan libs: ${CONAN_LIBS}")
+    target_link_libraries(settings PRIVATE ${CONAN_LIBS})
 else()
     find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
     include_directories(${Boost_INCLUDE_DIRS})
