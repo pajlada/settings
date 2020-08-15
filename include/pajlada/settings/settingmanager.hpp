@@ -1,8 +1,5 @@
 #pragma once
 
-#include <pajlada/settings/common.hpp>
-#include <pajlada/settings/signalargs.hpp>
-
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
@@ -10,20 +7,26 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <pajlada/settings/common.hpp>
+#include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
 #ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-using fs_error_code = boost::system::error_code;
 #else
 #include <filesystem>
-namespace fs = std::filesystem;
-using fs_error_code = std::error_code;
 #endif
 
 namespace pajlada {
 namespace Settings {
+
+#ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
+namespace fs = boost::filesystem;
+using fs_error_code = boost::system::error_code;
+#else
+namespace fs = std::filesystem;
+using fs_error_code = std::error_code;
+#endif
 
 class SettingData;
 

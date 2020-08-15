@@ -1,12 +1,10 @@
-#include <pajlada/settings/settingmanager.hpp>
-
-#include <pajlada/settings/settingdata.hpp>
-
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
 
 #include <fstream>
 #include <iostream>
+#include <pajlada/settings/settingdata.hpp>
+#include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
 using namespace std;
