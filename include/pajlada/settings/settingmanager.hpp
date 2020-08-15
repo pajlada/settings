@@ -1,8 +1,5 @@
 #pragma once
 
-#include <pajlada/settings/common.hpp>
-#include <pajlada/settings/signalargs.hpp>
-
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
@@ -10,10 +7,26 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <pajlada/settings/common.hpp>
+#include <pajlada/settings/signalargs.hpp>
 #include <vector>
+
+#ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+#else
+#include <filesystem>
+#endif
 
 namespace pajlada {
 namespace Settings {
+
+#ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
+namespace fs = boost::filesystem;
+using fs_error_code = boost::system::error_code;
+#else
+namespace fs = std::filesystem;
+using fs_error_code = std::error_code;
+#endif
 
 class SettingData;
 
@@ -83,31 +96,31 @@ private:
     void clearSettings(const std::string &root);
 
 public:
-    void setPath(const std::string &newPath);
+    void setPath(const fs::path &newPath);
 
-    static LoadError gLoad(const std::string &path = std::string());
-    static LoadError gLoadFrom(const std::string &path);
+    static LoadError gLoad(const fs::path &path = fs::path());
+    static LoadError gLoadFrom(const fs::path &path);
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    LoadError load(const std::string &path = std::string());
+    LoadError load(const fs::path &path = fs::path());
     // Load from given path
-    LoadError loadFrom(const std::string &path);
+    LoadError loadFrom(const fs::path &path);
 
-    static bool gSave(const std::string &path = std::string());
-    static bool gSaveAs(const std::string &path);
+    static bool gSave(const fs::path &path = fs::path());
+    static bool gSaveAs(const fs::path &path);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your application
     // is crash free
     // Save to given path and set path as the default path (or save from default
     // path if filePath is a nullptr)
-    bool save(const std::string &path = std::string());
+    bool save(const fs::path &path = fs::path());
     // Save to given path
-    bool saveAs(const std::string &path);
+    bool saveAs(const fs::path &path);
 
 private:
-    bool _save(const std::string &path);
+    bool _save(const fs::path &path);
 
 public:
     // Functions prefixed with g are static functions that work
@@ -155,7 +168,7 @@ public:
     rapidjson::Document document;
 
 private:
-    std::string filePath = "settings.json";
+    fs::path filePath = "settings.json";
 
     std::mutex settingsMutex;
 

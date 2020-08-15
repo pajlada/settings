@@ -1,22 +1,11 @@
-#include <pajlada/settings/settingmanager.hpp>
-
-#include <pajlada/settings/settingdata.hpp>
-
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
 
+#include <fstream>
 #include <iostream>
+#include <pajlada/settings/settingdata.hpp>
+#include <pajlada/settings/settingmanager.hpp>
 #include <string>
-
-#ifdef PAJLADA_SETTINGS_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-using fs_error_code = boost::system::error_code;
-#else
-#include <filesystem>
-namespace fs = std::filesystem;
-using fs_error_code = std::error_code;
-#endif
 
 using namespace std;
 
@@ -340,13 +329,13 @@ SettingManager::clearSettings(const string &root)
 }
 
 void
-SettingManager::setPath(const std::string &newPath)
+SettingManager::setPath(const fs::path &newPath)
 {
     this->filePath = newPath;
 }
 
 SettingManager::LoadError
-SettingManager::gLoad(const std::string &path)
+SettingManager::gLoad(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -354,7 +343,7 @@ SettingManager::gLoad(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::gLoadFrom(const std::string &path)
+SettingManager::gLoadFrom(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -362,7 +351,7 @@ SettingManager::gLoadFrom(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::load(const std::string &path)
+SettingManager::load(const fs::path &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -372,26 +361,22 @@ SettingManager::load(const std::string &path)
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const std::string &path)
+SettingManager::loadFrom(const fs::path &path)
 {
+    fs_error_code ec;
+
     // Open file
-    FILE *fh = fopen(path.c_str(), "rb");
-    if (fh == nullptr) {
+    std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
+    if (!fh) {
         // Unable to open file at `path`
         return LoadError::CannotOpenFile;
     }
 
     // Read size of file
-    if (fseek(fh, 0, SEEK_END) != 0) {
-        return LoadError::FileSeekError;
-    }
-
-    auto fileSize = ftell(fh);
-    if (fileSize == -1L) {
-        // An error occured when ftelling
+    auto fileSize = fs::file_size(path, ec);
+    if (ec) {
         return LoadError::FileHandleError;
     }
-    fseek(fh, 0, SEEK_SET);
 
     if (fileSize == 0) {
         // Nothing to load
@@ -399,29 +384,16 @@ SettingManager::loadFrom(const std::string &path)
     }
 
     // Create vector of appropriate size
-    unique_ptr<char[]> fileBuffer(new char[fileSize]);
+    std::vector<char> fileBuffer;
+    fileBuffer.resize(fileSize);
 
     // Read file data into buffer
-    auto readBytes = fread(fileBuffer.get(), 1, fileSize, fh);
-
-    if (readBytes != static_cast<size_t>(fileSize)) {
-        // Error reading the buffer
-        fclose(fh);
-
-        return LoadError::FileReadError;
-    }
-
-    // Close file
-    fclose(fh);
-
-    // XXX: Temporarily don't delete the buffer
-    // delete[] fileBuffer;
+    fh.read(&fileBuffer[0], fileSize);
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok =
-        this->document.Parse(fileBuffer.get(), fileSize);
+    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
 
     // Make sure the file parsed okay
     if (!ok) {
@@ -442,7 +414,7 @@ SettingManager::loadFrom(const std::string &path)
 }
 
 bool
-SettingManager::gSave(const std::string &path)
+SettingManager::gSave(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -450,7 +422,7 @@ SettingManager::gSave(const std::string &path)
 }
 
 bool
-SettingManager::gSaveAs(const std::string &path)
+SettingManager::gSaveAs(const fs::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -458,7 +430,7 @@ SettingManager::gSaveAs(const std::string &path)
 }
 
 bool
-SettingManager::save(const std::string &path)
+SettingManager::save(const fs::path &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -468,9 +440,15 @@ SettingManager::save(const std::string &path)
 }
 
 bool
-SettingManager::saveAs(const std::string &path)
+SettingManager::saveAs(const fs::path &path)
 {
-    auto res = this->_save(path + ".tmp");
+    fs::path tmpPath(path);
+    tmpPath += ".tmp";
+
+    fs::path bkpPath(path);
+    bkpPath += ".bkp";
+
+    auto res = this->_save(tmpPath);
     if (!res) {
         return res;
     }
@@ -478,25 +456,31 @@ SettingManager::saveAs(const std::string &path)
     fs_error_code ec;
 
     if (this->backup.enabled) {
+        fs::path firstBkpPath(bkpPath);
+        firstBkpPath += "-" + std::to_string(1);
+
         if (this->backup.numSlots > 1) {
+            fs::path topBkpPath(bkpPath);
+            topBkpPath += "-" + std::to_string(this->backup.numSlots);
             // Remove top slot backup
-            fs::remove(path + ".bkp-" + std::to_string(this->backup.numSlots),
-                       ec);
+            fs::remove(topBkpPath, ec);
 
             // Shift backups one slot up
             for (uint8_t slotIndex = this->backup.numSlots - 1; slotIndex >= 1;
                  --slotIndex) {
-                auto p1 = path + ".bkp-" + std::to_string(slotIndex);
-                auto p2 = path + ".bkp-" + std::to_string(slotIndex + 1);
+                fs::path p1(bkpPath);
+                p1 += "-" + std::to_string(slotIndex);
+                fs::path p2(bkpPath);
+                p2 += "-" + std::to_string(slotIndex + 1);
                 fs::rename(p1, p2, ec);
             }
         }
 
         // Move current save to first backup slot
-        fs::rename(path, path + ".bkp-1", ec);
+        fs::rename(path, firstBkpPath, ec);
     }
 
-    fs::rename(path + ".tmp", path, ec);
+    fs::rename(tmpPath, path, ec);
 
     if (ec) {
         return false;
@@ -505,10 +489,10 @@ SettingManager::saveAs(const std::string &path)
     return true;
 }
 bool
-SettingManager::_save(const std::string &path)
+SettingManager::_save(const fs::path &path)
 {
-    FILE *fh = fopen(path.c_str(), "wb+");
-    if (fh == nullptr) {
+    std::ofstream fh(path.c_str(), std::ios::binary | std::ios::out);
+    if (!fh) {
         // Unable to open file at `path`
         return false;
     }
@@ -517,12 +501,9 @@ SettingManager::_save(const std::string &path)
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     this->document.Accept(writer);
 
-    auto writtenBytes = fwrite(buffer.GetString(), 1, buffer.GetSize(), fh);
+    fh.write(buffer.GetString(), buffer.GetSize());
 
-    // Close file handle
-    fclose(fh);
-
-    return writtenBytes == buffer.GetSize();
+    return true;
 }
 
 void
