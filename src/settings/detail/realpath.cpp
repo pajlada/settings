@@ -23,7 +23,7 @@ RealPath(const fs::path &_path, fs_error_code &ec)
 
     const auto relativePath = path.relative_path();
 
-    std::unordered_set<std::string> seenPaths;
+    std::unordered_set<fs::path::string_type> seenPaths;
 
     do {
         if (seenPaths.count(path) != 0) {
