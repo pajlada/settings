@@ -1,6 +1,6 @@
-#include "test/common.hpp"
-
 #include <pajlada/settings.hpp>
+
+#include "test/common.hpp"
 
 using namespace pajlada::Settings;
 using namespace std;
@@ -29,4 +29,10 @@ TEST_CASE("save_do_not_write_to_json", "[settings][save]")
     REQUIRE(SaveFile("out.save.save_int.json"));
 
     REQUIRE(FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
+}
+
+TEST_CASE("save_do_not_break_symlink", "[settings][save]")
+{
+    REQUIRE(fs::is_symlink("files/save.symlink.json"));
+    REQUIRE(!fs::is_symlink("files/save.not-a-symlink.json"));
 }
