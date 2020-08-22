@@ -491,12 +491,27 @@ SettingManager::saveAs(const std::string &path)
                 fs::rename(p1, p2, ec);
             }
         }
-
-        // Move current save to first backup slot
-        fs::rename(path, path + ".bkp-1", ec);
     }
 
-    fs::rename(path + ".tmp", path, ec);
+    auto isSymlink = QFileInfo(QString::fromStdString(path)).isSymLink();
+
+    if (isSymlink) {
+        if (this->backup.enabled) {
+            // Copy current save to first backup slot
+            fs::copy(path, path + ".bkp-1", ec);
+        }
+
+        this->_save(path);
+        fs::remove(path + ".tmp");
+    } 
+    else {
+        if (this->backup.enabled) {
+            // Move current save to first backup slot
+            fs::rename(path, path + ".bkp-1", ec);
+        }
+
+        fs::rename(path + ".tmp", path, ec);
+    }
 
     if (ec) {
         return false;
