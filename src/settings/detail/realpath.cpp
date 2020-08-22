@@ -26,14 +26,16 @@ RealPath(const fs::path &_path, fs_error_code &ec)
     std::unordered_set<fs::path::string_type> seenPaths;
 
     do {
-        if (seenPaths.count(path) != 0) {
-            ec = std::make_error_code(std::errc::too_many_symbolic_link_levels);
+        auto pathString = path.string();
+        if (seenPaths.count(pathString) != 0) {
+            ec = make_error_code_ns::make_error_code(
+                errc::too_many_symbolic_link_levels);
             PS_DEBUG("Too many symbolic links");
             PS_DEBUG(ec);
             return path;
         }
 
-        seenPaths.emplace(path);
+        seenPaths.emplace(pathString);
         path = relativePath / fs::read_symlink(path, ec);
         if (ec) {
             PS_DEBUG("Error reading symlink");
