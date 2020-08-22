@@ -455,6 +455,8 @@ SettingManager::saveAs(const fs::path &path)
 
     fs_error_code ec;
 
+    auto isSymlink = fs::is_symlink(path);
+
     if (this->backup.enabled) {
         fs::path firstBkpPath(bkpPath);
         firstBkpPath += "-" + std::to_string(1);
@@ -475,25 +477,21 @@ SettingManager::saveAs(const fs::path &path)
                 fs::rename(p1, p2, ec);
             }
         }
-    }
 
-    auto isSymlink = QFileInfo(QString::fromStdString(path)).isSymLink();
-
-    if (isSymlink) {
-        if (this->backup.enabled) {
+        if (isSymlink) {
             // Copy current save to first backup slot
             fs::copy(path, firstBkpPath, ec);
+        } else {
+            // Move current save to first backup slot
+            fs::rename(path, firstBkpPath, ec);
         }
+    }
 
+    if (isSymlink) {
         this->_save(path);
         fs::remove(tmpPath);
     } 
     else {
-        if (this->backup.enabled) {
-            // Move current save to first backup slot
-            fs::rename(path, firstBkpPath, ec);
-        }
-
         fs::rename(tmpPath, path, ec);
     }
 
