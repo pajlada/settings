@@ -166,3 +166,65 @@ TEST_CASE("save_symlink", "[settings][save]")
     REQUIRE(fs::is_symlink(bp));
     REQUIRE(fs::exists(tp));
 }
+
+TEST_CASE("save_backup_symlink", "[settings][save]")
+{
+    // In this scenario:
+    // The base file is a symlink
+    // bkp-1 is not a symlink
+    // bkp-2 is a symlink
+    std::string bp("files/save.symlink-backup.json");
+    std::string tp("files/out.symlink-backup.target.json");
+
+    std::string tp1("files/save.symlink-backup.json.bkp-1");
+
+    std::string bp2("files/save.symlink-backup.json.bkp-2");
+    std::string tp2("files/out.symlink-backup.target.json.bkp-2");
+
+    // Start from a clean slate - we should only have symlinks at the start
+    RemoveFile(tp);
+    RemoveFile(tp1);
+    RemoveFile(tp2);
+
+    REQUIRE(!fs::exists(tp));
+    REQUIRE(!fs::exists(tp1));
+    REQUIRE(!fs::exists(tp2));
+
+    auto sm = std::make_shared<SettingManager>();
+
+    sm->setPath(bp);
+    sm->setBackupEnabled(true);
+    sm->setBackupSlots(2);
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
+
+    {
+        Setting<int> setting("/lol", SettingOption::Default, sm);
+
+        setting.setValue(13);
+    }
+
+    REQUIRE(fs::is_symlink(bp));
+    REQUIRE(!fs::exists(tp));
+
+    // Save to base file (following the symlink)
+    REQUIRE(sm->save());
+
+    REQUIRE(fs::is_symlink(bp));
+    REQUIRE(fs::exists(tp));
+
+    REQUIRE(!fs::exists(tp1));
+
+    // Save to base file, should create bkp-1
+    REQUIRE(sm->save());
+
+    REQUIRE(fs::exists(tp1));
+
+    REQUIRE(fs::is_symlink(bp2));
+    REQUIRE(!fs::exists(tp2));
+
+    // Save to base file, should follow bkp-2 and save a file there
+    REQUIRE(sm->save());
+
+    REQUIRE(fs::is_symlink(bp2));
+    REQUIRE(fs::exists(tp2));
+}

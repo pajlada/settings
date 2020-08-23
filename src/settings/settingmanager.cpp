@@ -450,10 +450,10 @@ SettingManager::saveAs(const fs::path &_path)
     if (ec) {
         return false;
     }
-    fs::path tmpPath(path);
+    fs::path tmpPath(_path);
     tmpPath += ".tmp";
 
-    fs::path bkpPath(path);
+    fs::path bkpPath(_path);
     bkpPath += ".bkp";
 
     auto res = this->writeTo(tmpPath);
@@ -468,6 +468,10 @@ SettingManager::saveAs(const fs::path &_path)
         if (this->backup.numSlots > 1) {
             fs::path topBkpPath(bkpPath);
             topBkpPath += "-" + std::to_string(this->backup.numSlots);
+            topBkpPath = detail::RealPath(topBkpPath, ec);
+            if (ec) {
+                return false;
+            }
             // Remove top slot backup
             fs::remove(topBkpPath, ec);
 
@@ -476,8 +480,16 @@ SettingManager::saveAs(const fs::path &_path)
                  --slotIndex) {
                 fs::path p1(bkpPath);
                 p1 += "-" + std::to_string(slotIndex);
+                p1 = detail::RealPath(p1, ec);
+                if (ec) {
+                    return false;
+                }
                 fs::path p2(bkpPath);
                 p2 += "-" + std::to_string(slotIndex + 1);
+                p2 = detail::RealPath(p2, ec);
+                if (ec) {
+                    return false;
+                }
                 fs::rename(p1, p2, ec);
             }
         }
@@ -486,7 +498,6 @@ SettingManager::saveAs(const fs::path &_path)
         fs::rename(path, firstBkpPath, ec);
     }
 
-    // PS_DEBUG("TMP Path is " << tmpPath);
     fs::rename(tmpPath, path, ec);
 
     if (ec) {
