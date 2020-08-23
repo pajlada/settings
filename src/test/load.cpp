@@ -33,3 +33,18 @@ TEST_CASE("space", "[settings][load]")
 
     REQUIRE(a == 5);
 }
+
+TEST_CASE("load_symlink", "[settings][load]")
+{
+    std::string bp("in.symlink.json");
+
+    SettingManager::clear();
+
+    Setting<int> lol("/lol", 1);
+
+    REQUIRE(lol == 1);
+
+    REQUIRE(LoadFile(bp));
+
+    REQUIRE(lol == 10);
+}
