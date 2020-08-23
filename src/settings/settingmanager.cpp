@@ -8,7 +8,6 @@
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
-#include <unordered_set>
 
 using namespace std;
 
