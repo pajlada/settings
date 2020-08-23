@@ -23,4 +23,3 @@ namespace make_error_code_ns = std;
 
 }  // namespace Settings
 }  // namespace pajlada
-
