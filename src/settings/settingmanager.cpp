@@ -3,9 +3,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <pajlada/settings/detail/realpath.hpp>
+#include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
+#include <unordered_set>
 
 using namespace std;
 
@@ -440,22 +443,23 @@ SettingManager::save(const fs::path &path)
 }
 
 bool
-SettingManager::saveAs(const fs::path &path)
+SettingManager::saveAs(const fs::path &_path)
 {
+    fs_error_code ec;
+    fs::path path = detail::RealPath(_path, ec);
+    if (ec) {
+        return false;
+    }
     fs::path tmpPath(path);
     tmpPath += ".tmp";
 
     fs::path bkpPath(path);
     bkpPath += ".bkp";
 
-    auto res = this->_save(tmpPath);
+    auto res = this->writeTo(tmpPath);
     if (!res) {
         return res;
     }
-
-    fs_error_code ec;
-
-    auto isSymlink = fs::is_symlink(path);
 
     if (this->backup.enabled) {
         fs::path firstBkpPath(bkpPath);
@@ -478,22 +482,12 @@ SettingManager::saveAs(const fs::path &path)
             }
         }
 
-        if (isSymlink) {
-            // Copy current save to first backup slot
-            fs::copy(path, firstBkpPath, ec);
-        } else {
-            // Move current save to first backup slot
-            fs::rename(path, firstBkpPath, ec);
-        }
+        // Move current save to first backup slot
+        fs::rename(path, firstBkpPath, ec);
     }
 
-    if (isSymlink) {
-        this->_save(path);
-        fs::remove(tmpPath);
-    } 
-    else {
-        fs::rename(tmpPath, path, ec);
-    }
+    // PS_DEBUG("TMP Path is " << tmpPath);
+    fs::rename(tmpPath, path, ec);
 
     if (ec) {
         return false;
@@ -502,7 +496,7 @@ SettingManager::saveAs(const fs::path &path)
     return true;
 }
 bool
-SettingManager::_save(const fs::path &path)
+SettingManager::writeTo(const fs::path &path)
 {
     std::ofstream fh(path.c_str(), std::ios::binary | std::ios::out);
     if (!fh) {

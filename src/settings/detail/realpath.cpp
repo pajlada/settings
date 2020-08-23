@@ -14,6 +14,7 @@ RealPath(const fs::path &_path, fs_error_code &ec)
     auto isSymlink = fs::is_symlink(path, ec);
 
     if (ec) {
+        ec = {};
         return path;
     }
 
@@ -21,7 +22,9 @@ RealPath(const fs::path &_path, fs_error_code &ec)
         return path;
     }
 
-    const auto relativePath = path.relative_path();
+    const auto relativePath = path.parent_path();
+
+    PS_DEBUG("Relative path: " << relativePath);
 
     std::unordered_set<fs::path::string_type> seenPaths;
 
@@ -44,8 +47,8 @@ RealPath(const fs::path &_path, fs_error_code &ec)
         }
         isSymlink = fs::is_symlink(path, ec);
         if (ec) {
-            PS_DEBUG("Error checking symlink status");
-            PS_DEBUG(ec);
+            // Not an error - the symlink might have just stopped here at a file that doesn't exist (yet)
+            ec = {};
             return path;
         }
 

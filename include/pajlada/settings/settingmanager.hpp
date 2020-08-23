@@ -107,7 +107,7 @@ public:
     bool saveAs(const fs::path &path);
 
 private:
-    bool _save(const fs::path &path);
+    bool writeTo(const fs::path &path);
 
 public:
     // Functions prefixed with g are static functions that work

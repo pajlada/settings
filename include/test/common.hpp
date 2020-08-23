@@ -1,10 +1,9 @@
 #pragma once
 
-#include "test/catch.hpp"
-
 #include <pajlada/settings.hpp>
-
 #include <string>
+
+#include "test/catch.hpp"
 
 std::string ReadFile(const std::string &path);
 
@@ -14,6 +13,8 @@ bool LoadFile(const std::string &fileName,
               pajlada::Settings::SettingManager *sm = nullptr);
 bool SaveFile(const std::string &fileName,
               pajlada::Settings::SettingManager *sm = nullptr);
+
+bool RemoveFile(const std::string &path);
 
 #ifdef PAJLADA_SETTINGS_ENABLE_EXCEPTIONS
 #define DD_THROWS(x) REQUIRE_THROWS(x)

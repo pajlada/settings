@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "pajlada/settings/detail/fs.hpp"
+
 using namespace pajlada::Settings;
 using namespace std;
 
@@ -67,4 +69,17 @@ SaveFile(const string &fileName, SettingManager *sm)
     string path = initialPath + fileName;
 
     return sm->saveAs(path.c_str());
+}
+
+bool
+RemoveFile(const std::string &path)
+{
+    fs_error_code ec;
+    fs::remove(path, ec);
+
+    if (ec) {
+        return false;
+    }
+
+    return true;
 }
