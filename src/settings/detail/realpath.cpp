@@ -36,7 +36,12 @@ RealPath(const fs::path &_path, fs_error_code &ec)
         }
 
         seenPaths.emplace(pathString);
-        path = relativePath / fs::read_symlink(path, ec);
+        auto symlinkResponse = fs::read_symlink(path, ec);
+        if (!symlinkResponse.is_absolute()) {
+            path = relativePath / symlinkResponse;
+        } else {
+            path = symlinkResponse;
+        }
         if (ec) {
             return path;
         }
