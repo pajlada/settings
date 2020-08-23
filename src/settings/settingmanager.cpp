@@ -363,9 +363,15 @@ SettingManager::load(const fs::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const fs::path &path)
+SettingManager::loadFrom(const fs::path &_path)
 {
     fs_error_code ec;
+
+    auto path = detail::RealPath(_path, ec);
+
+    if (ec) {
+        return LoadError::FileHandleError;
+    }
 
     // Open file
     std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
