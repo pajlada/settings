@@ -75,11 +75,11 @@ bool
 RemoveFile(const std::string &path)
 {
     fs_error_code ec;
-    fs::remove(path, ec);
+    auto res = fs::remove(path, ec);
 
     if (ec) {
         return false;
     }
 
-    return true;
+    return res;
 }
