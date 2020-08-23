@@ -369,6 +369,9 @@ SettingManager::loadFrom(const fs::path &_path)
 
     auto path = detail::RealPath(_path, ec);
 
+    PS_DEBUG("Original path: " << _path);
+    PS_DEBUG("Real path: " << path);
+
     if (ec) {
         return LoadError::FileHandleError;
     }

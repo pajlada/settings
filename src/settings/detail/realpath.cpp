@@ -25,6 +25,8 @@ RealPath(const fs::path &_path, fs_error_code &ec)
 
     const auto relativePath = path.parent_path();
 
+    PS_DEBUG("Parent path: " << relativePath);
+
     std::unordered_set<fs::path::string_type> seenPaths;
 
     do {
@@ -36,12 +38,21 @@ RealPath(const fs::path &_path, fs_error_code &ec)
         }
 
         seenPaths.emplace(pathString);
-        path = relativePath / fs::read_symlink(path, ec);
+        auto symlinkResponse = fs::read_symlink(path, ec);
+        if (!symlinkResponse.is_absolute()) {
+            path = relativePath / symlinkResponse;
+        } else {
+            PS_DEBUG("Is absolute xd: " << symlinkResponse);
+            path = symlinkResponse;
+        }
         if (ec) {
+            PS_DEBUG("EC: " << ec);
             return path;
         }
         isSymlink = fs::is_symlink(path, ec);
         if (ec) {
+            PS_DEBUG("not a symlink: " << ec);
+            PS_DEBUG("Final path2: " << path);
             // Not an error - the symlink might have just stopped here at a file that doesn't exist (yet)
             ec = {};
             return path;
@@ -49,6 +60,7 @@ RealPath(const fs::path &_path, fs_error_code &ec)
 
     } while (isSymlink);
 
+    PS_DEBUG("Final path: " << path);
     return path;
 }
 
