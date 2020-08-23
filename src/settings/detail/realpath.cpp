@@ -29,7 +29,7 @@ RealPath(const fs::path &_path, fs_error_code &ec)
     std::unordered_set<fs::path::string_type> seenPaths;
 
     do {
-        auto pathString = path.string();
+        auto pathString = path.native();
         if (seenPaths.count(pathString) != 0) {
             ec = make_error_code_ns::make_error_code(
                 errc::too_many_symbolic_link_levels);
