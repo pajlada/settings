@@ -3,6 +3,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <pajlada/settings/detail/realpath.hpp>
+#include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
@@ -361,9 +363,15 @@ SettingManager::load(const fs::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const fs::path &path)
+SettingManager::loadFrom(const fs::path &_path)
 {
     fs_error_code ec;
+
+    auto path = detail::RealPath(_path, ec);
+
+    if (ec) {
+        return LoadError::FileHandleError;
+    }
 
     // Open file
     std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
@@ -440,20 +448,23 @@ SettingManager::save(const fs::path &path)
 }
 
 bool
-SettingManager::saveAs(const fs::path &path)
+SettingManager::saveAs(const fs::path &_path)
 {
-    fs::path tmpPath(path);
+    fs_error_code ec;
+    fs::path path = detail::RealPath(_path, ec);
+    if (ec) {
+        return false;
+    }
+    fs::path tmpPath(_path);
     tmpPath += ".tmp";
 
-    fs::path bkpPath(path);
+    fs::path bkpPath(_path);
     bkpPath += ".bkp";
 
-    auto res = this->_save(tmpPath);
+    auto res = this->writeTo(tmpPath);
     if (!res) {
         return res;
     }
-
-    fs_error_code ec;
 
     if (this->backup.enabled) {
         fs::path firstBkpPath(bkpPath);
@@ -462,6 +473,10 @@ SettingManager::saveAs(const fs::path &path)
         if (this->backup.numSlots > 1) {
             fs::path topBkpPath(bkpPath);
             topBkpPath += "-" + std::to_string(this->backup.numSlots);
+            topBkpPath = detail::RealPath(topBkpPath, ec);
+            if (ec) {
+                return false;
+            }
             // Remove top slot backup
             fs::remove(topBkpPath, ec);
 
@@ -470,8 +485,16 @@ SettingManager::saveAs(const fs::path &path)
                  --slotIndex) {
                 fs::path p1(bkpPath);
                 p1 += "-" + std::to_string(slotIndex);
+                p1 = detail::RealPath(p1, ec);
+                if (ec) {
+                    return false;
+                }
                 fs::path p2(bkpPath);
                 p2 += "-" + std::to_string(slotIndex + 1);
+                p2 = detail::RealPath(p2, ec);
+                if (ec) {
+                    return false;
+                }
                 fs::rename(p1, p2, ec);
             }
         }
@@ -489,7 +512,7 @@ SettingManager::saveAs(const fs::path &path)
     return true;
 }
 bool
-SettingManager::_save(const fs::path &path)
+SettingManager::writeTo(const fs::path &path)
 {
     std::ofstream fh(path.c_str(), std::ios::binary | std::ios::out);
     if (!fh) {

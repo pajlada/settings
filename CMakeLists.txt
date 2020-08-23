@@ -14,6 +14,8 @@ set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
 
+    src/settings/detail/realpath.cpp
+
     src/test/main.cpp
 
     src/test/map.cpp
