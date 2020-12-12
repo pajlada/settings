@@ -106,15 +106,10 @@ endif()
 
 # TODO: Try find_package, and if not found, do the conan link
 
-set(USE_BOOST_COMPONENTS "")
-
 if (MSVC)
     # TODO: Figure out right way to go about this for windows
 else()
-    get_directory_property( DirDefs COMPILE_DEFINITIONS )
-    if (DirDefs MATCHES "PAJLADA_SETTINGS_BOOST_FILESYSTEM")
-        set(USE_BOOST_COMPONENTS system filesystem)
-    else()
+    if (NOT USE_BOOST_FILESYSTEM)
 		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 			if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
 				message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
@@ -130,9 +125,10 @@ if (MSVC)
     message(STATUS "Conan libs: ${CONAN_LIBS}")
     target_link_libraries(PajladaSettings PRIVATE ${CONAN_LIBS})
 else()
-    find_package(Boost REQUIRED ${USE_BOOST_COMPONENTS})
-    include_directories(${Boost_INCLUDE_DIRS})
-    TARGET_LINK_LIBRARIES(PajladaSettings LINK_PUBLIC ${Boost_LIBRARIES})
+    if (USE_BOOST_FILESYSTEM)
+        find_package(Boost REQUIRED system filesystem)
+        target_link_libraries(PajladaSettings PUBLIC Boost::filesystem Boost::system)
+    endif()
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
