@@ -81,8 +81,8 @@ jobs:
       - name: Prepare GCC version (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-            echo "::set-env name=CC::/usr/bin/gcc-8"
-            echo "::set-env name=CXX::/usr/bin/g++-8"
+            echo "CC=/usr/bin/gcc-8" >> "$GITHUB_ENV"
+            echo "CXX=/usr/bin/g++-8" >> "$GITHUB_ENV"
         shell: bash
 
       - name: Build (Ubuntu/MacOS)
