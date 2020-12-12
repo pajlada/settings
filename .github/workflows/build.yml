@@ -68,7 +68,7 @@ jobs:
 
       - name: Install GCC 8.3 (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo add-apt-repository ppa:jonathonf/gcc-8 && sudo apt-get update && sudo apt-get -y install gcc-8
+        run: sudo add-apt-repository ppa:jonathonf/gcc && sudo apt-get update && sudo apt-get -y install gcc-8
 
       - name: Install dependencies (MacOS)
         if: startsWith(matrix.os, 'macos')
