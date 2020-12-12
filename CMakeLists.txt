@@ -117,6 +117,9 @@ else()
 		endif()
         target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
     endif()
+
+    find_package(RapidJSON REQUIRED)
+    target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
 endif()
 
 
