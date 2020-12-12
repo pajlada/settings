@@ -3,6 +3,8 @@ name: Build
 
 on:
   push:
+    branches:
+      - master
     paths-ignore:
       - 'docs/**'
       - '*.md'
@@ -16,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-18.04, macos-latest]
         fs-backend: [std, boost]
       fail-fast: false
 
@@ -68,7 +70,7 @@ jobs:
 
       - name: Install GCC 8.3 (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo add-apt-repository ppa:jonathonf/gcc-8.3 && sudo apt-get update && sudo apt-get -y install gcc-8
+        run: sudo add-apt-repository ppa:jonathonf/gcc && sudo apt-get update && sudo apt-get -y install gcc-8
 
       - name: Install dependencies (MacOS)
         if: startsWith(matrix.os, 'macos')
@@ -79,8 +81,8 @@ jobs:
       - name: Prepare GCC version (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-            echo "::set-env name=CC::/usr/bin/gcc-8"
-            echo "::set-env name=CXX::/usr/bin/g++-8"
+            echo "CC=/usr/bin/gcc-8" >> "$GITHUB_ENV"
+            echo "CXX=/usr/bin/g++-8" >> "$GITHUB_ENV"
         shell: bash
 
       - name: Build (Ubuntu/MacOS)
