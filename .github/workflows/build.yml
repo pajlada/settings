@@ -42,6 +42,7 @@ jobs:
             choco install conan -y
 
             refreshenv
+        shell: cmd
 
       - name: Update environment (Windows)
         if: startsWith(matrix.os, 'windows')
