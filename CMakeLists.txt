@@ -4,12 +4,19 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(PajladaSettings)
 
-
-if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake")
-    message(STATUS "Using CONAN")
-    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup()
+if (MSVC)
+    # On Windows platform - use conan!
+    include(conan.cmake)
+    conan_cmake_run(CONANFILE conanfile.txt
+                    BASIC_SETUP CMAKE_TARGETS
+                    BUILD missing)
 endif()
+
+# if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake")
+#     message(STATUS "Using CONAN")
+#     include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+#     conan_basic_setup()
+# endif()
 
 set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
@@ -99,7 +106,7 @@ target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIR
 
 # rapidjson = c++ json library
 if (MSVC)
-    target_link_libraries(PajladaSettings INTERFACE IMPORTED CONAN_PKG::rapidjson)
+    target_link_libraries(PajladaSettings ${CONAN_LIBS})
 else()
     find_package(RapidJSON REQUIRED)
 endif()
