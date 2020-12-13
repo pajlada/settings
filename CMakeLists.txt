@@ -106,7 +106,8 @@ target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIR
 
 # rapidjson = c++ json library
 if (MSVC)
-    target_link_libraries(PajladaSettings ${CONAN_LIBS})
+    target_link_libraries(PajladaSettings CONAN_PKG::rapidjson)
+    target_link_libraries(PajladaSettings CONAN_PKG::booost)
 else()
     find_package(RapidJSON REQUIRED)
 endif()
