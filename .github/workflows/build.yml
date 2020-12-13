@@ -55,7 +55,7 @@ jobs:
             call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
             mkdir build
             cd build
-            "C:\Program Files\Conan\conan\conan.exe" install .. -s build_type=Debug
+            REM "C:\Program Files\Conan\conan\conan.exe" install .. -s build_type=Debug
             cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DBUILD_TESTS=On ..
             cmake --build .
         shell: cmd
