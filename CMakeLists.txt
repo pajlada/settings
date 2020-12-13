@@ -5,18 +5,18 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 project(PajladaSettings)
 
 if (MSVC)
-    # On Windows platform - use conan!
-    include(conan.cmake)
-    conan_cmake_run(CONANFILE conanfile.txt
-                    BASIC_SETUP CMAKE_TARGETS
-                    BUILD missing)
+    if (CONAN_EXPORTED)
+        message(STATUS "Using CONAN")
+        include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+        conan_basic_setup()
+    else()
+        # On Windows platform - use conan!
+        include(conan.cmake)
+        conan_cmake_run(CONANFILE conanfile.txt
+                        BASIC_SETUP CMAKE_TARGETS
+                        BUILD missing)
+    endif()
 endif()
-
-# if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake")
-#     message(STATUS "Using CONAN")
-#     include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-#     conan_basic_setup()
-# endif()
 
 set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
