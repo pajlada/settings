@@ -11,7 +11,7 @@ if (MSVC)
         conan_basic_setup()
     else()
         # On Windows platform - use conan!
-        include(conan.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
         conan_cmake_run(CONANFILE conanfile.txt
                         BASIC_SETUP CMAKE_TARGETS
                         BUILD missing)
