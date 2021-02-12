@@ -1,31 +1,28 @@
 cmake_minimum_required(VERSION 3.8)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(PajladaSettings)
 
+if (CONAN_EXPORTED)
+    message(STATUS "Using CONAN")
+    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup(TARGETS)
+endif ()
+
 if (MSVC)
-    if (CONAN_EXPORTED)
-        message(STATUS "Using CONAN")
-        include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-        conan_basic_setup(TARGETS)
-    else()
-        # On Windows platform - use conan!
-        include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
-        conan_cmake_run(CONANFILE conanfile.txt
-                        BASIC_SETUP CMAKE_TARGETS
-                        BUILD missing)
-    endif()
-endif()
+    # On Windows platform - use conan!
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
+    conan_cmake_run(CONANFILE conanfile.txt
+            BASIC_SETUP CMAKE_TARGETS)
+endif ()
 
 set(PajladaSettings_SOURCES
-    src/settings/settingdata.cpp
-    src/settings/settingmanager.cpp
+        src/settings/settingdata.cpp
+        src/settings/settingmanager.cpp
+        src/settings/detail/realpath.cpp
+        )
 
-    src/settings/detail/realpath.cpp
-    )
-
-add_library(PajladaSettings OBJECT ${PajladaSettings_SOURCES})
+add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 17)
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -36,13 +33,13 @@ option(USE_BOOST_FILESYSTEM "Use boost::filesystem instead of std filesystem" OF
 if (USE_BOOST_FILESYSTEM)
     message(status "use boost")
     target_compile_definitions(PajladaSettings PUBLIC PAJLADA_SETTINGS_BOOST_FILESYSTEM)
-endif()
+endif ()
 
 if (DEFINED COVERAGE)
     message("++ Coverage flags enabled")
     target_compile_options(PajladaSettings PRIVATE --coverage -fno-inline -O0 -g)
     target_link_libraries(PajladaSettings PRIVATE --coverage)
-endif()
+endif ()
 
 if (BUILD_TESTS)
     message("++ Tests enabled")
@@ -50,27 +47,27 @@ if (BUILD_TESTS)
     enable_testing()
 
     add_executable(settings-test
-        src/test/main.cpp
+            src/test/main.cpp
 
-        src/test/map.cpp
-        src/test/load.cpp
-        src/test/save.cpp
-        src/test/static.cpp
-        src/test/signal.cpp
-        src/test/default.cpp
-        src/test/scope.cpp
-        src/test/remove.cpp
-        src/test/serialize.cpp
-        src/test/deserialize.cpp
-        src/test/advanced-array.cpp
-        src/test/bad-instance.cpp
-        src/test/misc.cpp
+            src/test/map.cpp
+            src/test/load.cpp
+            src/test/save.cpp
+            src/test/static.cpp
+            src/test/signal.cpp
+            src/test/default.cpp
+            src/test/scope.cpp
+            src/test/remove.cpp
+            src/test/serialize.cpp
+            src/test/deserialize.cpp
+            src/test/advanced-array.cpp
+            src/test/bad-instance.cpp
+            src/test/misc.cpp
 
-        src/test/foo.cpp
-        src/test/channel.cpp
+            src/test/foo.cpp
+            src/test/channel.cpp
 
-        src/test/common.cpp
-        )
+            src/test/common.cpp
+            )
 
     target_link_libraries(settings-test PRIVATE PajladaSettings)
 
@@ -88,14 +85,14 @@ if (BUILD_TESTS)
     add_custom_command(
             OUTPUT symlink_generated_successfully
             COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_LIST_DIR}/files files
-            )
+    )
 
     add_custom_target(
             make_files_symlink
             DEPENDS symlink_generated_successfully)
 
-        add_dependencies(settings-test make_files_symlink)
-endif()
+    add_dependencies(settings-test make_files_symlink)
+endif ()
 
 # Dependencies
 find_package(PajladaSignals REQUIRED)
@@ -105,41 +102,45 @@ find_package(PajladaSerialize REQUIRED)
 target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIRS})
 
 # rapidjson = c++ json library
-if (MSVC)
+if (MSVC OR CONAN_EXPORTED)
     target_link_libraries(PajladaSettings CONAN_PKG::rapidjson)
-    target_link_libraries(PajladaSettings CONAN_PKG::boost)
-else()
+else ()
     find_package(RapidJSON REQUIRED)
-endif()
+endif ()
 
 # TODO: Try find_package, and if not found, do the conan link
 
 if (MSVC)
     # TODO: Figure out right way to go about this for windows
-else()
+else ()
     if (NOT USE_BOOST_FILESYSTEM)
-		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-			if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-				message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
-			endif()
-		endif()
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+            if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+                message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
+            endif ()
+        endif ()
         target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
-    endif()
+    endif ()
 
     find_package(RapidJSON REQUIRED)
     target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
-endif()
+endif ()
 
 
-if (MSVC)
+if (MSVC OR CONAN_EXPORTED)
     # target_link_libraries(PajladaSettings INTERFACE IMPORTED CONAN_PKG::Boost)
     message(STATUS "Conan libs: ${CONAN_LIBS}")
-    target_link_libraries(PajladaSettings CONAN_PKG::rapidjson CONAN_PKG::boost)
-else()
+    target_link_libraries(PajladaSettings CONAN_PKG::boost)
+else ()
     if (USE_BOOST_FILESYSTEM)
         find_package(Boost REQUIRED system filesystem)
         target_link_libraries(PajladaSettings PUBLIC Boost::filesystem Boost::system)
-    endif()
-endif()
+    endif ()
+endif ()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+
+include(GNUInstallDirs)
+
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/pajlada/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/include/pajlada)
+install(TARGETS PajladaSettings LIBRARY ARCHIVE)
