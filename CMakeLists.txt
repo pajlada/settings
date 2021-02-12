@@ -7,9 +7,7 @@ if (CONAN_EXPORTED)
     message(STATUS "Using CONAN")
     include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS)
-endif ()
-
-if (MSVC)
+elseif(MSVC)
     # On Windows platform - use conan!
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
     conan_cmake_run(CONANFILE conanfile.txt
@@ -102,7 +100,7 @@ find_package(PajladaSerialize REQUIRED)
 target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIRS})
 
 # rapidjson = c++ json library
-if (MSVC OR CONAN_EXPORTED)
+if (TARGET CONAN_PKG::rapidjson)
     target_link_libraries(PajladaSettings CONAN_PKG::rapidjson)
 else ()
     find_package(RapidJSON REQUIRED)
@@ -127,7 +125,7 @@ else ()
 endif ()
 
 
-if (MSVC OR CONAN_EXPORTED)
+if (TARGET CONAN_PKG::boost)
     # target_link_libraries(PajladaSettings INTERFACE IMPORTED CONAN_PKG::Boost)
     message(STATUS "Conan libs: ${CONAN_LIBS}")
     target_link_libraries(PajladaSettings CONAN_PKG::boost)
