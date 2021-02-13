@@ -72,8 +72,8 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
             call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DUSE_CONAN=${{ steps.package-manager.outputs.use-conan }} -DBUILD_TESTS=On -DCMAKE_BUILD_TYPE=Release ..
-            cmake --build .
+            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DUSE_CONAN=${{ steps.package-manager.outputs.use-conan }} -DBUILD_TESTS=On ..
+            cmake --build . --config Release
         shell: cmd
         working-directory: build
 
