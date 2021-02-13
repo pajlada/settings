@@ -117,11 +117,17 @@ jobs:
             pip3 install --user conan
             echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install dependencies with Conan (Ubuntu/MacOS)
-        if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && matrix.package-manager == 'conan'
+      - name: Install dependencies with Conan (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
         run: |
+            # Temporary workaround while the boost library provided is a bit weird
             conan install .. -s compiler.libcxx=libstdc++11
-        shell: bash
+        working-directory: build
+
+      - name: Install dependencies with Conan (MacOS)
+        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
+        run: |
+            conan install ..
         working-directory: build
 
       - name: Build (Ubuntu/MacOS)
