@@ -77,11 +77,6 @@ jobs:
         shell: cmd
         working-directory: build
 
-      - name: Test (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: ctest
-        working-directory: build
-
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
         run: sudo apt-get update && sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
@@ -140,9 +135,6 @@ jobs:
         shell: bash
         working-directory: build
 
-      - name: Test (Ubuntu/MacOS)
-        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
-        run: |
-            ctest
-        shell: bash
+      - name: Test
+        run: ctest
         working-directory: build
