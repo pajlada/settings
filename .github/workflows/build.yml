@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies with Conan (Windows)
         if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         run: |
-            conan install ..
+            "C:\Program Files\Conan\conan" install ..
         working-directory: build
 
       - name: Build (Windows)
