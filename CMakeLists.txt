@@ -112,7 +112,7 @@ if (TARGET CONAN_PKG::rapidjson)
 else()
     message(STATUS "Importing rapidjson with find_package")
     find_package(RapidJSON REQUIRED)
-    target_include_directories(PajladaSettings INTERFACE ${RAPIDJSON_INCLUDE_DIRS})
+    target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
 endif()
 
 include(CMakePrintHelpers)
