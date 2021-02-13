@@ -115,6 +115,8 @@ else()
     target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
 endif()
 
+message(STATUS "Cmake build type: ${CMAKE_BUILD_TYPE}")
+
 include(CMakePrintHelpers)
 cmake_print_properties(
     TARGETS CONAN_PKG::rapidjson
