@@ -20,6 +20,11 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-18.04, macos-latest]
         fs-backend: [std, boost]
+        package-manager: [conan, none]
+        exclude:
+          - os: windows-latest
+            package-manager: none
+
       fail-fast: false
 
     steps:
@@ -29,9 +34,19 @@ jobs:
         run: echo "::set-output name=use-boost-filesystem::$([ $FS_BACKEND = 'boost' ] && echo 1 || echo 0)"
         shell: bash
 
+      - id: package-manager
+        env:
+          PACKAGE_MANAGER: ${{ matrix.package-manager }}
+        run: echo "::set-output name=use-conan::$([ $PACKAGE_MANAGER = 'conan' ] && echo 1 || echo 0)"
+        shell: bash
+
       - uses: actions/checkout@v1
         with:
           submodules: true
+
+      - name: Create build directory
+        run: |
+            mkdir build
 
       # WINDOWS
       - name: Install dependencies (Windows)
@@ -51,34 +66,25 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
             call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-            mkdir build
-            cd build
-            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DBUILD_TESTS=On ..
+            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DUSE_CONAN=${{ steps.package-manager.outputs.use-conan }} -DBUILD_TESTS=On ..
             cmake --build .
         shell: cmd
+        working-directory: build
 
       - name: Test (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
-            dir
-            cd build
-            dir
             ctest
         shell: cmd
+        working-directory: build
 
       - name: Install dependencies (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
+        if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
         run: sudo apt-get update && sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
 
       - name: Install GCC 8.3 (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo add-apt-repository ppa:jonathonf/gcc && sudo apt-get update && sudo apt-get -y install gcc-8
-
-      - name: Install dependencies (MacOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-            brew install boost rapidjson
-        shell: bash
 
       - name: Prepare GCC version (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
@@ -87,18 +93,46 @@ jobs:
             echo "CXX=/usr/bin/g++-8" >> "$GITHUB_ENV"
         shell: bash
 
+      - name: Install dependencies (MacOS)
+        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
+        run: |
+            brew install boost rapidjson
+        shell: bash
+
+      - name: Install Conan (MacOS)
+        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
+        run: |
+            brew install conan
+
+      - name: Install Conan (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
+        run: |
+            sudo apt-get -y install python3 python3-pip python3-setuptools
+            pip3 install --user conan
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies with Conan (Ubuntu/MacOS)
+        if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && matrix.package-manager == 'conan'
+        run: |
+            conan install ..
+        shell: bash
+        working-directory: build
+
       - name: Build (Ubuntu/MacOS)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: |
-            mkdir build
-            cd build
-            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DBUILD_TESTS=On ..
+            cmake \
+                -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
+                -DUSE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
+                -DBUILD_TESTS=On \
+                ..
             make -j8
         shell: bash
+        working-directory: build
 
       - name: Test (Ubuntu/MacOS)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: |
-            cd build
             ctest
         shell: bash
+        working-directory: build

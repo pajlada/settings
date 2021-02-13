@@ -4,18 +4,18 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(PajladaSettings)
 
-if (MSVC)
-    if (CONAN_EXPORTED)
-        message(STATUS "Using CONAN")
-        include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-        conan_basic_setup()
-    else()
-        # On Windows platform - use conan!
-        include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
-        conan_cmake_run(CONANFILE conanfile.txt
-                        BASIC_SETUP CMAKE_TARGETS
-                        BUILD missing)
-    endif()
+option(USE_CONAN "Use conan file manager to handle dependencies" OFF)
+
+if (USE_CONAN OR CONAN_EXPORTED)
+    message(STATUS "Conan basic setup")
+    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup(TARGETS)
+elseif(MSVC)
+    # On Windows platform - use conan!
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
+    conan_cmake_run(CONANFILE conanfile.txt
+                    BASIC_SETUP CMAKE_TARGETS
+                    )
 endif()
 
 set(PajladaSettings_SOURCES
@@ -105,12 +105,21 @@ find_package(PajladaSerialize REQUIRED)
 target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIRS})
 
 # rapidjson = c++ json library
-if (MSVC)
-    target_link_libraries(PajladaSettings CONAN_PKG::rapidjson)
-    target_link_libraries(PajladaSettings CONAN_PKG::boost)
+if (TARGET CONAN_PKG::rapidjson)
+    message(STATUS "Importing rapidjson from conan")
+    target_link_libraries(PajladaSettings PUBLIC CONAN_PKG::rapidjson)
+    message(STATUS "xd: ${CONAN_INCLUDE_DIRS}")
 else()
+    message(STATUS "Importing rapidjson with find_package")
     find_package(RapidJSON REQUIRED)
+    target_include_directories(PajladaSettings INTERFACE ${RAPIDJSON_INCLUDE_DIRS})
 endif()
+
+include(CMakePrintHelpers)
+cmake_print_properties(
+    TARGETS CONAN_PKG::rapidjson
+    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+    )
 
 # TODO: Try find_package, and if not found, do the conan link
 
@@ -125,16 +134,14 @@ else()
 		endif()
         target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
     endif()
-
-    find_package(RapidJSON REQUIRED)
-    target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
 endif()
 
 
-if (MSVC)
-    # target_link_libraries(PajladaSettings INTERFACE IMPORTED CONAN_PKG::Boost)
-    message(STATUS "Conan libs: ${CONAN_LIBS}")
-    target_link_libraries(PajladaSettings PRIVATE ${CONAN_LIBS})
+if (TARGET CONAN_PKG::boost)
+    message(STATUS "Importing boost from conan")
+    target_link_libraries(PajladaSettings PUBLIC CONAN_PKG::boost)
+    # message(STATUS "Conan libs: ${CONAN_LIBS}")
+    # target_link_libraries(PajladaSettings PRIVATE ${CONAN_LIBS})
 else()
     if (USE_BOOST_FILESYSTEM)
         find_package(Boost REQUIRED system filesystem)
