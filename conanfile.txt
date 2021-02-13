@@ -1,6 +1,6 @@
 [requires]
 rapidjson/1.1.0
-boost/1.71.0
+boost/1.75.0
 
 [generators]
 cmake
