@@ -120,7 +120,7 @@ jobs:
       - name: Install dependencies with Conan (Ubuntu/MacOS)
         if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && matrix.package-manager == 'conan'
         run: |
-            conan install ..
+            conan install .. -s compiler.libcxx=libstdc++11
         shell: bash
         working-directory: build
 
