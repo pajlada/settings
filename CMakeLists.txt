@@ -26,6 +26,7 @@ set(PajladaSettings_SOURCES
     )
 
 add_library(PajladaSettings OBJECT ${PajladaSettings_SOURCES})
+add_library(Pajlada::Settings ALIAS PajladaSettings)
 
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 17)
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
