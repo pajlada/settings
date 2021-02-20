@@ -99,11 +99,20 @@ if (BUILD_TESTS)
 endif()
 
 # Dependencies
-find_package(PajladaSignals REQUIRED)
-target_include_directories(PajladaSettings PUBLIC ${PajladaSignals_INCLUDE_DIRS})
 
-find_package(PajladaSerialize REQUIRED)
-target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIRS})
+if (TARGET Pajlada::Signals)
+    target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
+else()
+    find_package(PajladaSignals REQUIRED)
+    target_include_directories(PajladaSettings PUBLIC ${PajladaSignals_INCLUDE_DIRS})
+endif()
+
+if (TARGET Pajlada::Serialize)
+    target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
+else()
+    find_package(PajladaSerialize REQUIRED)
+    target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIRS})
+endif()
 
 # rapidjson = c++ json library
 if (TARGET CONAN_PKG::rapidjson)
