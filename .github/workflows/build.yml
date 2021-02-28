@@ -72,7 +72,7 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
             call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-            cmake -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DUSE_CONAN=${{ steps.package-manager.outputs.use-conan }} -DBUILD_TESTS=On ..
+            cmake -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} -DBUILD_TESTS=On ..
             cmake --build . --config Release
         shell: cmd
         working-directory: build
@@ -127,8 +127,8 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: |
             cmake \
-                -DUSE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
-                -DUSE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
+                -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
+                -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
                 -DBUILD_TESTS=On \
                 ..
             make -j8
