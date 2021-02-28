@@ -10,12 +10,6 @@ if (USE_CONAN OR CONAN_EXPORTED)
     message(STATUS "Building Pajlada::Settings with Conan")
     include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
-elseif(MSVC)
-    # On Windows platform - use conan!
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/conan.cmake)
-    conan_cmake_run(CONANFILE conanfile.txt
-                    BASIC_SETUP CMAKE_TARGETS
-                    )
 endif()
 
 set(PajladaSettings_SOURCES
