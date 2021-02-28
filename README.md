@@ -21,7 +21,12 @@ My C++ Settings library
 4. make -j
 5. ./settings
 
-Available flags that can be passed to cmake: USE_BOOST_FILESYSTEM - this will decide whether or not to use boost-filesystem or c++'s stdlib filesystem
+Available flags that can be passed to cmake:
+
+- PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM `On` or `Off` (default `Off`)
+  this will decide whether or not to use boost-filesystem or c++'s stdlib filesystem
+- PAJLADA_SETTINGS_USE_CONAN `On` or `Off` (default `Off`)
+  This option will instruct cmake to look for a `cmakebuildinfo.cmake` file and load dependencies from there.
 
 ## Intended usage
 
