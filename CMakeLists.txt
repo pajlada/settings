@@ -39,7 +39,7 @@ if (DEFINED COVERAGE)
     target_link_libraries(PajladaSettings PRIVATE --coverage)
 endif()
 
-if (BUILD_TESTS)
+if (PAJLADA_SETTINGS_BUILD_TESTS)
     message("++ Tests enabled")
 
     enable_testing()
