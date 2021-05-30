@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-18.04, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         fs-backend: [std, boost]
         package-manager: [conan, none]
         exclude:
@@ -79,18 +79,7 @@ jobs:
 
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
-        run: sudo apt-get update && sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
-
-      - name: Install GCC 8.3 (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo add-apt-repository ppa:jonathonf/gcc && sudo apt-get update && sudo apt-get -y install gcc-8
-
-      - name: Prepare GCC version (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-            echo "CC=/usr/bin/gcc-8" >> "$GITHUB_ENV"
-            echo "CXX=/usr/bin/g++-8" >> "$GITHUB_ENV"
-        shell: bash
+        run: sudo apt-get update && sudo apt-get -y install gcc libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
 
       - name: Install dependencies (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
