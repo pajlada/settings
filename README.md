@@ -15,11 +15,13 @@ My C++ Settings library
 
 ## Run project with tests
 
-1. mkdir build
-2. cd build
-3. cmake ..
-4. make -j
-5. ./settings
+```sh
+mkdir build
+cd build
+cmake -DPAJLADA_SETTINGS_BUILD_TESTS=On ..
+make -j
+./settings-test
+```
 
 Available flags that can be passed to cmake:
 
@@ -27,6 +29,8 @@ Available flags that can be passed to cmake:
   this will decide whether or not to use boost-filesystem or c++'s stdlib filesystem
 - PAJLADA_SETTINGS_USE_CONAN `On` or `Off` (default `Off`)
   This option will instruct cmake to look for a `cmakebuildinfo.cmake` file and load dependencies from there.
+- PAJLADA_SETTINGS_BUILD_TESTS `On` or `Off` (default `Off`)
+  This option will instruct cmake to build the tests executable `settings-test`.
 
 ## Intended usage
 
