@@ -19,7 +19,7 @@ set(PajladaSettings_SOURCES
     src/settings/detail/realpath.cpp
     )
 
-add_library(PajladaSettings OBJECT ${PajladaSettings_SOURCES})
+add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 add_library(Pajlada::Settings ALIAS PajladaSettings)
 
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 17)
