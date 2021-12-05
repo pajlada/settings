@@ -109,7 +109,7 @@ jobs:
       - name: Install dependencies with Conan (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
         run: |
-            conan install ..
+            conan install --build=missing ..
         working-directory: build
 
       - name: Build (Ubuntu/MacOS)
