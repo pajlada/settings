@@ -63,7 +63,8 @@ TEST_CASE("Good 1", "[settings][multi_instance]")
     bool called = false;
 
     {
-        std::vector<pajlada::Signals::ScopedConnection> managedConnections;
+        std::vector<std::unique_ptr<pajlada::Signals::ScopedConnection>>
+            managedConnections;
 
         const bool autoInvoke = true;
 
@@ -101,7 +102,8 @@ TEST_CASE("Good 2", "[settings][multi_instance]")
     bool called = false;
 
     {
-        std::vector<pajlada::Signals::ScopedConnection> managedConnections;
+        std::vector<std::unique_ptr<pajlada::Signals::ScopedConnection>>
+            managedConnections;
 
         const bool autoInvoke = true;
 

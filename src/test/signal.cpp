@@ -71,7 +71,7 @@ TEST_CASE("scoped_connection", "[signal]")
         currentValue = newValue;
     };
 
-    vector<pajlada::Signals::ScopedConnection> connections;
+    vector<std::unique_ptr<pajlada::Signals::ScopedConnection>> connections;
 
     {
         Setting<int> c("/advancedSignals/c");
@@ -114,7 +114,8 @@ TEST_CASE("scoped_connection2", "[signal]")
         currentValue = newValue;
     };
 
-    vector<pajlada::Signals::ScopedConnection> connections;
+    std::vector<std::unique_ptr<pajlada::Signals::ScopedConnection>>
+        connections;
 
     {
         Setting<int> c("/advancedSignals/c");

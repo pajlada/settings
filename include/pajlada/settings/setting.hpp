@@ -5,8 +5,8 @@
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 
+#include <pajlada/signals.hpp>
 #include <rapidjson/document.h>
-#include <pajlada/signals/signal.hpp>
 
 #include <iostream>
 #include <mutex>
@@ -433,7 +433,8 @@ public:
             connection.invoke(std::move(d), onConnectArgs());
         }
 
-        this->managedConnections.emplace_back(std::move(connection));
+        this->managedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     template <typename ConnectionManager>
@@ -459,7 +460,8 @@ public:
             connection.invoke(std::move(d), onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     // Connect: Value and SignalArgs
@@ -481,7 +483,8 @@ public:
             func(this->getValue(), onConnectArgs());
         }
 
-        this->managedConnections.emplace_back(std::move(connection));
+        this->managedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     template <typename ConnectionManager>
@@ -504,7 +507,8 @@ public:
             func(this->getValue(), onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     // Connect: Value
@@ -525,7 +529,8 @@ public:
             func(this->getValue());
         }
 
-        this->managedConnections.emplace_back(std::move(connection));
+        this->managedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     template <typename ConnectionManager>
@@ -569,7 +574,8 @@ public:
             func();
         }
 
-        this->managedConnections.emplace_back(std::move(connection));
+        this->managedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     template <typename ConnectionManager>
@@ -614,7 +620,8 @@ public:
             func(onConnectArgs());
         }
 
-        this->managedConnections.emplace_back(std::move(connection));
+        this->managedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     template <typename ConnectionManager>
@@ -659,7 +666,7 @@ public:
     }
 
 private:
-    std::vector<Signals::ScopedConnection> managedConnections;
+    std::vector<std::unique_ptr<Signals::ScopedConnection>> managedConnections;
 };
 
 }  // namespace Settings
