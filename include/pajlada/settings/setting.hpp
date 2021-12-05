@@ -644,7 +644,8 @@ public:
             func(onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     // Static helper methods for one-offs (get or set setting)

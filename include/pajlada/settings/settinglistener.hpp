@@ -1,6 +1,6 @@
 #pragma once
 
-#include <pajlada/signals/connection.hpp>
+#include <pajlada/signals/scoped-connection.hpp>
 
 #include <mutex>
 
@@ -81,7 +81,7 @@ public:
     }
 
 private:
-    std::vector<Signals::ScopedConnection> managedConnections;
+    std::vector<std::unique_ptr<Signals::ScopedConnection>> managedConnections;
 };
 
 }  // namespace pajlada
