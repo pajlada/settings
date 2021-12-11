@@ -553,7 +553,8 @@ public:
             func(this->getValue());
         }
 
-        userDefinedManagedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     // Connect: no args
@@ -598,7 +599,8 @@ public:
             func();
         }
 
-        userDefinedManagedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     // ConnectSimple: Signal args only
@@ -644,7 +646,8 @@ public:
             func(onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(std::move(connection));
+        userDefinedManagedConnections.emplace_back(
+            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
     }
 
     // Static helper methods for one-offs (get or set setting)
