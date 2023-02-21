@@ -40,22 +40,33 @@ jobs:
         run: echo "::set-output name=use-conan::$([ $PACKAGE_MANAGER = 'conan' ] && echo 1 || echo 0)"
         shell: bash
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Cache conan packages (Ubuntu/MacOS)
-        if: matrix.package-manager == 'conan' && (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos'))
-        uses: actions/cache@v2.1.7
+      - name: Cache conan packages
+        if: matrix.package-manager == 'conan'
+        uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}-20211205
           path: ~/.conan/
+      
+      - name: Cache conan packages (Windows, Part 2)
+        if: matrix.package-manager == 'conan' && startsWith(matrix.os, 'windows')
+        uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-conan-root-${{ hashFiles('**/conanfile.txt') }}-20211205
+          path: C:/.conan/
 
       - name: Create build directory
         run: |
             mkdir build
 
       # WINDOWS
+      - name: Enable Developer Command Prompt
+        if: startsWith(matrix.os, 'windows')
+        uses: ilammy/msvc-dev-cmd@v1.12.1
+
       - name: Install dependencies (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
@@ -78,8 +89,11 @@ jobs:
       - name: Build (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
-            call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-            cmake -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} -DPAJLADA_SETTINGS_BUILD_TESTS=On ..
+            cmake ^
+              -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} ^
+              -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} ^
+              -DPAJLADA_SETTINGS_BUILD_TESTS=On ^
+              ..
             cmake --build . --config Release
         shell: cmd
         working-directory: build
