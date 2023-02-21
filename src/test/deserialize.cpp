@@ -3,6 +3,7 @@
 using namespace pajlada::Settings;
 using namespace pajlada;
 using namespace std;
+using namespace Catch;
 
 TEST_CASE("Deserialize", "[settings]")
 {

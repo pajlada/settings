@@ -65,6 +65,7 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
         src/test/channel.cpp
 
         src/test/common.cpp
+        src/test/catch.cpp
         )
 
     target_link_libraries(settings-test PRIVATE PajladaSettings)
