@@ -83,7 +83,7 @@ jobs:
       - name: Install dependencies with Conan (Windows)
         if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         run: |
-            conan install ..
+            conan install .. -b missing
         working-directory: build
 
       - name: Build (Windows)
