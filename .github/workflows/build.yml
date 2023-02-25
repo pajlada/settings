@@ -52,6 +52,15 @@ jobs:
           fi
         shell: bash
 
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup environment (Shared)
+        run: |
+            mkdir build
+        shell: bash
+
       - name: Setup environment (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -66,21 +75,18 @@ jobs:
       - name: Setup environment (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
-            python3 -m site --user-site
-            python3 -m site --user-base
-            python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')"
             python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')" >> "$GITHUB_PATH"
         shell: bash
+
+      - name: Enable Developer Command Prompt
+        if: startsWith(matrix.os, 'windows')
+        uses: ilammy/msvc-dev-cmd@v1.12.1
 
       - name: Install shared dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get -y install gcc
-
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
 
       - name: Install Conan
         if: matrix.package-manager == 'conan'
@@ -95,65 +101,34 @@ jobs:
           path: ~/.conan/
 
       - name: Cache conan packages (Windows, Part 2)
-        if: matrix.package-manager == 'conan' && startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-conan-root-${{ hashFiles('**/conanfile.txt') }}-20211205
           path: C:/.conan/
 
-      - name: Create build directory
-        run: |
-            mkdir build
-
-      # WINDOWS
-      - name: Enable Developer Command Prompt
-        if: startsWith(matrix.os, 'windows')
-        uses: ilammy/msvc-dev-cmd@v1.12.1
-
-      - name: Install dependencies with Conan (Windows)
-        if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
-        run: |
-            conan --version
-            conan profile new --detect --force default
-            conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
-        shell: bash
-        working-directory: build
-
-      - name: Build (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: |
-            cmake ^
-              -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} ^
-              -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} ^
-              -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" ^
-              ..
-            cmake --build . --config Release
-        shell: cmd
-        working-directory: build
-
-      - name: Install dependencies (Ubuntu)
+      - name: Install libraries (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
         run: |
           sudo apt-get update
           sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
 
-      - name: Install dependencies (MacOS)
+      - name: Install libraries (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
         run: |
             brew install boost rapidjson
         shell: bash
 
-
-      - name: Install dependencies with Conan (Ubuntu/MacOS)
-        if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && matrix.package-manager == 'conan'
+      - name: Install dependencies with Conan
+        if: matrix.package-manager == 'conan'
         run: |
             conan --version
             conan profile detect
             conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
+        shell: bash
         working-directory: build
 
-      - name: Build (Ubuntu/MacOS)
-        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      - name: Build
         run: |
             cmake \
                 -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
@@ -162,10 +137,11 @@ jobs:
                 -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
                 -DCMAKE_BUILD_TYPE=Debug \
                 ..
-            VERBOSE=1 make -j8
+            cmake --build . --config Debug --parallel
         shell: bash
         working-directory: build
 
-      - name: Test
+      - name: Run tests
         run: ctest
+        shell: bash
         working-directory: build
