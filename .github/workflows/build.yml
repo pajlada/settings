@@ -113,6 +113,7 @@ jobs:
             pip3 install --user conan
             pip3 show conan
             python3 -c "import site; print(site.USER_SITE)"
+            python3 -c "import site; print(site.USER_BASE)"
             # find ~/.local || true
             # find ~/Library || true
             ls -l ~/.local/bin || true
