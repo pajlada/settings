@@ -47,6 +47,11 @@ jobs:
           fi
         shell: bash
 
+      - name: Setup environment (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - uses: actions/checkout@v1
         with:
           submodules: true
@@ -92,6 +97,12 @@ jobs:
         shell: cmd
         working-directory: build
 
+      - name: Install shared dependencies (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get -y python3 python3-pip python3-setuptools
+
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
         run: sudo apt-get update && sudo apt-get -y install gcc libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
@@ -105,14 +116,12 @@ jobs:
       - name: Install Conan (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
         run: |
-            brew install conan
+            brew install python3
 
-      - name: Install Conan (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
+      - name: Install Conan
+        if: matrix.package-manager == 'conan'
         run: |
-            sudo apt-get -y install python3 python3-pip python3-setuptools
             pip3 install --user conan
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies with Conan (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
