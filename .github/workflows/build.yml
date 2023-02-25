@@ -126,7 +126,8 @@ jobs:
       - name: Install dependencies with Conan (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
         run: |
-            conan profile new --detect --force default
+            conan --version
+            conan profile detect
             conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
 

@@ -62,3 +62,5 @@ CMakeLists.txt.user
 .ycm_*
 
 compile_commands.json
+
+CMakeUserPresets.json
