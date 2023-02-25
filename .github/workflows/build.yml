@@ -138,7 +138,7 @@ jobs:
                 -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
                 -DCMAKE_BUILD_TYPE=Debug \
                 ..
-            make -j8
+            VERBOSE=1 make -j8
         shell: bash
         working-directory: build
 
