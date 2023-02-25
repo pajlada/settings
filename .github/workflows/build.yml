@@ -80,7 +80,7 @@ jobs:
         if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         run: |
             conan profile new --detect --force default
-            conan install --build=missing ..
+            conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
 
       - name: Build (Windows)
@@ -117,7 +117,7 @@ jobs:
       - name: Install dependencies with Conan (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
         run: |
-            conan profile detect
+            conan profile new --detect --force default
             conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
 
