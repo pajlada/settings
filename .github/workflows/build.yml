@@ -68,7 +68,8 @@ jobs:
         run: |
             python3 -m site --user-site
             python3 -m site --user-base
-            python3 -c "import site; print(site.USER_BASE + '/bin')" >> "$GITHUB_PATH"
+            python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')"
+            python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')" >> "$GITHUB_PATH"
         shell: bash
 
       - name: Install shared dependencies (Ubuntu)
