@@ -97,17 +97,6 @@ jobs:
         shell: cmd
         working-directory: build
 
-      - name: Install shared dependencies (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install python3 python3-pip python3-setuptools
-
-      - name: Install shared dependencies (MacOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-            brew install python3
-
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
         run: sudo apt-get update && sudo apt-get -y install gcc libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
@@ -123,8 +112,9 @@ jobs:
         run: |
             pip3 install --user conan
             pip3 show conan
-            find ~/.local || true
-            find ~/Library || true
+            python3 -c "import site; print(site.USER_SITE)"
+            # find ~/.local || true
+            # find ~/Library || true
             ls -l ~/.local/bin || true
         shell: bash
 
