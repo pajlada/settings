@@ -110,8 +110,7 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
         run: |
             conan profile detect
-            # Temporary workaround while the boost library provided is a bit weird
-            conan install .. -s compiler.libcxx=libstdc++11
+            conan install --build=missing ..
         working-directory: build
 
       - name: Install dependencies with Conan (MacOS)
