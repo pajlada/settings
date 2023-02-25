@@ -6,11 +6,9 @@ project(PajladaSettings)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 
-if (PAJLADA_SETTINGS_USE_CONAN OR CONAN_EXPORTED)
-    message(STATUS "Building Pajlada::Settings with Conan")
-    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
-endif()
+if (PAJLADA_SETTINGS_USE_CONAN)
+    message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
+endif ()
 
 set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
