@@ -60,7 +60,7 @@ jobs:
       - name: Setup environment (MacOS)
         if: startsWith(matrix.os, 'macos')
         run: |
-            python3 -c "import site; print(site.USER_SITE + '/bin')" >> "$GITHUB_PATH"
+            python3 -c "import site; print(site.USER_BASE + '/bin')" >> "$GITHUB_PATH"
 
       - uses: actions/checkout@v1
         with:
