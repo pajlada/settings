@@ -37,7 +37,14 @@ jobs:
       - id: package-manager
         env:
           PACKAGE_MANAGER: ${{ matrix.package-manager }}
-        run: echo "::set-output name=use-conan::$([ $PACKAGE_MANAGER = 'conan' ] && echo 1 || echo 0)"
+        run: |
+          if [ "$PACKAGE_MANAGER" = "conan" ]; then
+            echo "use-conan=1" > "$GITHUB_OUTPUT"
+            echo "toolchain-file=conan_toolchain.cmake" > "$GITHUB_OUTPUT"
+          else
+            echo "use-conan=0" > "$GITHUB_OUTPUT"
+            echo "toolchain-file=" > "$GITHUB_OUTPUT"
+          fi
         shell: bash
 
       - uses: actions/checkout@v1
@@ -72,7 +79,8 @@ jobs:
       - name: Install dependencies with Conan (Windows)
         if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         run: |
-            conan install ..
+            conan profile new --detect --force default
+            conan install --build=missing ..
         working-directory: build
 
       - name: Build (Windows)
@@ -110,13 +118,13 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
         run: |
             conan profile detect
-            conan install --build=missing ..
+            conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
 
       - name: Install dependencies with Conan (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
         run: |
-            conan profile detect
+            conan profile new --detect --force default
             conan install --build=missing ..
         working-directory: build
 
@@ -127,6 +135,8 @@ jobs:
                 -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
                 -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
                 -DPAJLADA_SETTINGS_BUILD_TESTS=On \
+                -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
+                -DCMAKE_BUILD_TYPE=Debug \
                 ..
             make -j8
         shell: bash
