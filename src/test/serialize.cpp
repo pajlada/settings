@@ -1,53 +1,57 @@
-#include "test/common.hpp"
-
 #include <iostream>
+
+#include "test/common.hpp"
 
 using namespace pajlada::Settings;
 
-TEST_CASE("Serialize vector", "[settings][serialize]")
+TEST(Serialize, VectorBeforeLoading)
 {
     std::vector<std::string> data{"a", "b", "c"};
     Setting<std::vector<std::string>> a("/a");
+    auto vec = a.getValue();
 
-    SECTION("Before loading")
-    {
-        auto vec = a.getValue();
+    EXPECT_TRUE(vec.size() == 0);
+}
 
-        REQUIRE(vec.size() == 0);
-    }
+TEST(Serialize, VectorAfterSetting)
+{
+    std::vector<std::string> data{"a", "b", "c"};
+    Setting<std::vector<std::string>> a("/a");
+    a = data;
 
-    SECTION("Setting")
-    {
-        a = data;
+    auto vec = a.getValue();
 
-        auto vec = a.getValue();
+    EXPECT_TRUE(vec.size() == data.size());
+}
 
-        REQUIRE(vec.size() == data.size());
-    }
+TEST(Serialize, VectorAfterLoading)
+{
+    std::vector<std::string> data{"a", "b", "c"};
+    Setting<std::vector<std::string>> a("/a");
+    EXPECT_TRUE(LoadFile("in.serialize.vector.str.json"));
+    auto vec = a.getValue();
 
-    REQUIRE(LoadFile("in.serialize.vector.str.json"));
+    EXPECT_TRUE(vec.size() == 2);
+    EXPECT_TRUE(vec[0] == "x");
+    EXPECT_TRUE(vec[1] == "D");
+}
 
-    SECTION("After loading")
-    {
-        auto vec = a.getValue();
-
-        REQUIRE(vec.size() == 2);
-        REQUIRE(vec[0] == "x");
-        REQUIRE(vec[1] == "D");
-    }
-
+TEST(Serialize, VectorMisc)
+{
+    std::vector<std::string> data{"a", "b", "c"};
+    Setting<std::vector<std::string>> a("/a");
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
     a = newData;
 
-    REQUIRE(SaveFile("out.serialize.vector.str.json"));
+    EXPECT_TRUE(SaveFile("out.serialize.vector.str.json"));
 
-    REQUIRE(FilesMatch("in.serialize.vector.str.state1.json",
-                       "out.serialize.vector.str.json"));
+    EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
+                           "out.serialize.vector.str.json"));
 }
 
 #ifdef PAJLADA_BOOST_ANY_SUPPORT
-TEST_CASE("Serialize boost::any vector<std::string>", "[settings][serialize]")
+TEST(Serialize, BoostAnyVectorString)
 {
     using boost::any_cast;
 
@@ -58,38 +62,38 @@ TEST_CASE("Serialize boost::any vector<std::string>", "[settings][serialize]")
     Setting<boost::any> a("/a");
 
     auto rawAny = a.getValue();
-    REQUIRE(rawAny.empty());
+    EXPECT_TRUE(rawAny.empty());
 
     a = data;
 
     rawAny = a.getValue();
 
-    REQUIRE(!rawAny.empty());
+    EXPECT_TRUE(!rawAny.empty());
 
     auto vec = any_cast<std::vector<boost::any>>(rawAny);
 
-    REQUIRE(vec.size() == data.size());
+    EXPECT_TRUE(vec.size() == data.size());
 
-    REQUIRE(LoadFile("in.serialize.any.vector.str.json"));
+    EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
 
     rawAny = a.getValue();
     vec = any_cast<std::vector<boost::any>>(rawAny);
 
-    REQUIRE(vec.size() == 2);
-    REQUIRE(any_cast<std::string>(vec[0]) == "x");
-    REQUIRE(any_cast<std::string>(vec[1]) == "D");
+    EXPECT_TRUE(vec.size() == 2);
+    EXPECT_TRUE(any_cast<std::string>(vec[0]) == "x");
+    EXPECT_TRUE(any_cast<std::string>(vec[1]) == "D");
 
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
     a = newData;
 
-    REQUIRE(SaveFile("out.serialize.any.vector.str.json"));
+    EXPECT_TRUE(SaveFile("out.serialize.any.vector.str.json"));
 
-    REQUIRE(FilesMatch("in.serialize.vector.str.state1.json",
-                       "out.serialize.any.vector.str.json"));
+    EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
+                           "out.serialize.any.vector.str.json"));
 }
 
-TEST_CASE("Serialize boost::any vector<boost::any>", "[settings][serialize]")
+TEST(Serialize, BoostAnyVectorAny)
 {
     using boost::any_cast;
 
@@ -100,82 +104,88 @@ TEST_CASE("Serialize boost::any vector<boost::any>", "[settings][serialize]")
     Setting<boost::any> a("/a");
 
     auto rawAny = a.getValue();
-    REQUIRE(rawAny.empty());
+    EXPECT_TRUE(rawAny.empty());
 
     a = data;
 
     rawAny = a.getValue();
     auto vec = any_cast<std::vector<boost::any>>(rawAny);
 
-    REQUIRE(vec.size() == data.size());
+    EXPECT_TRUE(vec.size() == data.size());
 
-    REQUIRE(vec[0].type().name() == typeid(std::string).name());
-    REQUIRE(any_cast<std::string>(vec[0]) == "test");
-    REQUIRE(any_cast<int>(vec[1]) == 5);
-    REQUIRE(any_cast<double>(vec[2]) == Approx(13.37));
+    EXPECT_TRUE(vec[0].type().name() == typeid(std::string).name());
+    EXPECT_TRUE(any_cast<std::string>(vec[0]) == "test");
+    EXPECT_TRUE(any_cast<int>(vec[1]) == 5);
+    EXPECT_TRUE(any_cast<double>(vec[2]) == Approx(13.37));
 
-    REQUIRE(LoadFile("in.serialize.any.vector.str.json"));
+    EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
 
     rawAny = a.getValue();
     vec = any_cast<std::vector<boost::any>>(rawAny);
 
-    REQUIRE(vec.size() == 2);
-    REQUIRE(any_cast<std::string>(vec[0]) == "x");
-    REQUIRE(any_cast<std::string>(vec[1]) == "D");
+    EXPECT_TRUE(vec.size() == 2);
+    EXPECT_TRUE(any_cast<std::string>(vec[0]) == "x");
+    EXPECT_TRUE(any_cast<std::string>(vec[1]) == "D");
 
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
     a = newData;
 
-    REQUIRE(SaveFile("out.serialize.any.vector.str.json"));
+    EXPECT_TRUE(SaveFile("out.serialize.any.vector.str.json"));
 
-    REQUIRE(FilesMatch("in.serialize.vector.str.state1.json",
-                       "out.serialize.any.vector.str.json"));
+    EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
+                           "out.serialize.any.vector.str.json"));
 }
 #endif
 
-TEST_CASE("Serialize int", "[settings][serialize]")
+TEST(Serialize, Int1)
 {
     SettingManager::clear();
-
     int data = 8;
-
     Setting<int> a("/a");
-
-    SECTION("Before loading a")
-    {
-        REQUIRE(a == 0);
-        REQUIRE(a.getValue() == 0);
-        int val = a;
-        REQUIRE(val == 0);
-    }
-
-    SECTION("Setting")
-    {
-        a = data;
-
-        REQUIRE(a == data);
-        REQUIRE(a.getValue() == data);
-        int val = a;
-        REQUIRE(val == data);
-    }
-
-    REQUIRE(LoadFile("in.serialize.int.json"));
-
-    SECTION("After loading")
-    {
-        REQUIRE(a == 10);
-        REQUIRE(a.getValue() == 10);
-        int val = a;
-        REQUIRE(val == 10);
-    }
-
-    REQUIRE(SaveFile("out.serialize.int.json"));
-
-    REQUIRE(FilesMatch("in.serialize.int.json", "out.serialize.int.json"));
+    EXPECT_TRUE(a == 0);
+    EXPECT_TRUE(a.getValue() == 0);
+    int val = a;
+    EXPECT_TRUE(val == 0);
 }
 
-TEST_CASE("Serialize bool", "[settings][serialize]")
+TEST(Serialize, Int2)
+{
+    SettingManager::clear();
+    int data = 8;
+    Setting<int> a("/a");
+    a = data;
+
+    EXPECT_TRUE(a == data);
+    EXPECT_TRUE(a.getValue() == data);
+    int val = a;
+    EXPECT_TRUE(val == data);
+}
+
+TEST(Serialize, Int3)
+{
+    SettingManager::clear();
+    int data = 8;
+    Setting<int> a("/a");
+    EXPECT_TRUE(LoadFile("in.serialize.int.json"));
+    EXPECT_TRUE(a == 10);
+    EXPECT_TRUE(a.getValue() == 10);
+    int val = a;
+    EXPECT_TRUE(val == 10);
+}
+
+TEST(Serialize, Int4)
+{
+    SettingManager::clear();
+    int data = 8;
+    Setting<int> a("/a");
+    EXPECT_TRUE(LoadFile("in.serialize.int.json"));
+    EXPECT_TRUE(SaveFile("out.serialize.int.json"));
+
+    EXPECT_TRUE(FilesMatch("in.serialize.int.json", "out.serialize.int.json"));
+}
+
+TEST(Serialize, Bool)
 {
     SettingManager::clear();
 
@@ -184,63 +194,64 @@ TEST_CASE("Serialize bool", "[settings][serialize]")
 
     Setting<bool> a("/a");
 
-    REQUIRE(a == false);
-    REQUIRE(a.getValue() == false);
+    EXPECT_TRUE(a == false);
+    EXPECT_TRUE(a.getValue() == false);
     val = a;
-    REQUIRE(val == false);
+    EXPECT_TRUE(val == false);
 
     a = data;
 
-    REQUIRE(a == data);
-    REQUIRE(a.getValue() == data);
+    EXPECT_TRUE(a == data);
+    EXPECT_TRUE(a.getValue() == data);
     val = a;
-    REQUIRE(val == data);
+    EXPECT_TRUE(val == data);
 
     a = false;
 
-    REQUIRE(a == false);
-    REQUIRE(a.getValue() == false);
+    EXPECT_TRUE(a == false);
+    EXPECT_TRUE(a.getValue() == false);
     val = a;
-    REQUIRE(val == false);
+    EXPECT_TRUE(val == false);
 
-    REQUIRE(LoadFile("in.serialize.bool.json"));
-    REQUIRE(a == true);
-    REQUIRE(a.getValue() == true);
+    EXPECT_TRUE(LoadFile("in.serialize.bool.json"));
+    EXPECT_TRUE(a == true);
+    EXPECT_TRUE(a.getValue() == true);
     val = a;
-    REQUIRE(val == true);
+    EXPECT_TRUE(val == true);
 
-    REQUIRE(LoadFile("in.serialize.bool2.json"));
-    REQUIRE(a == false);
-    REQUIRE(a.getValue() == false);
+    EXPECT_TRUE(LoadFile("in.serialize.bool2.json"));
+    EXPECT_TRUE(a == false);
+    EXPECT_TRUE(a.getValue() == false);
     val = a;
-    REQUIRE(val == false);
+    EXPECT_TRUE(val == false);
 
-    REQUIRE(LoadFile("in.serialize.bool3.json"));
-    REQUIRE(a == true);
-    REQUIRE(a.getValue() == true);
+    EXPECT_TRUE(LoadFile("in.serialize.bool3.json"));
+    EXPECT_TRUE(a == true);
+    EXPECT_TRUE(a.getValue() == true);
     val = a;
-    REQUIRE(val == true);
+    EXPECT_TRUE(val == true);
 
-    REQUIRE(LoadFile("in.serialize.bool4.json"));
-    REQUIRE(a == false);
-    REQUIRE(a.getValue() == false);
+    EXPECT_TRUE(LoadFile("in.serialize.bool4.json"));
+    EXPECT_TRUE(a == false);
+    EXPECT_TRUE(a.getValue() == false);
     val = a;
-    REQUIRE(val == false);
+    EXPECT_TRUE(val == false);
 
     a = true;
-    REQUIRE(a == true);
-    REQUIRE(a.getValue() == true);
+    EXPECT_TRUE(a == true);
+    EXPECT_TRUE(a.getValue() == true);
     val = a;
-    REQUIRE(val == true);
-    REQUIRE(SaveFile("out.serialize.bool.json"));
-    REQUIRE(FilesMatch("in.serialize.bool.json", "out.serialize.bool.json"));
+    EXPECT_TRUE(val == true);
+    EXPECT_TRUE(SaveFile("out.serialize.bool.json"));
+    EXPECT_TRUE(
+        FilesMatch("in.serialize.bool.json", "out.serialize.bool.json"));
 
     a = false;
-    REQUIRE(a == false);
-    REQUIRE(a.getValue() == false);
+    EXPECT_TRUE(a == false);
+    EXPECT_TRUE(a.getValue() == false);
     val = a;
-    REQUIRE(val == false);
-    REQUIRE(SaveFile("out.serialize.bool.json"));
-    REQUIRE(
+    EXPECT_TRUE(val == false);
+    EXPECT_TRUE(SaveFile("out.serialize.bool.json"));
+    EXPECT_TRUE(
         FilesMatch("in.serialize.bool.false.json", "out.serialize.bool.json"));
 }

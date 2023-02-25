@@ -1,25 +1,24 @@
 // UNSORTED TESTS
 
-#include "test/channel.hpp"
-#include "test/channelmanager.hpp"
-#include "test/common.hpp"
-#include "test/foo.hpp"
-
+#include <cassert>
+#include <iostream>
 #include <pajlada/serialize.hpp>
 #include <pajlada/settings/setting.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
-
-#include <cassert>
-#include <iostream>
 #include <string>
+
+#include "test/channel.hpp"
+#include "test/channelmanager.hpp"
+#include "test/common.hpp"
+#include "test/foo.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 using namespace std;
 
 #ifdef PAJLADA_BOOST_ANY_SUPPORT
-TEST_CASE("Any", "[settings]")
+TEST(Misc, BoostAny)
 {
     Setting<boost::any> test("/anyTest");
     auto test2 = new Setting<boost::any>("/anyTest2");
@@ -29,7 +28,7 @@ TEST_CASE("Any", "[settings]")
 }
 #endif
 
-TEST_CASE("Array test", "[settings]")
+TEST(Misc, Array)
 {
     Setting<int> test1("/array/0/int");
     Setting<int> test2("/array/1/int");
@@ -43,65 +42,66 @@ TEST_CASE("Array test", "[settings]")
     // It will only be true if the settings above area created with
     // "SaveInitialValue", or if "SaveOnChange" is enabled and the value has
     // been changed
-    REQUIRE(SettingManager::arraySize("/array") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
 
-    REQUIRE(SettingManager::gSaveAs("files/out.array_test.json") == true);
+    EXPECT_TRUE(SettingManager::gSaveAs("files/out.array_test.json") == true);
 
-    REQUIRE(SettingManager::arraySize("/array") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
 }
 
-TEST_CASE("Array size", "[settings]")
+TEST(Misc, ArraySize)
 {
-    REQUIRE(LoadFile("in.array_size.json"));
+    EXPECT_TRUE(LoadFile("in.array_size.json"));
 
-    REQUIRE(SettingManager::arraySize("/arraySize1") == 1);
-    REQUIRE(SettingManager::arraySize("/arraySize2") == 2);
-    REQUIRE(SettingManager::arraySize("/arraySize3") == 3);
-    REQUIRE(SettingManager::arraySize("/arraySize4") == 4);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize1") == 1);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize2") == 2);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize3") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize4") == 4);
 
     // Not an array
-    REQUIRE(SettingManager::arraySize("/arraySize5") == 0);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize5") == 0);
 }
 
-TEST_CASE("Vector", "[settings]")
+TEST(Misc, Vector)
 {
     Setting<vector<int>> test("/vectorTest");
 
-    REQUIRE(LoadFile("in.vector.json"));
+    EXPECT_TRUE(LoadFile("in.vector.json"));
 
     auto vec = test.getValue();
 
-    REQUIRE(vec.size() == 3);
+    EXPECT_TRUE(vec.size() == 3);
 
-    REQUIRE(vec.at(0) == 5);
-    REQUIRE(vec.at(1) == 10);
-    REQUIRE(vec.at(2) == 15);
+    EXPECT_TRUE(vec.at(0) == 5);
+    EXPECT_TRUE(vec.at(1) == 10);
+    EXPECT_TRUE(vec.at(2) == 15);
 
     vector<int> x = {1, 2, 3};
 
     test = x;
 
-    REQUIRE(SettingManager::gSaveAs("files/out.vector.json") == true);
+    EXPECT_TRUE(SettingManager::gSaveAs("files/out.vector.json") == true);
 }
 
-TEST_CASE("ChannelManager", "[settings]")
+TEST(Misc, ChannelManager)
 {
     ChannelManager manager;
 
-    REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 
     for (size_t i = 0; i < manager.channels.size(); ++i) {
-        REQUIRE(manager.channels.at(i).name.getValue() == "Name not loaded");
+        EXPECT_TRUE(manager.channels.at(i).name.getValue() ==
+                    "Name not loaded");
     }
 
-    REQUIRE(LoadFile("channelmanager.json"));
+    EXPECT_TRUE(LoadFile("channelmanager.json"));
 
-    REQUIRE(manager.channels.at(0).name.getValue() == "pajlada");
-    REQUIRE(manager.channels.at(1).name.getValue() == "hemirt");
-    REQUIRE(manager.channels.at(2).name.getValue() == "gempir");
+    EXPECT_TRUE(manager.channels.at(0).name.getValue() == "pajlada");
+    EXPECT_TRUE(manager.channels.at(1).name.getValue() == "hemirt");
+    EXPECT_TRUE(manager.channels.at(2).name.getValue() == "gempir");
 
     // Last channel should always be unset
-    REQUIRE(
+    EXPECT_TRUE(
         manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
         "Name not loaded");
 
@@ -109,104 +109,101 @@ TEST_CASE("ChannelManager", "[settings]")
         manager.channels.at(i).name = "From file FeelsGoodMan";
     }
 
-    REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
-    REQUIRE(SettingManager::gSaveAs("files/out.test3.json"));
-    REQUIRE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    EXPECT_TRUE(SettingManager::gSaveAs("files/out.test3.json"));
+    EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 }
 
-TEST_CASE("Channel", "[settings]")
+TEST(Misc, Channel)
 {
     Channel chHemirt("hemirt");
     Channel chPajlada("pajlada");
 
     // Pre-load
-    REQUIRE(chHemirt.maxMessageLength == 240);
-    REQUIRE(chPajlada.maxMessageLength == 240);
+    EXPECT_TRUE(chHemirt.maxMessageLength == 240);
+    EXPECT_TRUE(chPajlada.maxMessageLength == 240);
 
     // Load default file
-    REQUIRE(LoadFile("d.channels.json"));
+    EXPECT_TRUE(LoadFile("d.channels.json"));
 
     // Post defaults load
-    REQUIRE(chHemirt.maxMessageLength.getValue() == 200);
-    REQUIRE(chPajlada.maxMessageLength == 240);
+    EXPECT_TRUE(chHemirt.maxMessageLength.getValue() == 200);
+    EXPECT_TRUE(chPajlada.maxMessageLength == 240);
 
     // Load custom file
-    REQUIRE(LoadFile("channels.json"));
+    EXPECT_TRUE(LoadFile("channels.json"));
 
     // Post channels load
-    REQUIRE(chHemirt.maxMessageLength == 300);
-    REQUIRE(chPajlada.maxMessageLength == 500);
+    EXPECT_TRUE(chHemirt.maxMessageLength == 300);
+    EXPECT_TRUE(chPajlada.maxMessageLength == 500);
 }
 
-TEST_CASE("Load files", "[settings]")
+TEST(Misc, LoadFilesInvalidFiles)
 {
-    SECTION("Invalid files")
-    {
-        REQUIRE(SettingManager::gLoadFrom("files/bad-1.json") ==
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-1.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::gLoadFrom("files/bad-2.json") ==
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-2.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::gLoadFrom("files/bad-3.json") ==
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-3.json") ==
                 SettingManager::LoadError::JSONParseError);
-        REQUIRE(SettingManager::gLoadFrom("files/empty.json") ==
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/empty.json") ==
                 SettingManager::LoadError::NoError);
-    }
-
-    SECTION("Non-existant files")
-    {
-        REQUIRE(
-            SettingManager::gLoadFrom("files/test-non-existant-file.json") ==
-            SettingManager::LoadError::CannotOpenFile);
-    }
-
-    SECTION("Valid files")
-    {
-        REQUIRE(SettingManager::gLoadFrom("files/default.json") ==
-                SettingManager::LoadError::NoError);
-    }
 }
 
-TEST_CASE("Misc", "[settings]")
+TEST(Misc, NonExistantFiles)
+{
+    EXPECT_TRUE(
+        SettingManager::gLoadFrom("files/test-non-existant-file.json") ==
+        SettingManager::LoadError::CannotOpenFile);
+}
+
+TEST(Misc, ValidFiles)
+{
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/default.json") ==
+                SettingManager::LoadError::NoError);
+}
+
+TEST(Misc, Misc)
 {
     Setting<int> test1("/test");
-    REQUIRE(test1.getPath() == "/test");
-    REQUIRE(test1.getData().lock()->getPath() == "/test");
-    REQUIRE(test1.getData().lock()->getPath() == test1.getPath());
+    EXPECT_TRUE(test1.getPath() == "/test");
+    EXPECT_TRUE(test1.getData().lock()->getPath() == "/test");
+    EXPECT_TRUE(test1.getData().lock()->getPath() == test1.getPath());
 }
 
-TEST_CASE("Stringify", "[settings]")
+TEST(Misc, Stringify)
 {
     rapidjson::Value test(5);
 
-    REQUIRE(SettingManager::stringify(test) == "5");
+    EXPECT_TRUE(SettingManager::stringify(test) == "5");
 }
 
-TEST_CASE("Move set", "[settings]")
+TEST(Misc, MoveSet)
 {
     int v = 69;
     Setting<int> test1("/test");
-    REQUIRE(test1 == 0);
+    EXPECT_TRUE(test1 == 0);
     test1 = 3;
-    REQUIRE(test1 == 3);
+    EXPECT_TRUE(test1 == 3);
     test1 = std::move(v);
-    REQUIRE(test1 == 69);
+    EXPECT_TRUE(test1 == 69);
 
     std::string v2("lol");
     Setting<std::string> test2("/test");
-    REQUIRE(test2 == "");
-    REQUIRE(test2.getValue() == "");
+    EXPECT_TRUE(test2 == "");
+    EXPECT_TRUE(test2.getValue() == "");
     test2 = "hej";
-    REQUIRE(test2 == "hej");
-    REQUIRE(test2.getValue() == "hej");
+    EXPECT_TRUE(test2 == "hej");
+    EXPECT_TRUE(test2.getValue() == "hej");
     test2 = std::move(v2);
-    REQUIRE(test2 == "lol");
-    REQUIRE(test2.getValue() == "lol");
+    EXPECT_TRUE(test2 == "lol");
+    EXPECT_TRUE(test2.getValue() == "lol");
 
     const auto &lol = test2;
 
     const auto &hehe = lol.getValue();
-    REQUIRE(hehe == "lol");
-    REQUIRE(lol.getValue() == "lol");
-    REQUIRE(lol.getValue() == "lol");
-    REQUIRE(lol.getValue() == "lol");
+    EXPECT_TRUE(hehe == "lol");
+    EXPECT_TRUE(lol.getValue() == "lol");
+    EXPECT_TRUE(lol.getValue() == "lol");
+    EXPECT_TRUE(lol.getValue() == "lol");
 }

@@ -3,7 +3,7 @@
 using namespace pajlada::Settings;
 using namespace std;
 
-TEST_CASE("ResetToDefault", "[settings][default]")
+TEST(Default, Reset)
 {
     // No custom default value, not available in the settings file
     Setting<int> noDefault("/noDefault");
@@ -24,27 +24,27 @@ TEST_CASE("ResetToDefault", "[settings][default]")
     Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault",
                                               5);
 
-    REQUIRE(noDefault.getDefaultValue() == 0);
-    REQUIRE(customDefault.getDefaultValue() == 5);
-    REQUIRE(loadedSameNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedSameCustomDefault.getDefaultValue() == 5);
-    REQUIRE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 
-    REQUIRE(noDefault.isDefaultValue());
-    REQUIRE(customDefault.isDefaultValue());
-    REQUIRE(loadedSameNoDefault.isDefaultValue());
-    REQUIRE(loadedDifferentNoDefault.isDefaultValue());
-    REQUIRE(loadedSameCustomDefault.isDefaultValue());
-    REQUIRE(loadedDifferentCustomDefault.isDefaultValue());
+    EXPECT_TRUE(noDefault.isDefaultValue());
+    EXPECT_TRUE(customDefault.isDefaultValue());
+    EXPECT_TRUE(loadedSameNoDefault.isDefaultValue());
+    EXPECT_TRUE(loadedDifferentNoDefault.isDefaultValue());
+    EXPECT_TRUE(loadedSameCustomDefault.isDefaultValue());
+    EXPECT_TRUE(loadedDifferentCustomDefault.isDefaultValue());
 
     // Before loading
-    REQUIRE(noDefault == 0);
-    REQUIRE(customDefault == 5);
-    REQUIRE(loadedSameNoDefault == 0);
-    REQUIRE(loadedDifferentNoDefault == 0);
-    REQUIRE(loadedSameCustomDefault == 5);
-    REQUIRE(loadedDifferentCustomDefault == 5);
+    EXPECT_TRUE(noDefault == 0);
+    EXPECT_TRUE(customDefault == 5);
+    EXPECT_TRUE(loadedSameNoDefault == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault == 0);
+    EXPECT_TRUE(loadedSameCustomDefault == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault == 5);
 
     // Before loading, after resetting all values to their default value
     noDefault.resetToDefaultValue();
@@ -54,49 +54,49 @@ TEST_CASE("ResetToDefault", "[settings][default]")
     loadedSameCustomDefault.resetToDefaultValue();
     loadedDifferentCustomDefault.resetToDefaultValue();
 
-    REQUIRE(noDefault.getDefaultValue() == 0);
-    REQUIRE(customDefault.getDefaultValue() == 5);
-    REQUIRE(loadedSameNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedSameCustomDefault.getDefaultValue() == 5);
-    REQUIRE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 
-    REQUIRE(noDefault == 0);
-    REQUIRE(customDefault == 5);
-    REQUIRE(loadedSameNoDefault == 0);
-    REQUIRE(loadedDifferentNoDefault == 0);
-    REQUIRE(loadedSameCustomDefault == 5);
-    REQUIRE(loadedDifferentCustomDefault == 5);
+    EXPECT_TRUE(noDefault == 0);
+    EXPECT_TRUE(customDefault == 5);
+    EXPECT_TRUE(loadedSameNoDefault == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault == 0);
+    EXPECT_TRUE(loadedSameCustomDefault == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault == 5);
 
-    REQUIRE(LoadFile("in.resettodefault.json"));
+    EXPECT_TRUE(LoadFile("in.resettodefault.json"));
 
     // value does not exist in json file, so should still be same as default
-    REQUIRE(noDefault.isDefaultValue());
+    EXPECT_TRUE(noDefault.isDefaultValue());
     // value does not exist in json file, so should still be same as default
-    REQUIRE(customDefault.isDefaultValue());
+    EXPECT_TRUE(customDefault.isDefaultValue());
     // value exists in json file, and it's the same as the implicit default value
-    REQUIRE(loadedSameNoDefault.isDefaultValue());
+    EXPECT_TRUE(loadedSameNoDefault.isDefaultValue());
     // value exists in json file, but it's different from the implicit default value
-    REQUIRE(!loadedDifferentNoDefault.isDefaultValue());
+    EXPECT_TRUE(!loadedDifferentNoDefault.isDefaultValue());
     // value exists in json file, and it's the same as the explicit default value
-    REQUIRE(loadedSameCustomDefault.isDefaultValue());
+    EXPECT_TRUE(loadedSameCustomDefault.isDefaultValue());
     // value exists in json file, but it's different from the explicit default value
-    REQUIRE(!loadedDifferentCustomDefault.isDefaultValue());
+    EXPECT_TRUE(!loadedDifferentCustomDefault.isDefaultValue());
 
     // After loading
-    REQUIRE(noDefault == 0);
-    REQUIRE(customDefault == 5);
-    REQUIRE(loadedSameNoDefault == 0);
-    REQUIRE(loadedDifferentNoDefault == 1);
-    REQUIRE(loadedSameCustomDefault == 5);
-    REQUIRE(loadedDifferentCustomDefault == 6);
+    EXPECT_TRUE(noDefault == 0);
+    EXPECT_TRUE(customDefault == 5);
+    EXPECT_TRUE(loadedSameNoDefault == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault == 1);
+    EXPECT_TRUE(loadedSameCustomDefault == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault == 6);
 
-    REQUIRE(noDefault.getDefaultValue() == 0);
-    REQUIRE(customDefault.getDefaultValue() == 5);
-    REQUIRE(loadedSameNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedSameCustomDefault.getDefaultValue() == 5);
-    REQUIRE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 
     // Reset all values to their default values
     noDefault.resetToDefaultValue();
@@ -106,44 +106,44 @@ TEST_CASE("ResetToDefault", "[settings][default]")
     loadedSameCustomDefault.resetToDefaultValue();
     loadedDifferentCustomDefault.resetToDefaultValue();
 
-    REQUIRE(noDefault.isDefaultValue());
-    REQUIRE(customDefault.isDefaultValue());
-    REQUIRE(loadedSameNoDefault.isDefaultValue());
-    REQUIRE(loadedDifferentNoDefault.isDefaultValue());
-    REQUIRE(loadedSameCustomDefault.isDefaultValue());
-    REQUIRE(loadedDifferentCustomDefault.isDefaultValue());
+    EXPECT_TRUE(noDefault.isDefaultValue());
+    EXPECT_TRUE(customDefault.isDefaultValue());
+    EXPECT_TRUE(loadedSameNoDefault.isDefaultValue());
+    EXPECT_TRUE(loadedDifferentNoDefault.isDefaultValue());
+    EXPECT_TRUE(loadedSameCustomDefault.isDefaultValue());
+    EXPECT_TRUE(loadedDifferentCustomDefault.isDefaultValue());
 
-    REQUIRE(noDefault.getDefaultValue() == 0);
-    REQUIRE(customDefault.getDefaultValue() == 5);
-    REQUIRE(loadedSameNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedSameCustomDefault.getDefaultValue() == 5);
-    REQUIRE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 
     // After loading, after resetting all values to their default value
-    REQUIRE(noDefault == 0);
-    REQUIRE(customDefault == 5);
-    REQUIRE(loadedSameNoDefault == 0);
-    REQUIRE(loadedDifferentNoDefault == 0);
-    REQUIRE(loadedSameCustomDefault == 5);
-    REQUIRE(loadedDifferentCustomDefault == 5);
+    EXPECT_TRUE(noDefault == 0);
+    EXPECT_TRUE(customDefault == 5);
+    EXPECT_TRUE(loadedSameNoDefault == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault == 0);
+    EXPECT_TRUE(loadedSameCustomDefault == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault == 5);
 
     noDefault.setDefaultValue(1);
 
-    REQUIRE(noDefault == 0);
+    EXPECT_TRUE(noDefault == 0);
 
-    REQUIRE(!noDefault.isDefaultValue());
+    EXPECT_TRUE(!noDefault.isDefaultValue());
 
     noDefault.resetToDefaultValue();
 
-    REQUIRE(noDefault.isDefaultValue());
+    EXPECT_TRUE(noDefault.isDefaultValue());
 
-    REQUIRE(noDefault == 1);
+    EXPECT_TRUE(noDefault == 1);
 
-    REQUIRE(noDefault.getDefaultValue() == 1);
-    REQUIRE(customDefault.getDefaultValue() == 5);
-    REQUIRE(loadedSameNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    REQUIRE(loadedSameCustomDefault.getDefaultValue() == 5);
-    REQUIRE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(noDefault.getDefaultValue() == 1);
+    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
+    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
+    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 }

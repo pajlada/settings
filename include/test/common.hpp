@@ -1,9 +1,9 @@
 #pragma once
 
+#include <gtest/gtest.h>
+
 #include <pajlada/settings.hpp>
 #include <string>
-
-#include "test/catch.hpp"
 
 std::string ReadFile(const std::string &path);
 
@@ -22,6 +22,6 @@ bool RemoveFile(const std::string &path);
 #define REQUIRE_IF_NOEXCEPT2(x, y)
 #else
 #define DD_THROWS(x) x
-#define REQUIRE_IF_NOEXCEPT(x, y) REQUIRE(x->getValue() == y)
-#define REQUIRE_IF_NOEXCEPT2(x, y) REQUIRE(x == y)
+#define REQUIRE_IF_NOEXCEPT(x, y) EXPECT_TRUE(x->getValue() == y)
+#define REQUIRE_IF_NOEXCEPT2(x, y) EXPECT_TRUE(x == y)
 #endif

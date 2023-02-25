@@ -42,6 +42,23 @@ endif()
 if (PAJLADA_SETTINGS_BUILD_TESTS)
     message("++ Tests enabled")
 
+    # For MSVC: Prevent overriding the parent project's compiler/linker settings
+    # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/external/googletest" "external/googletest")
+
+    mark_as_advanced(
+            BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
+            gmock_build_tests gtest_build_samples gtest_build_tests
+            gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
+    )
+
+    set_target_properties(gtest PROPERTIES FOLDER lib)
+    set_target_properties(gtest_main PROPERTIES FOLDER lib)
+    set_target_properties(gmock PROPERTIES FOLDER lib)
+    set_target_properties(gmock_main PROPERTIES FOLDER lib)
+
     enable_testing()
 
     add_executable(settings-test
@@ -67,7 +84,7 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
         src/test/common.cpp
         )
 
-    target_link_libraries(settings-test PRIVATE PajladaSettings)
+    target_link_libraries(settings-test PRIVATE PajladaSettings gtest)
 
     add_test(AllTestsXD settings-test)
 
