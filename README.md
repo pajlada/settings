@@ -27,8 +27,6 @@ Available flags that can be passed to cmake:
 
 - PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM `On` or `Off` (default `Off`)
   this will decide whether or not to use boost-filesystem or c++'s stdlib filesystem
-- PAJLADA_SETTINGS_USE_CONAN `On` or `Off` (default `Off`)
-  This option will instruct cmake to look for a `cmakebuildinfo.cmake` file and load dependencies from there.
 - PAJLADA_SETTINGS_BUILD_TESTS `On` or `Off` (default `Off`)
   This option will instruct cmake to build the tests executable `settings-test`.
 
