@@ -81,6 +81,11 @@ jobs:
         with:
           submodules: true
 
+      - name: Install Conan
+        if: matrix.package-manager == 'conan'
+        run: pip3 install --user conan
+        shell: bash
+
       - name: Cache conan packages
         if: matrix.package-manager == 'conan'
         uses: actions/cache@v3
@@ -137,10 +142,6 @@ jobs:
             brew install boost rapidjson
         shell: bash
 
-      - name: Install Conan
-        if: matrix.package-manager == 'conan'
-        run: pip3 install --user conan
-        shell: bash
 
       - name: Install dependencies with Conan (Ubuntu/MacOS)
         if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && matrix.package-manager == 'conan'
