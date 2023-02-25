@@ -31,7 +31,12 @@ jobs:
       - id: filesystem-backend
         env:
           FS_BACKEND: ${{ matrix.fs-backend }}
-        run: echo "::set-output name=use-boost-filesystem::$([ $FS_BACKEND = 'boost' ] && echo 1 || echo 0)"
+        run: |
+          if [ "$FS_BACKEND" = "boost" ]; then
+            echo "use-boost-filesystem=1" > "$GITHUB_OUTPUT"
+          else
+            echo "use-boost-filesystem=0" > "$GITHUB_OUTPUT"
+          fi
         shell: bash
 
       - id: package-manager
@@ -51,6 +56,11 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Setup environment (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+            python3 -c "import site; print(site.USER_SITE + '/bin')" >> "$GITHUB_PATH"
 
       - uses: actions/checkout@v1
         with:
@@ -84,6 +94,7 @@ jobs:
       - name: Install dependencies with Conan (Windows)
         if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         run: |
+            conan --version
             conan profile new --detect --force default
             conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
@@ -112,11 +123,6 @@ jobs:
         run: |
             pip3 install --user conan
             pip3 show conan
-            python3 -c "import site; print(site.USER_SITE)"
-            python3 -c "import site; print(site.USER_BASE)"
-            # find ~/.local || true
-            # find ~/Library || true
-            ls -l ~/.local/bin || true
         shell: bash
 
       - name: Install dependencies with Conan (Ubuntu)
