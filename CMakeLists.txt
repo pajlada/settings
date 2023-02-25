@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
+
+cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -6,11 +8,9 @@ project(PajladaSettings)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 
-if (PAJLADA_SETTINGS_USE_CONAN OR CONAN_EXPORTED)
-    message(STATUS "Building Pajlada::Settings with Conan")
-    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
-endif()
+if (PAJLADA_SETTINGS_USE_CONAN)
+    message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
+endif ()
 
 set(PajladaSettings_SOURCES
     src/settings/settingdata.cpp
@@ -42,6 +42,23 @@ endif()
 if (PAJLADA_SETTINGS_BUILD_TESTS)
     message("++ Tests enabled")
 
+    # For MSVC: Prevent overriding the parent project's compiler/linker settings
+    # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/external/googletest" "external/googletest")
+
+    mark_as_advanced(
+            BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
+            gmock_build_tests gtest_build_samples gtest_build_tests
+            gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
+    )
+
+    set_target_properties(gtest PROPERTIES FOLDER lib)
+    set_target_properties(gtest_main PROPERTIES FOLDER lib)
+    set_target_properties(gmock PROPERTIES FOLDER lib)
+    set_target_properties(gmock_main PROPERTIES FOLDER lib)
+
     enable_testing()
 
     add_executable(settings-test
@@ -67,7 +84,7 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
         src/test/common.cpp
         )
 
-    target_link_libraries(settings-test PRIVATE PajladaSettings)
+    target_link_libraries(settings-test PRIVATE PajladaSettings gtest)
 
     add_test(AllTestsXD settings-test)
 
@@ -109,16 +126,18 @@ else()
 endif()
 
 # rapidjson = c++ json library
-if (TARGET CONAN_PKG::rapidjson)
-    target_link_libraries(PajladaSettings PUBLIC CONAN_PKG::rapidjson)
+if (TARGET RapidJSON::RapidJSON)
+    message(STATUS "Using preexisting rapidjson target")
+    target_link_libraries(PajladaSettings PUBLIC RapidJSON::RapidJSON)
 else()
-    if (TARGET RapidJSON::RapidJSON)
-        message(STATUS "Using preexisting rapidjson target")
-        target_link_libraries(PajladaSettings PUBLIC RapidJSON::RapidJSON)
-    else()
-        find_package(RapidJSON REQUIRED)
+    find_package(RapidJSON REQUIRED)
+    if (TARGET rapidjson)
+        message(STATUS "Using rapidjson target")
+        target_link_libraries(PajladaSettings PUBLIC rapidjson)
+    else ()
+        message(STATUS "Including rapidjson directory ${RAPIDJSON_INCLUDE_DIRS}")
         target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
-    endif()
+    endif ()
 endif()
 
 # TODO: Try find_package, and if not found, do the conan link
@@ -137,13 +156,9 @@ else()
 endif()
 
 
-if (TARGET CONAN_PKG::boost)
-    target_link_libraries(PajladaSettings PUBLIC CONAN_PKG::boost)
-else()
-    if (PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM)
-        find_package(Boost REQUIRED system filesystem)
-        target_link_libraries(PajladaSettings PUBLIC Boost::filesystem Boost::system)
-    endif()
+if (PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM)
+    find_package(Boost REQUIRED system filesystem)
+    target_link_libraries(PajladaSettings PUBLIC Boost::filesystem Boost::system)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)

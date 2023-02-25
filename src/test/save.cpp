@@ -1,3 +1,5 @@
+#include <gtest/gtest.h>
+
 #include <pajlada/settings.hpp>
 #include <pajlada/settings/detail/realpath.hpp>
 
@@ -6,7 +8,7 @@
 using namespace pajlada::Settings;
 using namespace std;
 
-TEST_CASE("save_int", "[settings][save]")
+TEST(Save, Int)
 {
     SettingManager::clear();
     // This will not be part of the final file, since we clear the settings right afterwards
@@ -16,80 +18,82 @@ TEST_CASE("save_int", "[settings][save]")
 
     Setting<int>::set("/lol", 10);
 
-    REQUIRE(SaveFile("out.save.save_int.json"));
+    EXPECT_TRUE(SaveFile("out.save.save_int.json"));
 
-    REQUIRE(FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
+    EXPECT_TRUE(
+        FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
 }
 
-TEST_CASE("save_do_not_write_to_json", "[settings][save]")
+TEST(Save, DoNotWriteToJSON)
 {
     Setting<int>::set("/asd", 5, SettingOption::DoNotWriteToJSON);
 
     Setting<int>::set("/lol", 10);
 
-    REQUIRE(SaveFile("out.save.save_int.json"));
+    EXPECT_TRUE(SaveFile("out.save.save_int.json"));
 
-    REQUIRE(FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
+    EXPECT_TRUE(
+        FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
 }
 
-TEST_CASE("non_symlink", "[settings][save]")
+TEST(Save, NonSymlink)
 {
     std::string ps = "files/save.not-a-symlink.json";
-    REQUIRE(!fs::is_symlink(ps));
+    EXPECT_TRUE(!fs::is_symlink(ps));
 
     fs_error_code ec;
 
     auto p1 = fs::path(ps);
     auto p2 = detail::RealPath(p1, ec);
 
-    REQUIRE(!ec);
+    EXPECT_TRUE(!ec);
 
-    REQUIRE(p2 == ps);
+    EXPECT_TRUE(p2 == ps);
 }
 
-TEST_CASE("symlink", "[settings][save]")
+TEST(Save, Symlink)
 {
     std::string ps = "files/save.symlink.json";
-    REQUIRE(fs::is_symlink(ps));
+    EXPECT_TRUE(fs::is_symlink(ps));
 
     SettingManager::clear();
     auto sm = SettingManager::getInstance().get();
 
     Setting<int>::set("/lol", 10);
 
-    REQUIRE(sm->saveAs(ps.c_str()));
+    EXPECT_TRUE(sm->saveAs(ps.c_str()));
 
-    REQUIRE(fs::is_symlink(ps));
+    EXPECT_TRUE(fs::is_symlink(ps));
 }
 
-TEST_CASE("error_on_recursive_symlink", "[settings][save]")
+TEST(Save, ErrorOnRecursiveSymlink)
 {
     std::string ps = "files/save.symlink.recursive1.json";
-    REQUIRE(fs::is_symlink(ps));
+    EXPECT_TRUE(fs::is_symlink(ps));
 
     fs_error_code ec;
 
     auto finalPath = detail::RealPath(ps, ec);
 
-    REQUIRE(ec);
+    EXPECT_TRUE(ec);
 
-    REQUIRE(ec.value() ==
-            static_cast<int>(std::errc::too_many_symbolic_link_levels));
+    EXPECT_TRUE(ec.value() ==
+                static_cast<int>(std::errc::too_many_symbolic_link_levels));
 }
 
-TEST_CASE("error_on_symlink_pointing_to_nonexistant_file", "[settings][save]")
+TEST(Save, ErrorOnSymlinkPointingToNonexistantFile)
 {
     std::string ps = "files/save.symlink.nonexistant.json";
-    REQUIRE(fs::is_symlink(ps));
+    EXPECT_TRUE(fs::is_symlink(ps));
 
     fs_error_code ec;
 
     auto finalPath = detail::RealPath(ps, ec);
 
-    REQUIRE(!ec);
+    EXPECT_TRUE(!ec);
 }
 
-TEST_CASE("save_backup", "[settings][save]")
+TEST(Save, Backup)
 {
     auto sm = std::make_shared<SettingManager>();
 
@@ -111,35 +115,35 @@ TEST_CASE("save_backup", "[settings][save]")
         setting.setValue(13);
     }
 
-    REQUIRE(!fs::exists("files/out.backup.json"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.json"));
 
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::exists("files/out.backup.json"));
-    REQUIRE(!fs::exists("files/out.backup.json.bkp-1"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.json.bkp-1"));
 
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::exists("files/out.backup.json"));
-    REQUIRE(fs::exists("files/out.backup.json.bkp-1"));
-    REQUIRE(!fs::exists("files/out.backup.json.bkp-2"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-1"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.json.bkp-2"));
 
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::exists("files/out.backup.json"));
-    REQUIRE(fs::exists("files/out.backup.json.bkp-1"));
-    REQUIRE(fs::exists("files/out.backup.json.bkp-2"));
-    REQUIRE(!fs::exists("files/out.backup.json.bkp-3"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-1"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-2"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.json.bkp-3"));
 
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::exists("files/out.backup.json"));
-    REQUIRE(fs::exists("files/out.backup.json.bkp-1"));
-    REQUIRE(fs::exists("files/out.backup.json.bkp-2"));
-    REQUIRE(fs::exists("files/out.backup.json.bkp-3"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-1"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-2"));
+    EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-3"));
 }
 
-TEST_CASE("save_symlink", "[settings][save]")
+TEST(Save, SaveSymlink)
 {
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SettingManager::SaveMethod::SaveManually;
@@ -151,8 +155,8 @@ TEST_CASE("save_symlink", "[settings][save]")
 
     RemoveFile(tp);
 
-    REQUIRE(fs::is_symlink(bp));
-    REQUIRE(!fs::exists(tp));
+    EXPECT_TRUE(fs::is_symlink(bp));
+    EXPECT_TRUE(!fs::exists(tp));
 
     {
         Setting<int> setting("/lol", SettingOption::Default, sm);
@@ -160,14 +164,14 @@ TEST_CASE("save_symlink", "[settings][save]")
         setting.setValue(13);
     }
 
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::exists(bp));
-    REQUIRE(fs::is_symlink(bp));
-    REQUIRE(fs::exists(tp));
+    EXPECT_TRUE(fs::exists(bp));
+    EXPECT_TRUE(fs::is_symlink(bp));
+    EXPECT_TRUE(fs::exists(tp));
 }
 
-TEST_CASE("save_backup_symlink", "[settings][save]")
+TEST(Save, SaveBackupSymlink)
 {
     // In this scenario:
     // The base file is a symlink
@@ -186,9 +190,9 @@ TEST_CASE("save_backup_symlink", "[settings][save]")
     RemoveFile(tp1);
     RemoveFile(tp2);
 
-    REQUIRE(!fs::exists(tp));
-    REQUIRE(!fs::exists(tp1));
-    REQUIRE(!fs::exists(tp2));
+    EXPECT_TRUE(!fs::exists(tp));
+    EXPECT_TRUE(!fs::exists(tp1));
+    EXPECT_TRUE(!fs::exists(tp2));
 
     auto sm = std::make_shared<SettingManager>();
 
@@ -203,28 +207,28 @@ TEST_CASE("save_backup_symlink", "[settings][save]")
         setting.setValue(13);
     }
 
-    REQUIRE(fs::is_symlink(bp));
-    REQUIRE(!fs::exists(tp));
+    EXPECT_TRUE(fs::is_symlink(bp));
+    EXPECT_TRUE(!fs::exists(tp));
 
     // Save to base file (following the symlink)
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::is_symlink(bp));
-    REQUIRE(fs::exists(tp));
+    EXPECT_TRUE(fs::is_symlink(bp));
+    EXPECT_TRUE(fs::exists(tp));
 
-    REQUIRE(!fs::exists(tp1));
+    EXPECT_TRUE(!fs::exists(tp1));
 
     // Save to base file, should create bkp-1
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::exists(tp1));
+    EXPECT_TRUE(fs::exists(tp1));
 
-    REQUIRE(fs::is_symlink(bp2));
-    REQUIRE(!fs::exists(tp2));
+    EXPECT_TRUE(fs::is_symlink(bp2));
+    EXPECT_TRUE(!fs::exists(tp2));
 
     // Save to base file, should follow bkp-2 and save a file there
-    REQUIRE(sm->save());
+    EXPECT_TRUE(sm->save());
 
-    REQUIRE(fs::is_symlink(bp2));
-    REQUIRE(fs::exists(tp2));
+    EXPECT_TRUE(fs::is_symlink(bp2));
+    EXPECT_TRUE(fs::exists(tp2));
 }

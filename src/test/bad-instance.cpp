@@ -1,40 +1,40 @@
-#include "test/common.hpp"
-
 #include <pajlada/signals/connection.hpp>
+
+#include "test/common.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::Signals;
 using namespace std;
 
-TEST_CASE("Multiple files", "[settings][multi_instance][error]")
+TEST(BadInstance, MultipleFiles)
 {
     auto sm1 = std::make_shared<SettingManager>();
     auto sm2 = std::make_shared<SettingManager>();
 
     Setting<int> a("/multi/a", sm1);
 
-    REQUIRE(a == 0);
+    EXPECT_TRUE(a == 0);
 
     a = 3;
 
-    REQUIRE(a == 3);
+    EXPECT_TRUE(a == 3);
 
     sm1.reset();
 
     a.getValue();
 }
 
-TEST_CASE("Bad 2", "[settings][multi_instance][error]")
+TEST(BadInstance, Two)
 {
     auto sm1 = std::make_shared<SettingManager>();
 
     Setting<int> a("/multi/a", sm1);
 
-    REQUIRE(a == 0);
+    EXPECT_TRUE(a == 0);
 
     a = 3;
 
-    REQUIRE(a == 3);
+    EXPECT_TRUE(a == 3);
 
     auto lockedData = a.getData().lock();
 
@@ -43,20 +43,20 @@ TEST_CASE("Bad 2", "[settings][multi_instance][error]")
     rapidjson::Value val;
     ValueResult<int> p{std::nullopt, -1};
 
-    REQUIRE(lockedData->marshal<int>(53) == false);
-    REQUIRE(lockedData->unmarshalJSON() == nullptr);
-    REQUIRE(lockedData->getPath() == "/multi/a");
-    REQUIRE(lockedData->unmarshal<int>() == p);
+    EXPECT_TRUE(lockedData->marshal<int>(53) == false);
+    EXPECT_TRUE(lockedData->unmarshalJSON() == nullptr);
+    EXPECT_TRUE(lockedData->getPath() == "/multi/a");
+    EXPECT_TRUE(lockedData->unmarshal<int>() == p);
 
     a.getValue();
 }
 
-TEST_CASE("Good 1", "[settings][multi_instance]")
+TEST(MultiInstance, Good1)
 {
     auto sm = std::make_shared<SettingManager>();
 
-    REQUIRE(sm->loadFrom("files/in.multi.json") ==
-            SettingManager::LoadError::NoError);
+    EXPECT_TRUE(sm->loadFrom("files/in.multi.json") ==
+                SettingManager::LoadError::NoError);
 
     Setting<int> a("/multi/a", sm);
 
@@ -70,32 +70,32 @@ TEST_CASE("Good 1", "[settings][multi_instance]")
 
         a.connect(
             [&](int value, const SignalArgs &) {
-                REQUIRE(value == 50);
+                EXPECT_TRUE(value == 50);
                 called = true;
             },
             managedConnections, autoInvoke);
         if (autoInvoke) {
-            REQUIRE(called);
+            EXPECT_TRUE(called);
         }
     }
 
     called = false;
     a.connect([&](int value) {
-        //REQUIRE(value == 50);  //
+        //EXPECT_TRUE(value == 50);  //
         called = true;
     });
 
-    REQUIRE(called);
+    EXPECT_TRUE(called);
 
-    // REQUIRE(a == 50);
+    // EXPECT_TRUE(a == 50);
 }
 
-TEST_CASE("Good 2", "[settings][multi_instance]")
+TEST(MultiInstance, Good2)
 {
     auto sm = std::make_shared<SettingManager>();
 
-    REQUIRE(sm->loadFrom("files/in.multi.json") ==
-            SettingManager::LoadError::NoError);
+    EXPECT_TRUE(sm->loadFrom("files/in.multi.json") ==
+                SettingManager::LoadError::NoError);
 
     Setting<int> a("/multi/a", sm);
 
@@ -113,17 +113,17 @@ TEST_CASE("Good 2", "[settings][multi_instance]")
             },
             managedConnections, autoInvoke);
         if (autoInvoke) {
-            REQUIRE(called);
+            EXPECT_TRUE(called);
         }
     }
 
     called = false;
     a.connect([&](int value) {
-        REQUIRE(value == 50);  //
+        EXPECT_TRUE(value == 50);  //
         called = true;
     });
 
-    REQUIRE(called);
+    EXPECT_TRUE(called);
 
-    // REQUIRE(a == 50);
+    // EXPECT_TRUE(a == 50);
 }
