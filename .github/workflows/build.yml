@@ -116,7 +116,7 @@ jobs:
             cmake ^
               -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} ^
               -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} ^
-              -DPAJLADA_SETTINGS_BUILD_TESTS=On ^
+              -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" ^
               ..
             cmake --build . --config Release
         shell: cmd
