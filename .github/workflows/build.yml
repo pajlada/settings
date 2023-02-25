@@ -125,7 +125,7 @@ jobs:
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
         run: |
             conan profile new --detect --force default
-            conan install --build=missing ..
+            conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
 
       - name: Build (Ubuntu/MacOS)
