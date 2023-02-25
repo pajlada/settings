@@ -123,8 +123,10 @@ jobs:
         run: |
             pip3 install --user conan
             pip3 show conan
-            ls -l ~/.local || true
+            find ~/.local || true
+            find ~/Library || true
             ls -l ~/.local/bin || true
+        shell: bash
 
       - name: Install dependencies with Conan (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
