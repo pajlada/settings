@@ -125,19 +125,11 @@ jobs:
             pip3 show conan
         shell: bash
 
-      - name: Install dependencies with Conan (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'conan'
+      - name: Install dependencies with Conan (Ubuntu/MacOS)
+        if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && matrix.package-manager == 'conan'
         run: |
             conan --version
             conan profile detect
-            conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
-        working-directory: build
-
-      - name: Install dependencies with Conan (MacOS)
-        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
-        run: |
-            conan --version
-            conan profile new --detect --force default
             conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         working-directory: build
 
