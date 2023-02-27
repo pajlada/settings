@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Breaking: Remove move ctor/operator for SettingListener. (#32)
+
 ## v0.1.0
 
 - Dev: Update serialize library to v0.1.0. (#34)
