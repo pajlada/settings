@@ -53,24 +53,24 @@ jobs:
 
       - name: Setup environment (Shared)
         run: |
-            mkdir build
+          mkdir build
         shell: bash
 
       - name: Setup environment (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Setup environment (MacOS)
         if: startsWith(matrix.os, 'macos')
         run: |
-            python3 -c "import site; print(site.USER_BASE + '/bin')" >> "$GITHUB_PATH"
+          python3 -c "import site; print(site.USER_BASE + '/bin')" >> "$GITHUB_PATH"
         shell: bash
 
       - name: Setup environment (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
-            python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')" >> "$GITHUB_PATH"
+          python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')" >> "$GITHUB_PATH"
         shell: bash
 
       - name: Enable Developer Command Prompt
@@ -111,28 +111,28 @@ jobs:
       - name: Install libraries (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
         run: |
-            brew install boost rapidjson
+          brew install boost rapidjson
         shell: bash
 
       - name: Install dependencies with Conan
         if: matrix.package-manager == 'conan'
         run: |
-            conan --version
-            conan profile detect
-            conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
+          conan --version
+          conan profile detect
+          conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
         shell: bash
         working-directory: build
 
       - name: Build
         run: |
-            cmake \
-                -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
-                -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
-                -DPAJLADA_SETTINGS_BUILD_TESTS=On \
-                -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
-                -DCMAKE_BUILD_TYPE=Debug \
-                ..
-            cmake --build . --config Debug --parallel
+          cmake \
+              -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
+              -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
+              -DPAJLADA_SETTINGS_BUILD_TESTS=On \
+              -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
+              -DCMAKE_BUILD_TYPE=Debug \
+              ..
+          cmake --build . --config Debug --parallel
         shell: bash
         working-directory: build
 

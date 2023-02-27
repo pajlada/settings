@@ -1,0 +1,22 @@
+# Ignore submodule files
+external/
+
+# Build folders
+*build-*/
+[bB]uild
+/_build/
+
+# Editors
+.vscode
+.vs
+.idea
+dependencies
+.cache
+.editorconfig
+
+# vcpkg
+vcpkg_installed/
+
+# Test files
+/files/
+/standalone-test/settings.json
