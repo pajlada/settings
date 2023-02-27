@@ -1,8 +1,7 @@
 #pragma once
 
-#include <pajlada/signals/scoped-connection.hpp>
-
 #include <mutex>
+#include <pajlada/signals/scoped-connection.hpp>
 
 namespace pajlada {
 
@@ -28,10 +27,10 @@ public:
     }
 
     void
-    setCB(Callback cb)
+    setCB(Callback callback)
     {
         std::unique_lock<std::mutex> lock(this->cbMutex);
-        this->cb = cb;
+        this->cb = callback;
     }
 
     void
@@ -41,23 +40,8 @@ public:
         this->cb = std::function<void()>();
     }
 
-    SettingListener(SettingListener &&other) noexcept
-    {
-        this->cb = std::move(other.cb);
-
-        this->managedConnections.swap(other.managedConnections);
-    }
-
-    SettingListener &
-    operator=(SettingListener &&other) noexcept
-    {
-        this->cb = std::move(other.cb);
-
-        this->managedConnections.swap(other.managedConnections);
-
-        return *this;
-    }
-
+    SettingListener(SettingListener &&other) = delete;
+    SettingListener &operator=(SettingListener &&other) = delete;
     SettingListener(const SettingListener &) = delete;
     SettingListener &operator=(const SettingListener &) = delete;
 
