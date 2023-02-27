@@ -1,6 +1,6 @@
-#include "test/common.hpp"
-
 #include <pajlada/settings.hpp>
+
+#include "test/common.hpp"
 
 using namespace pajlada::Settings;
 using namespace std;

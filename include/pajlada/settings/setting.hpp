@@ -1,15 +1,14 @@
 #pragma once
 
-#include <pajlada/settings/common.hpp>
-#include <pajlada/settings/equal.hpp>
-#include <pajlada/settings/settingdata.hpp>
-#include <pajlada/settings/settingmanager.hpp>
-
-#include <pajlada/signals.hpp>
 #include <rapidjson/document.h>
 
 #include <iostream>
 #include <mutex>
+#include <pajlada/settings/common.hpp>
+#include <pajlada/settings/equal.hpp>
+#include <pajlada/settings/settingdata.hpp>
+#include <pajlada/settings/settingmanager.hpp>
+#include <pajlada/signals.hpp>
 #include <type_traits>
 
 namespace pajlada {

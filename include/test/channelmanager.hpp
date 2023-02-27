@@ -1,8 +1,8 @@
 #pragma once
 
-#include "test/channel.hpp"
-
 #include <array>
+
+#include "test/channel.hpp"
 
 namespace pajlada {
 namespace test {

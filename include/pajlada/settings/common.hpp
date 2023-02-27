@@ -66,8 +66,8 @@ operator|(const SettingOption &lhs, const SettingOption &rhs)
         (static_cast<uint64_t>(lhs) | static_cast<uint64_t>(rhs)));
 }
 
-inline SettingOption operator&(const SettingOption &lhs,
-                               const SettingOption &rhs)
+inline SettingOption
+operator&(const SettingOption &lhs, const SettingOption &rhs)
 {
     return static_cast<SettingOption>(
         (static_cast<uint64_t>(lhs) & static_cast<uint64_t>(rhs)));
