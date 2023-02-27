@@ -1,19 +1,18 @@
 #pragma once
 
+#include <rapidjson/document.h>
+#include <rapidjson/pointer.h>
+
+#include <atomic>
+#include <functional>
+#include <memory>
 #include <pajlada/serialize.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/equal.hpp>
 #include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <pajlada/settings/signalargs.hpp>
-
-#include <rapidjson/document.h>
-#include <rapidjson/pointer.h>
 #include <pajlada/signals/signal.hpp>
-
-#include <atomic>
-#include <functional>
-#include <memory>
 #include <string>
 #include <vector>
 

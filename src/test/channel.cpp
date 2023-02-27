@@ -1,4 +1,5 @@
 #include "test/channel.hpp"
+
 #include "test/channelmanager.hpp"
 
 namespace pajlada {
