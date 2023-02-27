@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.1.0
+
 - Dev: Update serialize library to v0.1.0. (#34)
 - Dev: Update signals library. (#24)
 - Breaking: `USE_BOOST_FILESYSTEM` option has been renamed to `PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM`. (#23)
