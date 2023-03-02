@@ -16,7 +16,7 @@ namespace Settings {
 
 namespace {
 
-SignalArgs
+inline SignalArgs
 onConnectArgs()
 {
     static SignalArgs a = []() {
