@@ -96,6 +96,20 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
     set_property(TARGET settings-test PROPERTY CXX_STANDARD 17)
     set_property(TARGET settings-test PROPERTY CXX_STANDARD_REQUIRED ON)
 
+    # Enable strict compiler settings
+    if (MSVC)
+        # Someone adds /W3 before we add /W4.
+        # This makes sure, only /W4 is specified.
+        string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+        target_compile_options(settings-test PUBLIC
+            /W4
+            /WX # treat warnings as errors
+        )
+    else()
+        target_compile_options(settings-test PUBLIC -Wall -Werror)
+    endif()
+
     # Make a symlink for files
     add_custom_command(
             OUTPUT symlink_generated_successfully
