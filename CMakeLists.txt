@@ -77,6 +77,7 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
         src/test/advanced-array.cpp
         src/test/bad-instance.cpp
         src/test/misc.cpp
+        src/test/listener.cpp
 
         src/test/foo.cpp
         src/test/channel.cpp
