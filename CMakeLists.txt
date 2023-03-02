@@ -150,7 +150,7 @@ else()
         target_link_libraries(PajladaSettings PUBLIC rapidjson)
     else ()
         message(STATUS "Including rapidjson directory ${RAPIDJSON_INCLUDE_DIRS}")
-        target_include_directories(PajladaSettings PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
+        target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
     endif ()
 endif()
 
