@@ -20,10 +20,10 @@ public:
         this->resetCB();
     }
 
-    SettingListener(Callback cb)
+    SettingListener(Callback callback)
     {
         std::unique_lock<std::mutex> lock(this->cbMutex);
-        this->cb = cb;
+        this->cb = callback;
     }
 
     void

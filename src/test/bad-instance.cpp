@@ -80,7 +80,7 @@ TEST(MultiInstance, Good1)
     }
 
     called = false;
-    a.connect([&](int value) {
+    a.connect([&](int /*value*/) {
         //EXPECT_TRUE(value == 50);  //
         called = true;
     });
@@ -108,7 +108,7 @@ TEST(MultiInstance, Good2)
         const bool autoInvoke = true;
 
         a.connectJSON(
-            [&](const rapidjson::Value &v, const SignalArgs &) {
+            [&](const rapidjson::Value &, const SignalArgs &) {
                 called = true;  //
             },
             managedConnections, autoInvoke);
