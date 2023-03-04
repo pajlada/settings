@@ -141,7 +141,6 @@ TEST(Serialize, BoostAnyVectorAny)
 TEST(Serialize, Int1)
 {
     SettingManager::clear();
-    int data = 8;
     Setting<int> a("/a");
     EXPECT_TRUE(a == 0);
     EXPECT_TRUE(a.getValue() == 0);
@@ -165,7 +164,6 @@ TEST(Serialize, Int2)
 TEST(Serialize, Int3)
 {
     SettingManager::clear();
-    int data = 8;
     Setting<int> a("/a");
     EXPECT_TRUE(LoadFile("in.serialize.int.json"));
     EXPECT_TRUE(a == 10);
@@ -177,7 +175,6 @@ TEST(Serialize, Int3)
 TEST(Serialize, Int4)
 {
     SettingManager::clear();
-    int data = 8;
     Setting<int> a("/a");
     EXPECT_TRUE(LoadFile("in.serialize.int.json"));
     EXPECT_TRUE(SaveFile("out.serialize.int.json"));

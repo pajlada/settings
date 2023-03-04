@@ -141,10 +141,10 @@ struct Deserialize<MyWindow> {
         }
 
         if (value.HasMember("x")) {
-            bool error = false;
-            auto out = pajlada::Deserialize<int>::get(value["x"], &error);
+            bool innerError = false;
+            auto out = pajlada::Deserialize<int>::get(value["x"], &innerError);
 
-            if (!error) {
+            if (!innerError) {
                 ret.x = out;
             }
         }
