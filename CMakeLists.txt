@@ -47,6 +47,8 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
     add_executable(settings-test
         src/test/main.cpp
 
+        src/test/instance.cpp
+
         src/test/map.cpp
         src/test/load.cpp
         src/test/save.cpp
