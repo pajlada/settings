@@ -4,7 +4,6 @@
 
 using namespace pajlada::Settings;
 using namespace pajlada::Signals;
-using namespace std;
 
 TEST(BadInstance, MultipleFiles)
 {

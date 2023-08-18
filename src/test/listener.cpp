@@ -6,7 +6,6 @@
 
 using namespace pajlada::Settings;
 using namespace pajlada;
-using namespace std;
 
 TEST(Listener, simple)
 {

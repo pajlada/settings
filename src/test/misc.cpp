@@ -15,7 +15,6 @@
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
-using namespace std;
 
 #ifdef PAJLADA_BOOST_ANY_SUPPORT
 TEST(Misc, BoostAny)
@@ -64,7 +63,7 @@ TEST(Misc, ArraySize)
 
 TEST(Misc, Vector)
 {
-    Setting<vector<int>> test("/vectorTest");
+    Setting<std::vector<int>> test("/vectorTest");
 
     EXPECT_TRUE(LoadFile("in.vector.json"));
 
@@ -76,7 +75,7 @@ TEST(Misc, Vector)
     EXPECT_TRUE(vec.at(1) == 10);
     EXPECT_TRUE(vec.at(2) == 15);
 
-    vector<int> x = {1, 2, 3};
+    std::vector<int> x = {1, 2, 3};
 
     test = x;
 

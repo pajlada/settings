@@ -6,26 +6,25 @@
 #include "pajlada/settings/detail/fs.hpp"
 
 using namespace pajlada::Settings;
-using namespace std;
 
 namespace {
 
-string initialPath = "files/";
+std::string initialPath = "files/";
 
 }  // namespace
 
-string
-ReadFile(const string &path)
+std::string
+ReadFile(const std::string &path)
 {
-    ifstream fh(path, ios::in | ios::binary);
+    std::ifstream fh(path, std::ios::in | std::ios::binary);
     if (!fh) {
         return "";
     }
 
-    string contents;
-    fh.seekg(0, ios::end);
+    std::string contents;
+    fh.seekg(0, std::ios::end);
     contents.resize(fh.tellg());
-    fh.seekg(0, ios::beg);
+    fh.seekg(0, std::ios::beg);
     fh.read(&contents[0], contents.size());
     fh.close();
 
@@ -33,10 +32,10 @@ ReadFile(const string &path)
 }
 
 bool
-FilesMatch(const string &fileName1, const string &fileName2)
+FilesMatch(const std::string &fileName1, const std::string &fileName2)
 {
-    string path1 = initialPath + fileName1;
-    string path2 = initialPath + fileName2;
+    std::string path1 = initialPath + fileName1;
+    std::string path2 = initialPath + fileName2;
 
     auto content1 = ReadFile(path1);
     auto content2 = ReadFile(path2);
@@ -48,25 +47,25 @@ FilesMatch(const string &fileName1, const string &fileName2)
 }
 
 bool
-LoadFile(const string &fileName, SettingManager *sm)
+LoadFile(const std::string &fileName, SettingManager *sm)
 {
     if (sm == nullptr) {
         sm = SettingManager::getInstance().get();
     }
 
-    string path = initialPath + fileName;
+    std::string path = initialPath + fileName;
 
     return sm->loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
 }
 
 bool
-SaveFile(const string &fileName, SettingManager *sm)
+SaveFile(const std::string &fileName, SettingManager *sm)
 {
     if (sm == nullptr) {
         sm = SettingManager::getInstance().get();
     }
 
-    string path = initialPath + fileName;
+    std::string path = initialPath + fileName;
 
     return sm->saveAs(path.c_str());
 }

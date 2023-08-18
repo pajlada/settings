@@ -1,7 +1,6 @@
 #include "test/common.hpp"
 
 using namespace pajlada::Settings;
-using namespace std;
 
 TEST(Scope, Simple)
 {
