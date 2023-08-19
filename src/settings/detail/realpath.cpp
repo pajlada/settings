@@ -2,9 +2,7 @@
 #include <pajlada/settings/internal.hpp>
 #include <unordered_set>
 
-namespace pajlada {
-namespace Settings {
-namespace detail {
+namespace pajlada::Settings::detail {
 
 fs::path
 RealPath(const fs::path &_path, fs_error_code &ec)
@@ -57,6 +55,4 @@ RealPath(const fs::path &_path, fs_error_code &ec)
     return path;
 }
 
-}  // namespace detail
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings::detail

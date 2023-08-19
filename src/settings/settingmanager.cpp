@@ -9,8 +9,7 @@
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 SettingManager::SettingManager()
     : document(rapidjson::kObjectType)
@@ -52,7 +51,7 @@ SettingManager::stringify(const rapidjson::Value &v)
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     v.Accept(writer);
 
-    return std::string(buffer.GetString());
+    return {buffer.GetString()};
 }
 
 rapidjson::Value *
@@ -126,10 +125,10 @@ SettingManager::arraySize(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    auto valuePointer =
+    auto *valuePointer =
         rapidjson::Pointer(path.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
-        return false;
+        return 0;
     }
 
     rapidjson::Value &value = *valuePointer;
@@ -154,7 +153,7 @@ SettingManager::isNull(const std::string &path)
 bool
 SettingManager::_isNull(const std::string &path)
 {
-    auto valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
+    auto *valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
     if (valuePointer == nullptr) {
         return true;
     }
@@ -191,7 +190,7 @@ SettingManager::removeArrayValue(const std::string &arrayPath,
         return false;
     }
 
-    auto valuePointer =
+    auto *valuePointer =
         rapidjson::Pointer(arrayPath.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
         return false;
@@ -242,7 +241,7 @@ SettingManager::getObjectKeys(const std::string &objectPath)
 
     std::vector<std::string> ret;
 
-    auto root = instance->get(objectPath.c_str());
+    auto *root = instance->get(objectPath.c_str());
 
     if (root == nullptr || !root->IsObject()) {
         return ret;
@@ -504,6 +503,7 @@ SettingManager::saveAs(const fs::path &_path)
     fs::rename(tmpPath, path, ec);
 
     if (ec) {
+        // TODO(pajlada): Print the error code somewhere?
         return false;
     }
 
@@ -574,5 +574,4 @@ SettingManager::getSetting(const std::string &path)
     return it->second;
 }
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

@@ -12,8 +12,7 @@
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 class SettingData;
 
@@ -114,8 +113,8 @@ public:
     // on the statically initialized SettingManager instance
 
     enum class SaveMethod : uint64_t {
-        SaveOnExit = (1ull << 1ull),
-        SaveOnSettingChange = (1ull << 2ull),
+        SaveOnExit = (1ULL << 1ULL),
+        SaveOnSettingChange = (1ULL << 2ULL),
 
         // Force user to manually call SettingsManager::save() to save
         SaveManually = 0,
@@ -163,5 +162,4 @@ private:
     std::map<std::string, std::shared_ptr<SettingData>> settings;
 };
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

@@ -1,12 +1,12 @@
 #include <pajlada/settings/settingdata.hpp>
+#include <utility>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 SettingData::SettingData(std::string _path,
                          std::weak_ptr<SettingManager> _instance)
     : path(std::move(_path))
-    , instance(_instance)
+    , instance(std::move(_instance))
 {
 }
 
@@ -41,5 +41,4 @@ SettingData::get() const
     return locked->get(this->path.c_str());
 }
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

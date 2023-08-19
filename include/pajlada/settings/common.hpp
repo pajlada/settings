@@ -51,10 +51,10 @@ operator==(const ValueResult<Type> &lhs, const ValueResult<Type> &rhs)
 }
 
 enum class SettingOption : uint32_t {
-    DoNotWriteToJSON = (1ull << 1ull),
+    DoNotWriteToJSON = (1ULL << 1ULL),
 
     /// A remote setting is a setting that is never saved locally, nor registered locally with any callbacks or anything
-    Remote = (1ull << 2ull),
+    Remote = (1ULL << 2ULL),
 
     Default = 0,
 };
