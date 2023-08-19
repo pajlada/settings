@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <pajlada/signals/scoped-connection.hpp>
+#include <utility>
 #include <vector>
 
 namespace pajlada {
@@ -23,16 +24,15 @@ public:
     }
 
     SettingListener(Callback callback)
+        : cb(std::move(callback))
     {
-        std::unique_lock<std::mutex> lock(this->cbMutex);
-        this->cb = callback;
     }
 
     void
     setCB(Callback callback)
     {
         std::unique_lock<std::mutex> lock(this->cbMutex);
-        this->cb = callback;
+        this->cb = std::move(callback);
     }
 
     void

@@ -1,11 +1,12 @@
 #include <pajlada/settings/settingdata.hpp>
+#include <utility>
 
 namespace pajlada::Settings {
 
 SettingData::SettingData(std::string _path,
                          std::weak_ptr<SettingManager> _instance)
     : path(std::move(_path))
-    , instance(_instance)
+    , instance(std::move(_instance))
 {
 }
 
