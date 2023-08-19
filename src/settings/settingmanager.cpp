@@ -125,7 +125,7 @@ SettingManager::arraySize(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    auto valuePointer =
+    auto *valuePointer =
         rapidjson::Pointer(path.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
         return false;
@@ -153,7 +153,7 @@ SettingManager::isNull(const std::string &path)
 bool
 SettingManager::_isNull(const std::string &path)
 {
-    auto valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
+    auto *valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
     if (valuePointer == nullptr) {
         return true;
     }
@@ -190,7 +190,7 @@ SettingManager::removeArrayValue(const std::string &arrayPath,
         return false;
     }
 
-    auto valuePointer =
+    auto *valuePointer =
         rapidjson::Pointer(arrayPath.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
         return false;
@@ -241,7 +241,7 @@ SettingManager::getObjectKeys(const std::string &objectPath)
 
     std::vector<std::string> ret;
 
-    auto root = instance->get(objectPath.c_str());
+    auto *root = instance->get(objectPath.c_str());
 
     if (root == nullptr || !root->IsObject()) {
         return ret;
