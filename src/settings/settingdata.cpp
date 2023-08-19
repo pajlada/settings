@@ -1,17 +1,16 @@
 #include <pajlada/settings/settingdata.hpp>
 
-using namespace std;
-
 namespace pajlada {
 namespace Settings {
 
-SettingData::SettingData(string _path, weak_ptr<SettingManager> _instance)
-    : path(move(_path))
+SettingData::SettingData(std::string _path,
+                         std::weak_ptr<SettingManager> _instance)
+    : path(std::move(_path))
     , instance(_instance)
 {
 }
 
-const string &
+const std::string &
 SettingData::getPath() const
 {
     return this->path;

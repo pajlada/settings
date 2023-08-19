@@ -3,7 +3,6 @@
 #include "test/common.hpp"
 
 using namespace pajlada::Settings;
-using namespace std;
 
 #ifdef PAJLADA_BOOST_ANY_SUPPORT
 TEST_CASE("Simple Map", "[settings]")

@@ -9,8 +9,6 @@
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
-using namespace std;
-
 namespace pajlada {
 namespace Settings {
 
@@ -30,31 +28,31 @@ SettingManager::~SettingManager()
 }
 
 void
-SettingManager::pp(const string &prefix)
+SettingManager::pp(const std::string &prefix)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     this->document.Accept(writer);
 
-    cout << prefix << buffer.GetString() << endl;
+    std::cout << prefix << buffer.GetString() << std::endl;
 }
 
 void
-SettingManager::gPP(const string &prefix)
+SettingManager::gPP(const std::string &prefix)
 {
     auto instance = SettingManager::getInstance();
 
     instance->pp(prefix);
 }
 
-string
+std::string
 SettingManager::stringify(const rapidjson::Value &v)
 {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     v.Accept(writer);
 
-    return string(buffer.GetString());
+    return std::string(buffer.GetString());
 }
 
 rapidjson::Value *
@@ -88,8 +86,8 @@ SettingManager::set(const char *path, const rapidjson::Value &value,
 }
 
 void
-SettingManager::notifyUpdate(const string &path, const rapidjson::Value &value,
-                             SignalArgs args)
+SettingManager::notifyUpdate(const std::string &path,
+                             const rapidjson::Value &value, SignalArgs args)
 {
     auto setting = this->getSetting(path);
     if (!setting) {
@@ -124,7 +122,7 @@ SettingManager::notifyLoadedValues()
 }
 
 rapidjson::SizeType
-SettingManager::arraySize(const string &path)
+SettingManager::arraySize(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -146,7 +144,7 @@ SettingManager::arraySize(const string &path)
 
 // Returns true if the value at the given path is null or if doesn't exist
 bool
-SettingManager::isNull(const string &path)
+SettingManager::isNull(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -154,7 +152,7 @@ SettingManager::isNull(const string &path)
 }
 
 bool
-SettingManager::_isNull(const string &path)
+SettingManager::_isNull(const std::string &path)
 {
     auto valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
     if (valuePointer == nullptr) {
@@ -165,7 +163,7 @@ SettingManager::_isNull(const string &path)
 }
 
 void
-SettingManager::setNull(const string &path)
+SettingManager::setNull(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -174,12 +172,12 @@ SettingManager::setNull(const string &path)
 }
 
 bool
-SettingManager::removeArrayValue(const string &arrayPath,
+SettingManager::removeArrayValue(const std::string &arrayPath,
                                  rapidjson::SizeType index)
 {
     const auto &instance = SettingManager::getInstance();
 
-    instance->clearSettings(arrayPath + "/" + to_string(index) + "/");
+    instance->clearSettings(arrayPath + "/" + std::to_string(index) + "/");
 
     rapidjson::SizeType size = SettingManager::arraySize(arrayPath);
 
@@ -205,16 +203,16 @@ SettingManager::removeArrayValue(const string &arrayPath,
         // We want to remove the last element
         array.PopBack();
     } else {
-        SettingManager::setNull(arrayPath + "/" + to_string(index));
+        SettingManager::setNull(arrayPath + "/" + std::to_string(index));
     }
 
-    instance->clearSettings(arrayPath + "/" + to_string(index) + "/");
+    instance->clearSettings(arrayPath + "/" + std::to_string(index) + "/");
 
     return true;
 }
 
 rapidjson::SizeType
-SettingManager::cleanArray(const string &arrayPath)
+SettingManager::cleanArray(const std::string &arrayPath)
 {
     rapidjson::SizeType size = SettingManager::arraySize(arrayPath);
 
@@ -228,7 +226,7 @@ SettingManager::cleanArray(const string &arrayPath)
     rapidjson::SizeType numValuesRemoved = 0;
 
     for (rapidjson::SizeType i = size - 1; i > 0; --i) {
-        if (instance->_isNull(arrayPath + "/" + to_string(i))) {
+        if (instance->_isNull(arrayPath + "/" + std::to_string(i))) {
             SettingManager::removeArrayValue(arrayPath, i);
             ++numValuesRemoved;
         }
@@ -237,12 +235,12 @@ SettingManager::cleanArray(const string &arrayPath)
     return numValuesRemoved;
 }
 
-vector<string>
-SettingManager::getObjectKeys(const string &objectPath)
+std::vector<std::string>
+SettingManager::getObjectKeys(const std::string &objectPath)
 {
     auto instance = SettingManager::getInstance();
 
-    vector<string> ret;
+    std::vector<std::string> ret;
 
     auto root = instance->get(objectPath.c_str());
 
@@ -267,13 +265,13 @@ SettingManager::clear()
     rapidjson::Value(rapidjson::kObjectType).Swap(instance->document);
 
     // Clear map of settings
-    lock_guard<mutex> lock(instance->settingsMutex);
+    std::lock_guard<std::mutex> lock(instance->settingsMutex);
 
     instance->settings.clear();
 }
 
 bool
-SettingManager::removeSetting(const string &path)
+SettingManager::removeSetting(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -281,15 +279,15 @@ SettingManager::removeSetting(const string &path)
 }
 
 bool
-SettingManager::_removeSetting(const string &path)
+SettingManager::_removeSetting(const std::string &path)
 {
     auto ptr = rapidjson::Pointer(path.c_str());
 
-    lock_guard<mutex> lock(this->settingsMutex);
+    std::lock_guard<std::mutex> lock(this->settingsMutex);
 
     this->settings.erase(path);
 
-    string pathWithExtendor;
+    std::string pathWithExtendor;
     if (path.at(path.length() - 1) == '/') {
         pathWithExtendor = path;
     } else {
@@ -313,11 +311,11 @@ SettingManager::_removeSetting(const string &path)
 }
 
 void
-SettingManager::clearSettings(const string &root)
+SettingManager::clearSettings(const std::string &root)
 {
-    lock_guard<mutex> lock(this->settingsMutex);
+    std::lock_guard<std::mutex> lock(this->settingsMutex);
 
-    vector<string> keysToBeRemoved;
+    std::vector<std::string> keysToBeRemoved;
 
     for (const auto &setting : this->settings) {
         if (setting.first.compare(0, root.length(), root) == 0) {
@@ -391,7 +389,7 @@ SettingManager::loadFrom(const fs::path &_path)
         return LoadError::NoError;
     }
 
-    // Create vector of appropriate size
+    // Create std::vector of appropriate size
     std::vector<char> fileBuffer;
     fileBuffer.resize(fileSize);
 
@@ -541,15 +539,15 @@ SettingManager::setBackupSlots(uint8_t numSlots)
     this->backup.numSlots = numSlots;
 }
 
-weak_ptr<SettingData>
-SettingManager::getSetting(const string &path,
-                           shared_ptr<SettingManager> instance)
+std::weak_ptr<SettingData>
+SettingManager::getSetting(const std::string &path,
+                           std::shared_ptr<SettingManager> instance)
 {
     if (!instance) {
         instance = SettingManager::getInstance();
     }
 
-    lock_guard<mutex> lock(instance->settingsMutex);
+    std::lock_guard<std::mutex> lock(instance->settingsMutex);
 
     auto &setting = instance->settings[path];
 
@@ -558,13 +556,13 @@ SettingManager::getSetting(const string &path,
         setting.reset(new SettingData(path, instance));
     }
 
-    return static_pointer_cast<SettingData>(setting);
+    return std::static_pointer_cast<SettingData>(setting);
 }
 
-shared_ptr<SettingData>
-SettingManager::getSetting(const string &path)
+std::shared_ptr<SettingData>
+SettingManager::getSetting(const std::string &path)
 {
-    lock_guard<mutex> lock(this->settingsMutex);
+    std::lock_guard<std::mutex> lock(this->settingsMutex);
 
     auto it = this->settings.find(path);
 

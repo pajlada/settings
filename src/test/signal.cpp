@@ -1,7 +1,6 @@
 #include "test/common.hpp"
 
 using namespace pajlada::Settings;
-using namespace std;
 
 TEST(Signal, Simple)
 {
@@ -71,7 +70,8 @@ TEST(Signal, ScopedConnection)
         currentValue = newValue;
     };
 
-    vector<std::unique_ptr<pajlada::Signals::ScopedConnection>> connections;
+    std::vector<std::unique_ptr<pajlada::Signals::ScopedConnection>>
+        connections;
 
     {
         Setting<int> c("/advancedSignals/c");

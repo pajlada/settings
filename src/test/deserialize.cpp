@@ -2,7 +2,6 @@
 
 using namespace pajlada::Settings;
 using namespace pajlada;
-using namespace std;
 
 const double EPSILON = 1e-6;
 
@@ -30,7 +29,7 @@ TEST_F(FDeserialize, Int)
 {
     Setting<int> a1("/int");
     Setting<int> a2("/float");
-    auto a3 = new Setting<int>("/string");
+    auto a3 = new Setting<int>("/std::string");
     auto a4 = new Setting<int>("/bool");
 
     EXPECT_TRUE(a1.getValue() == 5);
@@ -43,7 +42,7 @@ TEST_F(FDeserialize, Float)
 {
     Setting<float> a1("/int");
     Setting<float> a2("/float");
-    auto a3 = new Setting<float>("/string");
+    auto a3 = new Setting<float>("/std::string");
     auto a4 = new Setting<float>("/bool");
 
     EXPECT_NEAR(a1.getValue(), 5.f, EPSILON);
@@ -56,7 +55,7 @@ TEST_F(FDeserialize, Double)
 {
     Setting<double> a1("/int");
     Setting<double> a2("/float");
-    auto a3 = new Setting<double>("/string");
+    auto a3 = new Setting<double>("/std::string");
     auto a4 = new Setting<double>("/bool");
 
     EXPECT_NEAR(a1.getValue(), 5., EPSILON);
@@ -69,7 +68,7 @@ TEST_F(FDeserialize, Bool)
 {
     Setting<bool> a1("/int");
     auto a2 = new Setting<bool>("/float");
-    auto a3 = new Setting<bool>("/string");
+    auto a3 = new Setting<bool>("/std::string");
     auto a4 = new Setting<bool>("/bool");
 
     Setting<bool> a5("/int1");
@@ -143,25 +142,25 @@ TEST_F(FDeserialize2, Int)
 
 TEST_F(FDeserialize2, String)
 {
-    string v = "";
+    std::string v = "";
 
     error = false;
-    v = Deserialize<string>::get(this->jString, &error);
+    v = Deserialize<std::string>::get(this->jString, &error);
     EXPECT_TRUE(error == false);
     EXPECT_TRUE(v == "asd");
 
     error = false;
-    DD_THROWS(v = Deserialize<string>::get(jInt, &error));
+    DD_THROWS(v = Deserialize<std::string>::get(jInt, &error));
     EXPECT_TRUE(error == true);
     REQUIRE_IF_NOEXCEPT2(v, "");
 
     error = false;
-    DD_THROWS(v = Deserialize<string>::get(jBool, &error));
+    DD_THROWS(v = Deserialize<std::string>::get(jBool, &error));
     EXPECT_TRUE(error == true);
     REQUIRE_IF_NOEXCEPT2(v, "");
 
     error = false;
-    DD_THROWS(v = Deserialize<string>::get(this->jDouble, &error));
+    DD_THROWS(v = Deserialize<std::string>::get(this->jDouble, &error));
     EXPECT_TRUE(error == true);
     REQUIRE_IF_NOEXCEPT2(v, "");
 }
