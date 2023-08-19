@@ -503,6 +503,7 @@ SettingManager::saveAs(const fs::path &_path)
     fs::rename(tmpPath, path, ec);
 
     if (ec) {
+        // TODO(pajlada): Print the error code somewhere?
         return false;
     }
 

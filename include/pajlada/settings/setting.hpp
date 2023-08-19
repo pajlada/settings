@@ -215,7 +215,7 @@ public:
     void
     push_back(typename T::value_type newItem, SignalArgs &&args = SignalArgs())
     {
-        // TODO: refresh this->value first?
+        // TODO(pajlada): refresh this->value first?
         this->valueMutex.lock();
         if (!this->value) {
             this->value = Type{};
@@ -233,7 +233,7 @@ public:
     removeByValue(const typename T::value_type &key,
                   SignalArgs &&args = SignalArgs())
     {
-        // TODO: refresh this->value first?
+        // TODO(pajlada): refresh this->value first?
 
         T copy;
 
