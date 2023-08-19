@@ -13,7 +13,7 @@
 
 namespace pajlada::Settings {
 
-namespace {
+namespace detail {
 
 inline SignalArgs
 onConnectArgs()
@@ -28,7 +28,7 @@ onConnectArgs()
     return a;
 }
 
-}  // namespace
+}  // namespace detail
 
 // A default value passed to a setting is only local to this specific instance of the setting
 // it is never shared between other settings at the same path
@@ -428,7 +428,7 @@ public:
             if (ptr != nullptr) {
                 d.CopyFrom(*ptr, d.GetAllocator());
             }
-            connection.invoke(std::move(d), onConnectArgs());
+            connection.invoke(std::move(d), detail::onConnectArgs());
         }
 
         this->managedConnections.emplace_back(
@@ -455,7 +455,7 @@ public:
             if (ptr != nullptr) {
                 d.CopyFrom(*ptr, d.GetAllocator());
             }
-            connection.invoke(std::move(d), onConnectArgs());
+            connection.invoke(std::move(d), detail::onConnectArgs());
         }
 
         userDefinedManagedConnections.emplace_back(
@@ -478,7 +478,7 @@ public:
             });
 
         if (autoInvoke) {
-            func(this->getValue(), onConnectArgs());
+            func(this->getValue(), detail::onConnectArgs());
         }
 
         this->managedConnections.emplace_back(
@@ -502,7 +502,7 @@ public:
             });
 
         if (autoInvoke) {
-            func(this->getValue(), onConnectArgs());
+            func(this->getValue(), detail::onConnectArgs());
         }
 
         userDefinedManagedConnections.emplace_back(
@@ -617,7 +617,7 @@ public:
             });
 
         if (autoInvoke) {
-            func(onConnectArgs());
+            func(detail::onConnectArgs());
         }
 
         this->managedConnections.emplace_back(
@@ -641,7 +641,7 @@ public:
             });
 
         if (autoInvoke) {
-            func(onConnectArgs());
+            func(detail::onConnectArgs());
         }
 
         userDefinedManagedConnections.emplace_back(
