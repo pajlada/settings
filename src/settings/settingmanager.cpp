@@ -51,7 +51,7 @@ SettingManager::stringify(const rapidjson::Value &v)
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     v.Accept(writer);
 
-    return std::string(buffer.GetString());
+    return {buffer.GetString()};
 }
 
 rapidjson::Value *
