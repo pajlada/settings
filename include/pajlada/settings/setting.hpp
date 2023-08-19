@@ -11,8 +11,7 @@
 #include <pajlada/signals.hpp>
 #include <type_traits>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 namespace {
 
@@ -671,5 +670,4 @@ private:
     std::vector<std::unique_ptr<Signals::ScopedConnection>> managedConnections;
 };
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

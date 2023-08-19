@@ -9,8 +9,7 @@
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 SettingManager::SettingManager()
     : document(rapidjson::kObjectType)
@@ -574,5 +573,4 @@ SettingManager::getSetting(const std::string &path)
     return it->second;
 }
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

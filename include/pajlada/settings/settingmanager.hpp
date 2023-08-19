@@ -12,8 +12,7 @@
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 class SettingData;
 
@@ -163,5 +162,4 @@ private:
     std::map<std::string, std::shared_ptr<SettingData>> settings;
 };
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

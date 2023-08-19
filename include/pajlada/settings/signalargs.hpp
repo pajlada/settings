@@ -6,8 +6,7 @@
 
 #include <string>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 struct SignalArgs {
     SignalArgs() = default;
@@ -35,5 +34,4 @@ struct SignalArgs {
     bool writeToFile{true};
 };
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings

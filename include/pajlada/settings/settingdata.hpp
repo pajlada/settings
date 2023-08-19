@@ -16,8 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace pajlada {
-namespace Settings {
+namespace pajlada::Settings {
 
 class SettingData
 {
@@ -90,5 +89,4 @@ private:
     rapidjson::Value *get() const;
 };
 
-}  // namespace Settings
-}  // namespace pajlada
+}  // namespace pajlada::Settings
