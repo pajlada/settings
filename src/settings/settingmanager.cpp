@@ -128,7 +128,7 @@ SettingManager::arraySize(const std::string &path)
     auto *valuePointer =
         rapidjson::Pointer(path.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
-        return false;
+        return 0;
     }
 
     rapidjson::Value &value = *valuePointer;
