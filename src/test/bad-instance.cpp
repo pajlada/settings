@@ -40,12 +40,11 @@ TEST(BadInstance, Two)
     sm1.reset();
 
     rapidjson::Value val;
-    ValueResult<int> p{std::nullopt, -1};
 
     EXPECT_TRUE(lockedData->marshal<int>(53) == false);
     EXPECT_TRUE(lockedData->unmarshalJSON() == nullptr);
     EXPECT_TRUE(lockedData->getPath() == "/multi/a");
-    EXPECT_TRUE(lockedData->unmarshal<int>() == p);
+    EXPECT_TRUE(lockedData->unmarshal<int>() == std::nullopt);
 
     a.getValue();
 }

@@ -36,20 +36,6 @@ using OptionalType = std::optional<T>;
 const std::nullopt_t OptionalNull = std::nullopt;
 #endif
 
-template <typename Type>
-struct ValueResult {
-    OptionalType<Type> value;
-    int updateIteration;
-};
-
-template <typename Type>
-inline bool
-operator==(const ValueResult<Type> &lhs, const ValueResult<Type> &rhs)
-{
-    return std::tie(lhs.value, lhs.updateIteration) ==
-           std::tie(rhs.value, rhs.updateIteration);
-}
-
 enum class SettingOption : uint32_t {
     DoNotWriteToJSON = (1ULL << 1ULL),
 

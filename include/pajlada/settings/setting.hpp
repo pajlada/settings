@@ -160,7 +160,8 @@ public:
             return this->defaultValue;
         }
 
-        if (this->updateIteration == lockedSetting->getUpdateIteration()) {
+        auto currentUpdateIteration = lockedSetting->getUpdateIteration();
+        if (this->updateIteration == currentUpdateIteration) {
             // Value hasn't been updated
             if (this->value) {
                 return *this->value;
@@ -168,11 +169,11 @@ public:
 
             return this->defaultValue;
         }
+        this->updateIteration = currentUpdateIteration;
 
         auto p = lockedSetting->template unmarshal<Type>();
-        if (p.value) {
-            this->value = p.value;
-            this->updateIteration = p.updateIteration;
+        if (p) {
+            this->value = std::forward<decltype(p)>(p);
         }
 
         if (this->value) {
