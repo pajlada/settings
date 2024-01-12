@@ -87,7 +87,8 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
 
     target_link_libraries(settings-test PRIVATE PajladaSettings gtest)
 
-    add_test(AllTestsXD settings-test)
+    include(GoogleTest)
+    gtest_discover_tests(settings-test)
 
     target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_DEBUG)
     # target_compile_definitions(settings-test PRIVATE PAJLADA_BOOST_ANY_SUPPORT)
