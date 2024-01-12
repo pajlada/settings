@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Breaking: Remove move ctor/operator for SettingListener. (#32)
+- Bugfix: Fixed an issue where settings without a value would always try to unmarshal the internal JSON. (#40)
 - Dev: Remove `using namespace std` usages. (#38)
 
 ## v0.1.0
