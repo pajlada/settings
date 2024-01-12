@@ -160,4 +160,9 @@ TEST(Default, UpdateUpdateIteration)
 
     EXPECT_EQ(setting.getValue(), 42);
     EXPECT_EQ(setting.getUpdateIteration(), 0);
+
+    setting = 43;
+    EXPECT_EQ(setting.getUpdateIteration(), 0);
+    EXPECT_EQ(setting.getValue(), 43);
+    EXPECT_EQ(setting.getUpdateIteration(), 1);
 }
