@@ -146,3 +146,18 @@ TEST(Default, Reset)
     EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
     EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
 }
+
+TEST(Default, UpdateUpdateIteration)
+{
+    SettingManager::clear();
+
+    Setting<int> setting("/setting", 42);
+
+    EXPECT_EQ(setting.getUpdateIteration(), -1);
+
+    EXPECT_TRUE(LoadFile("empty.json"));
+    EXPECT_EQ(setting.getUpdateIteration(), -1);
+
+    EXPECT_EQ(setting.getValue(), 42);
+    EXPECT_EQ(setting.getUpdateIteration(), 0);
+}

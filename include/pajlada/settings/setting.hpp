@@ -391,6 +391,13 @@ public:
         return SettingManager::removeSetting(this->getPath());
     }
 
+    int
+    getUpdateIteration() const
+    {
+        std::lock_guard guard(this->valueMutex);
+        return this->updateIteration;
+    }
+
 private:
     std::weak_ptr<SettingData> data;
     SettingOption options = SettingOption::Default;
