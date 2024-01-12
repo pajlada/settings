@@ -95,7 +95,7 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
     # target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_BOOST_FILESYSTEM)
 
     # Enable C++17
-    set_property(TARGET settings-test PROPERTY CXX_STANDARD 17)
+    set_property(TARGET settings-test PROPERTY CXX_STANDARD 20)
     set_property(TARGET settings-test PROPERTY CXX_STANDARD_REQUIRED ON)
 
     # Enable strict compiler settings
@@ -163,11 +163,10 @@ if (MSVC)
 else()
     if (NOT PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM)
 		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-			if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-				message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
+			if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3) # Ubuntu 20.04 version of gcc
+				message(FATAL_ERROR "GCC version must be at least 9.3 if using std filesystem")
 			endif()
 		endif()
-        target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
     endif()
 endif()
 
