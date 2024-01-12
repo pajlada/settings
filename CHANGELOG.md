@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Breaking: Remove move ctor/operator for SettingListener. (#32)
+- Breaking: Updated to C++ 20. (#41)
 - Dev: Remove `using namespace std` usages. (#38)
 
 ## v0.1.0
