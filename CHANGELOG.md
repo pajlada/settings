@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Breaking: Remove move ctor/operator for SettingListener. (#32)
+- Breaking: Updated to C++20. (#42)
+- Breaking: Remove boost::any `userData` support. (#44)
 - Bugfix: Fixed an issue where settings without a value would always try to unmarshal the internal JSON. (#40)
 - Dev: Remove `using namespace std` usages. (#38)
 
