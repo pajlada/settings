@@ -15,3 +15,8 @@ compile_commands.json
 /.cache
 
 CMakeUserPresets.json
+
+# editors
+.vscode
+.vs
+.idea
