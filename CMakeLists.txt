@@ -6,6 +6,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(PajladaSettings)
 
+set(PAJLADA_SETTINGS_CXX_STANDARD "20")
+
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
@@ -22,7 +24,7 @@ set(PajladaSettings_SOURCES
 add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 add_library(Pajlada::Settings ALIAS PajladaSettings)
 
-set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 17)
+set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD ${PAJLADA_SETTINGS_CXX_STANDARD})
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(PajladaSettings PUBLIC include)
@@ -93,8 +95,7 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
     # target_compile_definitions(settings-test PRIVATE PAJLADA_BOOST_ANY_SUPPORT)
     # target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_BOOST_FILESYSTEM)
 
-    # Enable C++17
-    set_property(TARGET settings-test PROPERTY CXX_STANDARD 17)
+    set_property(TARGET settings-test PROPERTY CXX_STANDARD ${PAJLADA_SETTINGS_CXX_STANDARD})
     set_property(TARGET settings-test PROPERTY CXX_STANDARD_REQUIRED ON)
 
     # Enable strict compiler settings
