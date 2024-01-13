@@ -376,7 +376,7 @@ public:
     }
 
     // Returns true if the current value is the same as the default value
-    // boost::any cannot be properly compared
+    // std::any cannot be properly compared
     bool
     isDefaultValue() const
     {
