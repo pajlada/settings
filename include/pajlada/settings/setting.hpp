@@ -406,7 +406,7 @@ private:
 
     // These are mutable because they can be modified from the "getValue" function
     mutable std::mutex valueMutex;
-    mutable OptionalType<Type> value;
+    mutable std::optional<Type> value;
     mutable int updateIteration = -1;
 
 public:

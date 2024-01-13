@@ -69,13 +69,13 @@ public:
     }
 
     template <typename Type>
-    OptionalType<Type>
+    std::optional<Type>
     unmarshal() const
     {
         auto *ptr = this->get();
 
         if (ptr == nullptr) {
-            return OptionalNull;
+            return std::nullopt;
         }
 
         return Deserialize<Type>::get(*ptr);
