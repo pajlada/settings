@@ -116,7 +116,7 @@ TEST(Serialize, BoostAnyVectorAny)
     EXPECT_TRUE(vec[0].type().name() == typeid(std::string).name());
     EXPECT_TRUE(any_cast<std::string>(vec[0]) == "test");
     EXPECT_TRUE(any_cast<int>(vec[1]) == 5);
-    EXPECT_TRUE(any_cast<double>(vec[2]) == Approx(13.37));
+    EXPECT_DOUBLE_EQ(any_cast<double>(vec[2]), 13.37);
 
     EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
 

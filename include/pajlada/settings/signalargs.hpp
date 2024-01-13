@@ -11,13 +11,6 @@ namespace pajlada::Settings {
 struct SignalArgs {
     SignalArgs() = default;
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
-    SignalArgs(boost::any &&_userData)
-        : userData(std::move(_userData))
-    {
-    }
-#endif
-
     enum Source {
         Unset,
         Setter,
@@ -26,9 +19,6 @@ struct SignalArgs {
         External,
     } source = Source::Unset;
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
-    boost::any userData;
-#endif
     std::string path;
 
     bool writeToFile{true};
