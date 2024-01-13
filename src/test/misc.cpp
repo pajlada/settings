@@ -16,16 +16,14 @@
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
-TEST(Misc, BoostAny)
+TEST(Misc, StdAny)
 {
-    Setting<boost::any> test("/anyTest");
-    auto test2 = new Setting<boost::any>("/anyTest2");
+    Setting<std::any> test("/anyTest");
+    auto test2 = new Setting<std::any>("/anyTest2");
 
     auto v1 = test.getValue();
     auto v2 = test2->getValue();
 }
-#endif
 
 TEST(Misc, Array)
 {

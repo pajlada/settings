@@ -92,7 +92,6 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
     add_test(AllTestsXD settings-test)
 
     target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_DEBUG)
-    # target_compile_definitions(settings-test PRIVATE PAJLADA_BOOST_ANY_SUPPORT)
     # target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_BOOST_FILESYSTEM)
 
     set_property(TARGET settings-test PROPERTY CXX_STANDARD ${PAJLADA_SETTINGS_CXX_STANDARD})

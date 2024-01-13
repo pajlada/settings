@@ -50,34 +50,33 @@ TEST(Serialize, VectorMisc)
                            "out.serialize.vector.str.json"));
 }
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
-TEST(Serialize, BoostAnyVectorString)
+TEST(Serialize, StdAnyVectorString)
 {
-    using boost::any_cast;
+    using std::any_cast;
 
     SettingManager::clear();
 
     std::vector<std::string> data{"a", "b", "c"};
 
-    Setting<boost::any> a("/a");
+    Setting<std::any> a("/a");
 
     auto rawAny = a.getValue();
-    EXPECT_TRUE(rawAny.empty());
+    EXPECT_FALSE(rawAny.has_value());
 
     a = data;
 
     rawAny = a.getValue();
 
-    EXPECT_TRUE(!rawAny.empty());
+    EXPECT_TRUE(rawAny.has_value());
 
-    auto vec = any_cast<std::vector<boost::any>>(rawAny);
+    auto vec = any_cast<std::vector<std::any>>(rawAny);
 
     EXPECT_TRUE(vec.size() == data.size());
 
     EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
 
     rawAny = a.getValue();
-    vec = any_cast<std::vector<boost::any>>(rawAny);
+    vec = any_cast<std::vector<std::any>>(rawAny);
 
     EXPECT_TRUE(vec.size() == 2);
     EXPECT_TRUE(any_cast<std::string>(vec[0]) == "x");
@@ -93,23 +92,23 @@ TEST(Serialize, BoostAnyVectorString)
                            "out.serialize.any.vector.str.json"));
 }
 
-TEST(Serialize, BoostAnyVectorAny)
+TEST(Serialize, StdAnyVectorAny)
 {
-    using boost::any_cast;
+    using std::any_cast;
 
     SettingManager::clear();
 
-    std::vector<boost::any> data{"test", 5, 13.37};
+    std::vector<std::any> data{"test", 5, 13.37};
 
-    Setting<boost::any> a("/a");
+    Setting<std::any> a("/a");
 
     auto rawAny = a.getValue();
-    EXPECT_TRUE(rawAny.empty());
+    EXPECT_FALSE(rawAny.has_value());
 
     a = data;
 
     rawAny = a.getValue();
-    auto vec = any_cast<std::vector<boost::any>>(rawAny);
+    auto vec = any_cast<std::vector<std::any>>(rawAny);
 
     EXPECT_TRUE(vec.size() == data.size());
 
@@ -121,7 +120,7 @@ TEST(Serialize, BoostAnyVectorAny)
     EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
 
     rawAny = a.getValue();
-    vec = any_cast<std::vector<boost::any>>(rawAny);
+    vec = any_cast<std::vector<std::any>>(rawAny);
 
     EXPECT_TRUE(vec.size() == 2);
     EXPECT_TRUE(any_cast<std::string>(vec[0]) == "x");
@@ -136,7 +135,6 @@ TEST(Serialize, BoostAnyVectorAny)
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.any.vector.str.json"));
 }
-#endif
 
 TEST(Serialize, Int1)
 {
