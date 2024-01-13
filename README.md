@@ -10,8 +10,6 @@ My C++ Settings library
   Pulled in as a submodule
 - [RapidJSON](http://rapidjson.org/)
   Must be installed on the system
-- [Boost](https://www.boost.org/)
-  Must be installed on the system
 
 ## Run project with tests
 
