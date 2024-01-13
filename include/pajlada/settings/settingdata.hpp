@@ -69,16 +69,16 @@ public:
     }
 
     template <typename Type>
-    ValueResult<Type>
+    OptionalType<Type>
     unmarshal() const
     {
         auto *ptr = this->get();
 
         if (ptr == nullptr) {
-            return {OptionalNull, -1};
+            return OptionalNull;
         }
 
-        return {Deserialize<Type>::get(*ptr), this->getUpdateIteration()};
+        return Deserialize<Type>::get(*ptr);
     }
 
     int getUpdateIteration() const;
