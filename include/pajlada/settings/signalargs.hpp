@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
-#include <boost/any.hpp>
-#endif
-
 #include <string>
 
 namespace pajlada::Settings {

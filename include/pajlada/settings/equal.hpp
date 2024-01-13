@@ -1,9 +1,6 @@
 #pragma once
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
-#include <boost/any.hpp>
-#endif
-
+#include <any>
 #include <map>
 #include <vector>
 
@@ -28,17 +25,15 @@ struct IsEqual<std::pair<Type1, Type2>> {
     }
 };
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
 template <>
-struct IsEqual<boost::any> {
+struct IsEqual<std::any> {
     static bool
-    get(const boost::any &lhs, const boost::any &rhs)
+    get(const std::any &lhs, const std::any &rhs)
     {
-        // two boost::any cannot be safely compared to each other, so we only consider them equal if both are empty
-        return (lhs.empty() && rhs.empty());
+        // two std::any cannot be safely compared to each other, so we only consider them equal if both are empty
+        return (!lhs.has_value() && !rhs.has_value());
     }
 };
-#endif
 
 template <typename KeyType, typename ValueType>
 struct IsEqual<std::map<KeyType, ValueType>> {
@@ -54,12 +49,11 @@ struct IsEqual<std::map<KeyType, ValueType>> {
     }
 };
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
 template <typename KeyType>
-struct IsEqual<std::map<KeyType, boost::any>> {
+struct IsEqual<std::map<KeyType, std::any>> {
     static bool
-    get(const std::map<KeyType, boost::any> &lhs,
-        const std::map<KeyType, boost::any> &rhs)
+    get(const std::map<KeyType, std::any> &lhs,
+        const std::map<KeyType, std::any> &rhs)
     {
         if (lhs.size() != rhs.size()) {
             return false;
@@ -72,7 +66,7 @@ struct IsEqual<std::map<KeyType, boost::any>> {
                 return false;
             }
 
-            if (!IsEqual<boost::any>::get(p.second, rit->second)) {
+            if (!IsEqual<std::any>::get(p.second, rit->second)) {
                 return false;
             }
         }
@@ -80,7 +74,6 @@ struct IsEqual<std::map<KeyType, boost::any>> {
         return true;
     }
 };
-#endif
 
 template <typename ValueType>
 struct IsEqual<std::vector<ValueType>> {
@@ -95,11 +88,10 @@ struct IsEqual<std::vector<ValueType>> {
     }
 };
 
-#ifdef PAJLADA_BOOST_ANY_SUPPORT
 template <>
-struct IsEqual<std::vector<boost::any>> {
+struct IsEqual<std::vector<std::any>> {
     static bool
-    get(const std::vector<boost::any> &lhs, const std::vector<boost::any> &rhs)
+    get(const std::vector<std::any> &lhs, const std::vector<std::any> &rhs)
     {
         if (lhs.size() != rhs.size()) {
             return false;
@@ -113,7 +105,7 @@ struct IsEqual<std::vector<boost::any>> {
                 return false;
             }
 
-            if (!IsEqual<boost::any>::get(*lit, *rit)) {
+            if (!IsEqual<std::any>::get(*lit, *rit)) {
                 return false;
             }
         }
@@ -121,6 +113,5 @@ struct IsEqual<std::vector<boost::any>> {
         return true;
     }
 };
-#endif
 
 }  // namespace pajlada
