@@ -328,13 +328,13 @@ SettingManager::clearSettings(const std::string &root)
 }
 
 void
-SettingManager::setPath(const fs::path &newPath)
+SettingManager::setPath(const std::filesystem::path &newPath)
 {
     this->filePath = newPath;
 }
 
 SettingManager::LoadError
-SettingManager::gLoad(const fs::path &path)
+SettingManager::gLoad(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -342,7 +342,7 @@ SettingManager::gLoad(const fs::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::gLoadFrom(const fs::path &path)
+SettingManager::gLoadFrom(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -350,7 +350,7 @@ SettingManager::gLoadFrom(const fs::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::load(const fs::path &path)
+SettingManager::load(const std::filesystem::path &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -360,9 +360,9 @@ SettingManager::load(const fs::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const fs::path &_path)
+SettingManager::loadFrom(const std::filesystem::path &_path)
 {
-    fs_error_code ec;
+    std::error_code ec;
 
     auto path = detail::RealPath(_path, ec);
 
@@ -378,7 +378,7 @@ SettingManager::loadFrom(const fs::path &_path)
     }
 
     // Read size of file
-    auto fileSize = fs::file_size(path, ec);
+    auto fileSize = std::filesystem::file_size(path, ec);
     if (ec) {
         return LoadError::FileHandleError;
     }
@@ -419,7 +419,7 @@ SettingManager::loadFrom(const fs::path &_path)
 }
 
 bool
-SettingManager::gSave(const fs::path &path)
+SettingManager::gSave(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -427,7 +427,7 @@ SettingManager::gSave(const fs::path &path)
 }
 
 bool
-SettingManager::gSaveAs(const fs::path &path)
+SettingManager::gSaveAs(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
 
@@ -435,7 +435,7 @@ SettingManager::gSaveAs(const fs::path &path)
 }
 
 bool
-SettingManager::save(const fs::path &path)
+SettingManager::save(const std::filesystem::path &path)
 {
     if (!path.empty()) {
         this->filePath = path;
@@ -445,17 +445,17 @@ SettingManager::save(const fs::path &path)
 }
 
 bool
-SettingManager::saveAs(const fs::path &_path)
+SettingManager::saveAs(const std::filesystem::path &_path)
 {
-    fs_error_code ec;
-    fs::path path = detail::RealPath(_path, ec);
+    std::error_code ec;
+    std::filesystem::path path = detail::RealPath(_path, ec);
     if (ec) {
         return false;
     }
-    fs::path tmpPath(_path);
+    std::filesystem::path tmpPath(_path);
     tmpPath += ".tmp";
 
-    fs::path bkpPath(_path);
+    std::filesystem::path bkpPath(_path);
     bkpPath += ".bkp";
 
     auto res = this->writeTo(tmpPath);
@@ -464,43 +464,43 @@ SettingManager::saveAs(const fs::path &_path)
     }
 
     if (this->backup.enabled) {
-        fs::path firstBkpPath(bkpPath);
+        std::filesystem::path firstBkpPath(bkpPath);
         firstBkpPath += "-" + std::to_string(1);
 
         if (this->backup.numSlots > 1) {
-            fs::path topBkpPath(bkpPath);
+            std::filesystem::path topBkpPath(bkpPath);
             topBkpPath += "-" + std::to_string(this->backup.numSlots);
             topBkpPath = detail::RealPath(topBkpPath, ec);
             if (ec) {
                 return false;
             }
             // Remove top slot backup
-            fs::remove(topBkpPath, ec);
+            std::filesystem::remove(topBkpPath, ec);
 
             // Shift backups one slot up
             for (uint8_t slotIndex = this->backup.numSlots - 1; slotIndex >= 1;
                  --slotIndex) {
-                fs::path p1(bkpPath);
+                std::filesystem::path p1(bkpPath);
                 p1 += "-" + std::to_string(slotIndex);
                 p1 = detail::RealPath(p1, ec);
                 if (ec) {
                     return false;
                 }
-                fs::path p2(bkpPath);
+                std::filesystem::path p2(bkpPath);
                 p2 += "-" + std::to_string(slotIndex + 1);
                 p2 = detail::RealPath(p2, ec);
                 if (ec) {
                     return false;
                 }
-                fs::rename(p1, p2, ec);
+                std::filesystem::rename(p1, p2, ec);
             }
         }
 
         // Move current save to first backup slot
-        fs::rename(path, firstBkpPath, ec);
+        std::filesystem::rename(path, firstBkpPath, ec);
     }
 
-    fs::rename(tmpPath, path, ec);
+    std::filesystem::rename(tmpPath, path, ec);
 
     if (ec) {
         // TODO(pajlada): Print the error code somewhere?
@@ -510,7 +510,7 @@ SettingManager::saveAs(const fs::path &_path)
     return true;
 }
 bool
-SettingManager::writeTo(const fs::path &path)
+SettingManager::writeTo(const std::filesystem::path &path)
 {
     std::ofstream fh(path.c_str(), std::ios::binary | std::ios::out);
     if (!fh) {

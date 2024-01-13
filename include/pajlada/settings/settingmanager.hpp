@@ -4,11 +4,11 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <pajlada/settings/common.hpp>
-#include <pajlada/settings/detail/fs.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
@@ -82,31 +82,31 @@ private:
     void clearSettings(const std::string &root);
 
 public:
-    void setPath(const fs::path &newPath);
+    void setPath(const std::filesystem::path &newPath);
 
-    static LoadError gLoad(const fs::path &path = fs::path());
-    static LoadError gLoadFrom(const fs::path &path);
+    static LoadError gLoad(const std::filesystem::path &path = {});
+    static LoadError gLoadFrom(const std::filesystem::path &path);
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    LoadError load(const fs::path &path = fs::path());
+    LoadError load(const std::filesystem::path &path = {});
     // Load from given path
-    LoadError loadFrom(const fs::path &path);
+    LoadError loadFrom(const std::filesystem::path &path);
 
-    static bool gSave(const fs::path &path = fs::path());
-    static bool gSaveAs(const fs::path &path);
+    static bool gSave(const std::filesystem::path &path = {});
+    static bool gSaveAs(const std::filesystem::path &path);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your application
     // is crash free
     // Save to given path and set path as the default path (or save from default
     // path if filePath is a nullptr)
-    bool save(const fs::path &path = fs::path());
+    bool save(const std::filesystem::path &path = {});
     // Save to given path
-    bool saveAs(const fs::path &path);
+    bool saveAs(const std::filesystem::path &path);
 
 private:
-    bool writeTo(const fs::path &path);
+    bool writeTo(const std::filesystem::path &path);
 
 public:
     // Functions prefixed with g are static functions that work
@@ -154,7 +154,7 @@ public:
     rapidjson::Document document;
 
 private:
-    fs::path filePath = "settings.json";
+    std::filesystem::path filePath = "settings.json";
 
     std::mutex settingsMutex;
 

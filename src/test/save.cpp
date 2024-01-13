@@ -7,6 +7,8 @@
 
 using namespace pajlada::Settings;
 
+namespace fs = std::filesystem;
+
 TEST(Save, Int)
 {
     SettingManager::clear();
@@ -40,7 +42,7 @@ TEST(Save, NonSymlink)
     std::string ps = "files/save.not-a-symlink.json";
     EXPECT_TRUE(!fs::is_symlink(ps));
 
-    fs_error_code ec;
+    std::error_code ec;
 
     auto p1 = fs::path(ps);
     auto p2 = detail::RealPath(p1, ec);
@@ -70,7 +72,7 @@ TEST(Save, ErrorOnRecursiveSymlink)
     std::string ps = "files/save.symlink.recursive1.json";
     EXPECT_TRUE(fs::is_symlink(ps));
 
-    fs_error_code ec;
+    std::error_code ec;
 
     auto finalPath = detail::RealPath(ps, ec);
 
@@ -85,7 +87,7 @@ TEST(Save, ErrorOnSymlinkPointingToNonexistantFile)
     std::string ps = "files/save.symlink.nonexistant.json";
     EXPECT_TRUE(fs::is_symlink(ps));
 
-    fs_error_code ec;
+    std::error_code ec;
 
     auto finalPath = detail::RealPath(ps, ec);
 
