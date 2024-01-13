@@ -4,12 +4,12 @@
 
 namespace pajlada::Settings::detail {
 
-fs::path
-RealPath(const fs::path &_path, fs_error_code &ec)
+std::filesystem::path
+RealPath(const std::filesystem::path &_path, std::error_code &ec)
 {
-    fs::path path{_path};
+    std::filesystem::path path{_path};
 
-    auto isSymlink = fs::is_symlink(path, ec);
+    auto isSymlink = std::filesystem::is_symlink(path, ec);
 
     if (ec) {
         // Not an error - the symlink might have just stopped here at a file that doesn't exist (yet)
@@ -23,18 +23,17 @@ RealPath(const fs::path &_path, fs_error_code &ec)
 
     const auto relativePath = path.parent_path();
 
-    std::unordered_set<fs::path::string_type> seenPaths;
+    std::unordered_set<std::filesystem::path::string_type> seenPaths;
 
     do {
         auto pathString = path.native();
         if (seenPaths.count(pathString) != 0) {
-            ec = make_error_code_ns::make_error_code(
-                errc::too_many_symbolic_link_levels);
+            ec = std::make_error_code(std::errc::too_many_symbolic_link_levels);
             return path;
         }
 
         seenPaths.emplace(pathString);
-        auto symlinkResponse = fs::read_symlink(path, ec);
+        auto symlinkResponse = std::filesystem::read_symlink(path, ec);
         if (!symlinkResponse.is_absolute()) {
             path = relativePath / symlinkResponse;
         } else {
@@ -43,7 +42,7 @@ RealPath(const fs::path &_path, fs_error_code &ec)
         if (ec) {
             return path;
         }
-        isSymlink = fs::is_symlink(path, ec);
+        isSymlink = std::filesystem::is_symlink(path, ec);
         if (ec) {
             // Not an error - the symlink might have just stopped here at a file that doesn't exist (yet)
             ec = {};

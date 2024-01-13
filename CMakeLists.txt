@@ -29,12 +29,6 @@ set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(PajladaSettings PUBLIC include)
 
-option(PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM "Use boost::filesystem instead of std filesystem" OFF)
-if (PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM)
-    message(status "use boost")
-    target_compile_definitions(PajladaSettings PUBLIC PAJLADA_SETTINGS_BOOST_FILESYSTEM)
-endif()
-
 if (DEFINED COVERAGE)
     message("++ Coverage flags enabled")
     target_compile_options(PajladaSettings PRIVATE --coverage -fno-inline -O0 -g)
@@ -92,7 +86,6 @@ if (PAJLADA_SETTINGS_BUILD_TESTS)
     add_test(AllTestsXD settings-test)
 
     target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_DEBUG)
-    # target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_BOOST_FILESYSTEM)
 
     set_property(TARGET settings-test PROPERTY CXX_STANDARD ${PAJLADA_SETTINGS_CXX_STANDARD})
     set_property(TARGET settings-test PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -157,23 +150,13 @@ endif()
 
 # TODO: Try find_package, and if not found, do the conan link
 
-if (MSVC)
-    # TODO: Figure out right way to go about this for windows
-else()
-    if (NOT PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM)
-		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-			if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-				message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
-			endif()
-		endif()
-        target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
+if(NOT MSVC)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+            message(FATAL_ERROR "GCC version must be at least 8.0 if using std filesystem")
+        endif()
     endif()
-endif()
-
-
-if (PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM)
-    find_package(Boost REQUIRED system filesystem)
-    target_link_libraries(PajladaSettings PUBLIC Boost::filesystem Boost::system)
+    target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)

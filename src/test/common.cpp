@@ -3,8 +3,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "pajlada/settings/detail/fs.hpp"
-
 using namespace pajlada::Settings;
 
 namespace {
@@ -73,8 +71,8 @@ SaveFile(const std::string &fileName, SettingManager *sm)
 bool
 RemoveFile(const std::string &path)
 {
-    fs_error_code ec;
-    auto res = fs::remove(path, ec);
+    std::error_code ec;
+    auto res = std::filesystem::remove(path, ec);
 
     if (ec) {
         return false;

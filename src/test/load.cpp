@@ -4,6 +4,8 @@
 
 using namespace pajlada::Settings;
 
+namespace fs = std::filesystem;
+
 TEST(Load, Unicode)
 {
     SettingManager::clear();

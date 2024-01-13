@@ -14,7 +14,6 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        fs-backend: [std, boost]
         package-manager: [conan, none]
         exclude:
           - os: windows-latest
@@ -23,17 +22,6 @@ jobs:
       fail-fast: false
 
     steps:
-      - id: filesystem-backend
-        env:
-          FS_BACKEND: ${{ matrix.fs-backend }}
-        run: |
-          if [ "$FS_BACKEND" = "boost" ]; then
-            echo "use-boost-filesystem=1" > "$GITHUB_OUTPUT"
-          else
-            echo "use-boost-filesystem=0" > "$GITHUB_OUTPUT"
-          fi
-        shell: bash
-
       - id: package-manager
         env:
           PACKAGE_MANAGER: ${{ matrix.package-manager }}
@@ -106,12 +94,12 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.package-manager == 'none'
         run: |
           sudo apt-get update
-          sudo apt-get -y install libboost-dev libboost-system-dev libboost-filesystem-dev rapidjson-dev
+          sudo apt-get -y install rapidjson-dev
 
       - name: Install libraries (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
         run: |
-          brew install boost rapidjson
+          brew install rapidjson
         shell: bash
 
       - name: Install dependencies with Conan
@@ -126,7 +114,6 @@ jobs:
       - name: Build
         run: |
           cmake \
-              -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=${{ steps.filesystem-backend.outputs.use-boost-filesystem }} \
               -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
               -DPAJLADA_SETTINGS_BUILD_TESTS=On \
               -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \

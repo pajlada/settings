@@ -10,8 +10,6 @@ My C++ Settings library
   Pulled in as a submodule
 - [RapidJSON](http://rapidjson.org/)
   Must be installed on the system
-- [Boost](https://www.boost.org/)
-  Must be installed on the system
 
 ## Run project with tests
 
@@ -25,8 +23,6 @@ make -j
 
 Available flags that can be passed to cmake:
 
-- PAJLADA_SETTINGS_USE_BOOST_FILESYSTEM `On` or `Off` (default `Off`)
-  this will decide whether or not to use boost-filesystem or c++'s stdlib filesystem
 - PAJLADA_SETTINGS_BUILD_TESTS `On` or `Off` (default `Off`)
   This option will instruct cmake to build the tests executable `settings-test`.
 
