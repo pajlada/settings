@@ -6,6 +6,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(PajladaSettings)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
@@ -88,6 +90,4 @@ if(NOT MSVC)
     endif()
     target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
 endif()
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 

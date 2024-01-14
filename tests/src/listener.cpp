@@ -1,8 +1,7 @@
-
 #include <atomic>
 
+#include "common.hpp"
 #include "pajlada/settings/settinglistener.hpp"
-#include "test/common.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada;

@@ -6,6 +6,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")
 
 project(PajladaSettingsTest)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(BUILD_COVERAGE "Enable code coverage output" OFF)
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/.." PajladaSettings)
