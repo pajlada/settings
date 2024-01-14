@@ -106,4 +106,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           gcov: true
+          gcov_include: "src/*"
+          gcov_ignore: "tests/*"
           verbose: true
