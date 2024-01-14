@@ -83,7 +83,7 @@ jobs:
           cmake \
               -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
               -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
-              -DBUILD_COVERAGE=On \
+              -DPAJLADA_SETTINGS_COVERAGE=On \
               -DCMAKE_BUILD_TYPE=Debug \
               ../tests
           cmake --build . --config Debug --parallel

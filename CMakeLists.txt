@@ -9,6 +9,7 @@ project(PajladaSettings)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
+option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
     message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
@@ -23,6 +24,12 @@ set(PajladaSettings_SOURCES
 
 add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 add_library(Pajlada::Settings ALIAS PajladaSettings)
+
+if(PAJLADA_SETTINGS_COVERAGE)
+    include(CodeCoverage)
+    append_coverage_compiler_flags()
+    message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
+endif()
 
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 20)
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -90,4 +97,3 @@ if(NOT MSVC)
     endif()
     target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
 endif()
-
