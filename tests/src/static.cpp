@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "test/common.hpp"
+#include "common.hpp"
 
 using namespace pajlada::Settings;
 

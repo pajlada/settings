@@ -32,7 +32,7 @@ jobs:
           fi
         shell: bash
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -83,7 +83,7 @@ jobs:
           cmake \
               -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
               -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
-              -DBUILD_COVERAGE=On \
+              -DPAJLADA_SETTINGS_COVERAGE=On \
               -DCMAKE_BUILD_TYPE=Debug \
               ../tests
           cmake --build . --config Debug --parallel
@@ -102,8 +102,7 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         if: matrix.os == 'ubuntu-22.04'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4-beta
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          gcov: true
           verbose: true

@@ -1,6 +1,6 @@
 #include <pajlada/signals/connection.hpp>
 
-#include "test/common.hpp"
+#include "common.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::Signals;
