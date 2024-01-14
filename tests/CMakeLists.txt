@@ -8,7 +8,7 @@ project(PajladaSettingsTest)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(BUILD_COVERAGE "Enable code coverage output" OFF)
+option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/.." PajladaSettings)
 
@@ -55,6 +55,19 @@ add_executable(${PROJECT_NAME}
     src/common.cpp
     )
 
+if(PAJLADA_SETTINGS_COVERAGE)
+    include(CodeCoverage)
+    append_coverage_compiler_flags()
+    message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
+
+    setup_target_for_coverage_gcovr_html(
+        NAME coverage
+        EXECUTABLE ctest
+        BASE_DIRECTORY "../"
+        EXCLUDE "external/*" "tests/*"
+        )
+endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE Pajlada::Settings)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
 include(GoogleTest)
@@ -65,18 +78,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SETTINGS_DEBUG)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-if(BUILD_COVERAGE)
-    include(CodeCoverage)
-    append_coverage_compiler_flags()
-    message("++ Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
-
-    setup_target_for_coverage_gcovr_html(
-        NAME coverage
-        EXECUTABLE ctest
-        BASE_DIRECTORY "../"
-        EXCLUDE "external/*" "tests/*"
-        )
-endif()
 
 # Make a symlink for files
 add_custom_command(
