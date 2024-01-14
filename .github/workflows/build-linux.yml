@@ -102,10 +102,7 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         if: matrix.os == 'ubuntu-22.04'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          gcov: true
-          gcov_include: "src/*"
-          gcov_ignore: "tests/*"
           verbose: true
