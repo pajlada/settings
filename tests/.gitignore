@@ -1,0 +1,7 @@
+/build*/
+
+# save files
+/settings.json
+files/out.*.json
+files/out.*.json.tmp
+files/out.*.json.bkp-*

@@ -11,20 +11,15 @@ My C++ Settings library
 - [RapidJSON](http://rapidjson.org/)
   Must be installed on the system
 
-## Run project with tests
+## Run tests
 
 ```sh
 mkdir build
 cd build
-cmake -DPAJLADA_SETTINGS_BUILD_TESTS=On ..
-make -j
-./settings-test
+cmake -DCMAKE_BUILD_TYPE=Debug ../tests
+cmake --build
+ctest
 ```
-
-Available flags that can be passed to cmake:
-
-- PAJLADA_SETTINGS_BUILD_TESTS `On` or `Off` (default `Off`)
-  This option will instruct cmake to build the tests executable `settings-test`.
 
 ## Intended usage
 
