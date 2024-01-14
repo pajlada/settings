@@ -1,9 +1,8 @@
-#include "test/channel.hpp"
+#include "channel.hpp"
 
-#include "test/channelmanager.hpp"
+#include "channelmanager.hpp"
 
-namespace pajlada {
-namespace test {
+namespace pajlada::test {
 
 using namespace Settings;
 
@@ -21,5 +20,4 @@ Channel::Channel(const std::string &_name)
 {
 }
 
-}  // namespace test
-}  // namespace pajlada
+}  // namespace pajlada::test

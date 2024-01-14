@@ -2,10 +2,9 @@
 
 #include <array>
 
-#include "test/channel.hpp"
+#include "channel.hpp"
 
-namespace pajlada {
-namespace test {
+namespace pajlada::test {
 
 constexpr int NUM_CHANNELS = 5;
 
@@ -72,5 +71,4 @@ public:
     std::array<IndexedChannel, NUM_CHANNELS> channels;
 };
 
-}  // namespace test
-}  // namespace pajlada
+}  // namespace pajlada::test
