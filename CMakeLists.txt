@@ -6,8 +6,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(PajladaSettings)
 
-set(PAJLADA_SETTINGS_CXX_STANDARD "20")
-
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
@@ -24,8 +22,22 @@ set(PajladaSettings_SOURCES
 add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 add_library(Pajlada::Settings ALIAS PajladaSettings)
 
-set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD ${PAJLADA_SETTINGS_CXX_STANDARD})
+set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 20)
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
+
+# Enable strict compiler settings
+if (MSVC)
+    # Someone adds /W3 before we add /W4.
+    # This makes sure, only /W4 is specified.
+    string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+    target_compile_options(${PROJECT_NAME} PUBLIC
+        /W4
+        /WX # treat warnings as errors
+        )
+else()
+    target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wpedantic -Wextra -Werror)
+endif()
 
 target_include_directories(PajladaSettings PUBLIC include)
 
@@ -33,88 +45,6 @@ if (DEFINED COVERAGE)
     message("++ Coverage flags enabled")
     target_compile_options(PajladaSettings PRIVATE --coverage -fno-inline -O0 -g)
     target_link_libraries(PajladaSettings PRIVATE --coverage)
-endif()
-
-if (PAJLADA_SETTINGS_BUILD_TESTS)
-    message("++ Tests enabled")
-
-    # For MSVC: Prevent overriding the parent project's compiler/linker settings
-    # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/external/googletest" "external/googletest")
-
-    mark_as_advanced(
-            BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
-            gmock_build_tests gtest_build_samples gtest_build_tests
-            gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
-    )
-
-    set_target_properties(gtest PROPERTIES FOLDER lib)
-    set_target_properties(gtest_main PROPERTIES FOLDER lib)
-    set_target_properties(gmock PROPERTIES FOLDER lib)
-    set_target_properties(gmock_main PROPERTIES FOLDER lib)
-
-    enable_testing()
-
-    add_executable(settings-test
-        src/test/main.cpp
-
-        src/test/map.cpp
-        src/test/load.cpp
-        src/test/save.cpp
-        src/test/static.cpp
-        src/test/signal.cpp
-        src/test/default.cpp
-        src/test/scope.cpp
-        src/test/remove.cpp
-        src/test/serialize.cpp
-        src/test/deserialize.cpp
-        src/test/advanced-array.cpp
-        src/test/bad-instance.cpp
-        src/test/misc.cpp
-        src/test/listener.cpp
-
-        src/test/foo.cpp
-        src/test/channel.cpp
-
-        src/test/common.cpp
-        )
-
-    target_link_libraries(settings-test PRIVATE PajladaSettings gtest)
-
-    add_test(AllTestsXD settings-test)
-
-    target_compile_definitions(settings-test PRIVATE PAJLADA_SETTINGS_DEBUG)
-
-    set_property(TARGET settings-test PROPERTY CXX_STANDARD ${PAJLADA_SETTINGS_CXX_STANDARD})
-    set_property(TARGET settings-test PROPERTY CXX_STANDARD_REQUIRED ON)
-
-    # Enable strict compiler settings
-    if (MSVC)
-        # Someone adds /W3 before we add /W4.
-        # This makes sure, only /W4 is specified.
-        string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-        target_compile_options(settings-test PUBLIC
-            /W4
-            /WX # treat warnings as errors
-        )
-    else()
-        target_compile_options(settings-test PUBLIC -Wall -Werror)
-    endif()
-
-    # Make a symlink for files
-    add_custom_command(
-            OUTPUT symlink_generated_successfully
-            COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_LIST_DIR}/files files
-            )
-
-    add_custom_target(
-            make_files_symlink
-            DEPENDS symlink_generated_successfully)
-
-        add_dependencies(settings-test make_files_symlink)
 endif()
 
 # Dependencies
@@ -160,3 +90,4 @@ if(NOT MSVC)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+

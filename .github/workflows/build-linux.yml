@@ -1,5 +1,5 @@
 ---
-name: Build
+name: Build Linux
 
 on:
   push:
@@ -13,11 +13,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [ubuntu-20.04, ubuntu-22.04]
         package-manager: [conan, none]
-        exclude:
-          - os: windows-latest
-            package-manager: none
 
       fail-fast: false
 
@@ -44,21 +41,15 @@ jobs:
           mkdir build
         shell: bash
 
-      - name: Setup environment (MacOS)
-        if: startsWith(matrix.os, 'macos')
+      - name: Setup environment
         run: |
-          python3 -c "import site; print(site.USER_BASE + '/bin')" >> "$GITHUB_PATH"
-        shell: bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Setup environment (Windows)
-        if: startsWith(matrix.os, 'windows')
+      - name: Install system dependencies
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
-          python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')" >> "$GITHUB_PATH"
-        shell: bash
-
-      - name: Enable Developer Command Prompt
-        if: startsWith(matrix.os, 'windows')
-        uses: ilammy/msvc-dev-cmd@v1.12.1
+          sudo apt-get update
+          sudo apt-get -y install gcovr
 
       - name: Install Conan
         if: matrix.package-manager == 'conan'
@@ -72,18 +63,11 @@ jobs:
           key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}-20211205
           path: ~/.conan/
 
-      - name: Cache conan packages (Windows, Part 2)
-        if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
-        uses: actions/cache@v3
-        with:
-          key: ${{ runner.os }}-conan-root-${{ hashFiles('**/conanfile.txt') }}-20211205
-          path: C:/.conan/
-
-      - name: Install libraries (MacOS)
-        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
+      - name: Install library dependencies (Ubuntu)
+        if: matrix.package-manager == 'none'
         run: |
-          brew install rapidjson
-        shell: bash
+          sudo apt-get update
+          sudo apt-get -y install rapidjson-dev
 
       - name: Install dependencies with Conan
         if: matrix.package-manager == 'conan'
@@ -99,6 +83,7 @@ jobs:
           cmake \
               -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
               -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
+              -DBUILD_COVERAGE=On \
               -DCMAKE_BUILD_TYPE=Debug \
               ../tests
           cmake --build . --config Debug --parallel
@@ -109,3 +94,16 @@ jobs:
         run: ctest
         shell: bash
         working-directory: build
+
+      - name: Generate coverage
+        run: make coverage
+        shell: bash
+        working-directory: build
+
+      - name: Upload coverage reports to Codecov
+        if: matrix.os == 'ubuntu-22.04'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          gcov: true
+          verbose: true
