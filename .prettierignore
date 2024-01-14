@@ -18,5 +18,4 @@ dependencies
 vcpkg_installed/
 
 # Test files
-/files/
-/standalone-test/settings.json
+/tests/files/
