@@ -1,5 +1,3 @@
-// UNSORTED TESTS
-
 #include <cassert>
 #include <iostream>
 #include <pajlada/serialize.hpp>
@@ -8,10 +6,10 @@
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
-#include "test/channel.hpp"
-#include "test/channelmanager.hpp"
-#include "test/common.hpp"
-#include "test/foo.hpp"
+#include "channel.hpp"
+#include "channelmanager.hpp"
+#include "common.hpp"
+#include "foo.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
