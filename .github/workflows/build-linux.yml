@@ -58,7 +58,7 @@ jobs:
 
       - name: Cache conan packages
         if: matrix.package-manager == 'conan'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}-20211205
           path: ~/.conan/
