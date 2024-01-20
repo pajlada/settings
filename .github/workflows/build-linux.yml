@@ -24,8 +24,9 @@ jobs:
             compiler: g++ # g++-9
           - os: ubuntu-20.04
             compiler: g++-10
-          - os: ubuntu-20.04
-            compiler: clang # clang-10
+          # clang-10 is disabled since it's not supported
+          # - os: ubuntu-20.04
+          #   compiler: clang # clang-10
           - os: ubuntu-20.04
             compiler: clang-11
           - os: ubuntu-20.04
