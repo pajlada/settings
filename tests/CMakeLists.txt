@@ -75,6 +75,20 @@ gtest_discover_tests(${PROJECT_NAME})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SETTINGS_DEBUG)
 
+# Enable strict compiler settings
+if (MSVC)
+    # Someone adds /W3 before we add /W4.
+    # This makes sure, only /W4 is specified.
+    string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        /W4
+        /WX # treat warnings as errors
+        )
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wpedantic -Wextra -Werror)
+endif()
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
