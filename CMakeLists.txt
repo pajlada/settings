@@ -51,6 +51,12 @@ else()
         -Wextra
         -Werror
         )
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(${PROJECT_NAME} PUBLIC
+            -Wno-restrict
+            )
+    endif()
 endif()
 
 target_include_directories(PajladaSettings PUBLIC include)
