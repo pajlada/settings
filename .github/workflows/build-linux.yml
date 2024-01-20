@@ -8,42 +8,54 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: build-linux-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
-        package-manager: [conan, none]
-
       fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            compiler: g++ # g++-9
+          - os: ubuntu-20.04
+            compiler: g++-10
+          # clang-10 is disabled since it's not supported
+          # - os: ubuntu-20.04
+          #   compiler: clang # clang-10
+          - os: ubuntu-20.04
+            compiler: clang-11
+          - os: ubuntu-20.04
+            compiler: clang-12
+
+          - os: ubuntu-22.04
+            compiler: g++ # g++-11
+            upload-coverage: true
+          - os: ubuntu-22.04
+            compiler: g++-12
+          - os: ubuntu-22.04
+            compiler: clang # clang-14
+          - os: ubuntu-22.04
+            compiler: clang-15
 
     steps:
-      - id: package-manager
-        env:
-          PACKAGE_MANAGER: ${{ matrix.package-manager }}
-        run: |
-          if [ "$PACKAGE_MANAGER" = "conan" ]; then
-            echo "use-conan=1" > "$GITHUB_OUTPUT"
-            echo "toolchain-file=conan_toolchain.cmake" > "$GITHUB_OUTPUT"
-          else
-            echo "use-conan=0" > "$GITHUB_OUTPUT"
-            echo "toolchain-file=" > "$GITHUB_OUTPUT"
-          fi
-        shell: bash
-
       - uses: actions/checkout@v4
         with:
           submodules: true
 
+      - name: Install compiler
+        id: install_cc
+        uses: rlalik/setup-cpp-compiler@master
+        with:
+          compiler: ${{ matrix.compiler }}
+
       - name: Setup environment (Shared)
         run: |
           mkdir build
-        shell: bash
-
-      - name: Setup environment
-        run: |
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install system dependencies
         if: startsWith(matrix.os, 'ubuntu')
@@ -51,57 +63,33 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install gcovr
 
-      - name: Install Conan
-        if: matrix.package-manager == 'conan'
-        run: pip3 install --user conan
-        shell: bash
-
-      - name: Cache conan packages
-        if: matrix.package-manager == 'conan'
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}-20211205
-          path: ~/.conan/
-
-      - name: Install library dependencies (Ubuntu)
-        if: matrix.package-manager == 'none'
+      - name: Install library dependencies
         run: |
           sudo apt-get update
           sudo apt-get -y install rapidjson-dev
 
-      - name: Install dependencies with Conan
-        if: matrix.package-manager == 'conan'
-        run: |
-          conan --version
-          conan profile detect
-          conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
-        shell: bash
-        working-directory: build
-
       - name: Build
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cmake \
-              -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
-              -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
               -DPAJLADA_SETTINGS_COVERAGE=On \
               -DCMAKE_BUILD_TYPE=Debug \
               ../tests
           cmake --build . --config Debug --parallel
-        shell: bash
         working-directory: build
 
       - name: Run tests
         run: ctest
-        shell: bash
         working-directory: build
 
       - name: Generate coverage
         run: make coverage
-        shell: bash
         working-directory: build
 
       - name: Upload coverage reports to Codecov
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.upload-coverage
         uses: codecov/codecov-action@v4-beta
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

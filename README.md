@@ -53,3 +53,27 @@ class Server {
     pajlada::Settings::Setting serverPort;
 }
 ```
+
+## Platform support
+
+### Linux
+
+| Version      | Compiler                      |
+| ------------ | ----------------------------- |
+| Ubuntu 20.04 | ✅ GCC 9 (default `g++`)      |
+| Ubuntu 20.04 | ✅ GCC 10 (`g++-10`)          |
+| Ubuntu 20.04 | ❌ Clang 10 (default `clang`) |
+| Ubuntu 20.04 | ✅ Clang 11 (`clang-11`)      |
+| Ubuntu 20.04 | ✅ Clang 12 (`clang-12`)      |
+| Ubuntu 22.04 | ✅ GCC 11 (default `g++`)     |
+| Ubuntu 22.04 | ✅ GCC 12 (`g++-12`)          |
+| Ubuntu 22.04 | ✅ Clang 14 (default `clang`) |
+| Ubuntu 22.04 | ✅ Clang 15 (`clang-15`)      |
+
+### Windows
+
+To be filled in
+
+### macOS
+
+To be filled in
