@@ -40,12 +40,12 @@ if (MSVC)
     # This makes sure, only /W4 is specified.
     string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-    target_compile_options(${PROJECT_NAME} PUBLIC
+    target_compile_options(${PROJECT_NAME} PRIVATE
         /W4
         /WX # treat warnings as errors
         )
 else()
-    target_compile_options(${PROJECT_NAME} PUBLIC
+    target_compile_options(${PROJECT_NAME} PRIVATE
         -Wall
         -Wpedantic
         -Wextra
@@ -53,7 +53,7 @@ else()
         )
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(${PROJECT_NAME} PUBLIC
+        target_compile_options(${PROJECT_NAME} PRIVATE
             -Wno-restrict
             )
     endif()
