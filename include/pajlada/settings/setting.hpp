@@ -313,7 +313,6 @@ public:
             if (args.source == SignalArgs::Source::Unset) {
                 args.source = SignalArgs::Source::Setter;
             }
-
             return lockedSetting->marshal(newValue, std::move(args));
         }
 
