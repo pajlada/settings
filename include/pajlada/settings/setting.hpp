@@ -291,6 +291,7 @@ public:
         if (this->optionEnabled(SettingOption::CompareBeforeSet)) {
             args.compareBeforeSet = true;
         }
+
         {
             std::unique_lock<std::mutex> lock(this->valueMutex);
             this->value = newValue;
