@@ -289,7 +289,7 @@ public:
     bool
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
-        if constexpr (std::equality_comparable<Type>) {
+        if constexpr (detail::IsEqualityComparable<Type>::v) {
             if (this->optionEnabled(SettingOption::CompareBeforeSet)) {
                 const auto &prevValue = this->getValue();
                 if (prevValue == newValue) {

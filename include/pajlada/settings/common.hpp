@@ -21,6 +21,43 @@ namespace pajlada {
 
 namespace Settings {
 
+namespace detail {
+
+template <typename Type>
+struct IsEqualityComparable {
+    static constexpr bool v = std::equality_comparable<Type>;
+};
+
+template <typename InnerType>
+struct IsEqualityComparable<std::vector<InnerType>> {
+    static constexpr bool v = IsEqualityComparable<InnerType>::v;
+};
+
+template <typename InnerType>
+struct IsEqualityComparable<std::list<InnerType>> {
+    static constexpr bool v = IsEqualityComparable<InnerType>::v;
+};
+
+template <typename InnerType1, typename InnerType2>
+struct IsEqualityComparable<std::pair<InnerType1, InnerType2>> {
+    static constexpr bool v = IsEqualityComparable<InnerType1>::v &&
+                              IsEqualityComparable<InnerType2>::v;
+};
+
+template <typename KeyType, typename ValueType>
+struct IsEqualityComparable<std::unordered_map<KeyType, ValueType>> {
+    static constexpr bool v =
+        IsEqualityComparable<KeyType>::v && IsEqualityComparable<ValueType>::v;
+};
+
+template <typename KeyType, typename ValueType>
+struct IsEqualityComparable<std::map<KeyType, ValueType>> {
+    static constexpr bool v =
+        IsEqualityComparable<KeyType>::v && IsEqualityComparable<ValueType>::v;
+};
+
+}  // namespace detail
+
 enum class SettingOption : uint32_t {
     DoNotWriteToJSON = (1ULL << 1ULL),
 

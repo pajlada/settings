@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "pajlada/settings/common.hpp"
 
 using namespace pajlada::Settings;
 
@@ -214,4 +215,126 @@ TEST(OptionCompareBeforeSet, Vector)
 
     EXPECT_TRUE(count == 1);
     EXPECT_TRUE(currentValue.size() == 3);
+}
+
+TEST(OptionCompareBeforeSet, VectorComparableType)
+{
+    int count = 0;
+    std::vector<ComparableStruct> currentValue{};
+    auto cb = [&count, &currentValue](const auto &newValue, auto) {
+        ++count;
+        currentValue = newValue;
+    };
+
+    Setting<std::vector<ComparableStruct>> a("/simple_signal/a",
+                                             SettingOption::CompareBeforeSet);
+
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.size(), 0);
+
+    a.connect(cb, false);
+
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.size(), 0);
+
+    a = {ComparableStruct{true}};
+
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.size(), 1);
+
+    a = {ComparableStruct{true}};
+
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.size(), 1);
+}
+
+TEST(OptionCompareBeforeSet, VectorNonComparableType)
+{
+    int count = 0;
+    std::vector<NonComparableStruct> currentValue{};
+    auto cb = [&count, &currentValue](const auto &newValue, auto) {
+        ++count;
+        currentValue = newValue;
+    };
+
+    Setting<std::vector<NonComparableStruct>> a(
+        "/simple_signal/a", SettingOption::CompareBeforeSet);
+
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.size(), 0);
+
+    a.connect(cb, false);
+
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.size(), 0);
+
+    a = {NonComparableStruct{true}};
+
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.size(), 1);
+
+    a = {NonComparableStruct{true}};
+
+    // Since the contents of the vector is non-comparable, this will cause an update
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(currentValue.size(), 1);
+}
+
+TEST(IsEqualityComparable, VectorNonComparableType)
+{
+    using detail::IsEqualityComparable;
+
+    static_assert(IsEqualityComparable<std::vector<int>>::v);
+    static_assert(IsEqualityComparable<std::vector<ComparableStruct>>::v);
+    static_assert(
+        IsEqualityComparable<std::vector<std::vector<ComparableStruct>>>::v);
+    static_assert(!IsEqualityComparable<NonComparableStruct>::v);
+    static_assert(!IsEqualityComparable<std::vector<NonComparableStruct>>::v);
+    static_assert(!IsEqualityComparable<
+                  std::vector<std::vector<NonComparableStruct>>>::v);
+
+    static_assert(IsEqualityComparable<std::list<int>>::v);
+    static_assert(IsEqualityComparable<std::list<ComparableStruct>>::v);
+    static_assert(
+        IsEqualityComparable<std::list<std::list<ComparableStruct>>>::v);
+    static_assert(!IsEqualityComparable<NonComparableStruct>::v);
+    static_assert(!IsEqualityComparable<std::list<NonComparableStruct>>::v);
+    static_assert(
+        !IsEqualityComparable<std::list<std::list<NonComparableStruct>>>::v);
+
+    static_assert(IsEqualityComparable<std::pair<int, int>>::v);
+    static_assert(IsEqualityComparable<std::pair<ComparableStruct, int>>::v);
+    static_assert(IsEqualityComparable<std::pair<int, ComparableStruct>>::v);
+    static_assert(
+        !IsEqualityComparable<std::pair<NonComparableStruct, int>>::v);
+    static_assert(
+        !IsEqualityComparable<std::pair<int, NonComparableStruct>>::v);
+
+    static_assert(!IsEqualityComparable<std::any>::v);
+
+    static_assert(
+        std::equality_comparable<std::unordered_map<std::string, std::string>>);
+    static_assert(std::equality_comparable<
+                  std::unordered_map<std::string, ComparableStruct>>);
+    static_assert(std::equality_comparable<
+                  std::unordered_map<std::string, NonComparableStruct>>);
+
+    static_assert(
+        IsEqualityComparable<std::unordered_map<std::string, std::string>>::v);
+    static_assert(IsEqualityComparable<
+                  std::unordered_map<std::string, ComparableStruct>>::v);
+    static_assert(!IsEqualityComparable<
+                  std::unordered_map<std::string, NonComparableStruct>>::v);
+
+    static_assert(IsEqualityComparable<std::map<std::string, std::string>>::v);
+    static_assert(
+        IsEqualityComparable<std::map<std::string, ComparableStruct>>::v);
+    static_assert(
+        !IsEqualityComparable<std::map<std::string, NonComparableStruct>>::v);
+
+    static_assert(IsEqualityComparable<std::map<std::string, std::string>>::v);
+    static_assert(
+        IsEqualityComparable<std::map<std::string, ComparableStruct>>::v);
+    static_assert(
+        !IsEqualityComparable<std::map<std::string, NonComparableStruct>>::v);
 }
