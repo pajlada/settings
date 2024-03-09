@@ -57,10 +57,6 @@ add_executable(${PROJECT_NAME}
     src/common.cpp
     )
 
-target_compile_options(${PROJECT_NAME} PUBLIC
-    -fconcepts
-    )
-
 if(PAJLADA_SETTINGS_COVERAGE)
     include(CodeCoverage)
     append_coverage_compiler_flags()
