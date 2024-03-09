@@ -34,12 +34,6 @@ endif()
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 20)
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    target_compile_options(${PROJECT_NAME} PUBLIC
-        -fconcepts
-        )
-endif ()
-
 # Enable strict compiler settings
 if (MSVC)
     # Someone adds /W3 before we add /W4.

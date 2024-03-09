@@ -60,7 +60,7 @@ class Server {
 
 | Version      | Compiler                      |
 | ------------ | ----------------------------- |
-| Ubuntu 20.04 | ❌ GCC 9 (default `g++`)      |
+| Ubuntu 20.04 | ✅ GCC 9 (default `g++`)      |
 | Ubuntu 20.04 | ✅ GCC 10 (`g++-10`)          |
 | Ubuntu 20.04 | ❌ Clang 10 (default `clang`) |
 | Ubuntu 20.04 | ✅ Clang 11 (`clang-11`)      |
