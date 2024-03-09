@@ -18,6 +18,7 @@ struct SignalArgs {
     std::string path;
 
     bool writeToFile{true};
+    bool compareBeforeSet{false};
 };
 
 }  // namespace pajlada::Settings

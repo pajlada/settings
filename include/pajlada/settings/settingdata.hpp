@@ -37,14 +37,14 @@ public:
     void notifyUpdate(const rapidjson::Value &value, SignalArgs args);
 
     bool
-    marshalJSON(const rapidjson::Value &v)
+    marshalJSON(const rapidjson::Value &v, SignalArgs &&args = {})
     {
         auto locked = this->instance.lock();
         if (!locked) {
             return false;
         }
 
-        return locked->set(this->path.c_str(), v);
+        return locked->set(this->path.c_str(), v, std::move(args));
     }
 
     template <typename Type>
