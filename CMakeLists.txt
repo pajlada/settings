@@ -34,6 +34,10 @@ endif()
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 20)
 set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
 
+target_compile_options(${PROJECT_NAME} PUBLIC
+    -fconcepts
+    )
+
 # Enable strict compiler settings
 if (MSVC)
     # Someone adds /W3 before we add /W4.

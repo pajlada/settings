@@ -27,6 +27,10 @@ enum class SettingOption : uint32_t {
     /// A remote setting is a setting that is never saved locally, nor registered locally with any callbacks or anything
     Remote = (1ULL << 2ULL),
 
+    /// CompareBeforeSet compares the old & new value before updating the setting
+    /// Note that this will *not* work with all types. If your type is not comparable (std::equality_comparable), the comparison will be skipped & the update will take place as if this option was not set
+    CompareBeforeSet = (1ULL << 3ULL),
+
     Default = 0,
 };
 

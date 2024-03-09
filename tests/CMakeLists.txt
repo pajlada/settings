@@ -52,7 +52,13 @@ add_executable(${PROJECT_NAME}
     src/foo.cpp
     src/channel.cpp
 
+    src/option-compare-before-set.cpp
+
     src/common.cpp
+    )
+
+target_compile_options(${PROJECT_NAME} PUBLIC
+    -fconcepts
     )
 
 if(PAJLADA_SETTINGS_COVERAGE)

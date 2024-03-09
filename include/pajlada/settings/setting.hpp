@@ -2,6 +2,7 @@
 
 #include <rapidjson/document.h>
 
+#include <concepts>
 #include <iostream>
 #include <mutex>
 #include <pajlada/settings/common.hpp>
@@ -288,6 +289,15 @@ public:
     bool
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
+        if constexpr (std::equality_comparable<Type>) {
+            if (this->optionEnabled(SettingOption::CompareBeforeSet)) {
+                const auto &prevValue = this->getValue();
+                if (prevValue == newValue) {
+                    return false;
+                }
+            }
+        }
+
         {
             std::unique_lock<std::mutex> lock(this->valueMutex);
             this->value = newValue;
@@ -303,6 +313,7 @@ public:
             if (args.source == SignalArgs::Source::Unset) {
                 args.source = SignalArgs::Source::Setter;
             }
+
             return lockedSetting->marshal(newValue, std::move(args));
         }
 
