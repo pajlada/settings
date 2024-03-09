@@ -2,12 +2,14 @@
 
 ## Unreleased
 
+- Breaking: Removed support for GCC 9. (#74)
 - Breaking: Remove move ctor/operator for SettingListener. (#32)
 - Breaking: Updated to C++20. (#42)
 - Breaking: Remove boost::any `userData` support. (#44)
 - Breaking: Remove support for `boost::any`. (#46)
 - Breaking: Remove support for `boost::filesystem`. (#47)
 - Breaking: Remove support for `boost::optional`. (#48)
+- Minor: Added setting option `CompareBeforeSet` which compares the old & new value in `setValue` before trying to update the value. This only works with settings that are comparable with std::equality_comparable. (#74)
 - Minor: Added support for `std::any`. (#46)
 - Bugfix: Fixed an issue where settings without a value would always try to unmarshal the internal JSON. (#40)
 - Dev: Remove `using namespace std` usages. (#38)
