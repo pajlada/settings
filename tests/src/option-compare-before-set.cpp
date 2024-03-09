@@ -135,6 +135,13 @@ TEST(OptionCompareBeforeSet, ComparableCustomType)
 
     EXPECT_TRUE(count == 1);
     EXPECT_TRUE(currentValue.a == true);
+
+    a = ComparableStruct{
+        .a = false,
+    };
+
+    EXPECT_TRUE(count == 2);
+    EXPECT_TRUE(currentValue.a == false);
 }
 
 TEST(OptionCompareBeforeSet, Pair)
