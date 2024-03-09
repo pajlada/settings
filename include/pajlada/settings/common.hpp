@@ -27,6 +27,10 @@ enum class SettingOption : uint32_t {
     /// A remote setting is a setting that is never saved locally, nor registered locally with any callbacks or anything
     Remote = (1ULL << 2ULL),
 
+    /// CompareBeforeSet compares the old & new value before updating the setting.
+    /// This compares the JSON value, so a marshal & compare to the existing JSON value takes place
+    CompareBeforeSet = (1ULL << 3ULL),
+
     Default = 0,
 };
 

@@ -71,6 +71,13 @@ bool
 SettingManager::set(const char *path, const rapidjson::Value &value,
                     SignalArgs args)
 {
+    if (args.compareBeforeSet) {
+        const auto *prevValue = rapidjson::Pointer(path).Get(this->document);
+        if (prevValue != nullptr && *prevValue == value) {
+            return false;
+        }
+    }
+
     if (args.writeToFile) {
         rapidjson::Pointer(path).Set(this->document, value);
 

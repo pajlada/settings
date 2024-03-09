@@ -8,6 +8,7 @@
 - Breaking: Remove support for `boost::any`. (#46)
 - Breaking: Remove support for `boost::filesystem`. (#47)
 - Breaking: Remove support for `boost::optional`. (#48)
+- Minor: Added setting option `CompareBeforeSet` which compares the old & new value in `setValue` before trying to update the value. This compares the marshalled JSON blob the value makes. (#74)
 - Minor: Added support for `std::any`. (#46)
 - Bugfix: Fixed an issue where settings without a value would always try to unmarshal the internal JSON. (#40)
 - Dev: Remove `using namespace std` usages. (#38)
