@@ -60,9 +60,14 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         uses: ilammy/msvc-dev-cmd@v1.13.0
 
-      - name: Install Conan
-        if: matrix.package-manager == 'conan'
+      - name: Install Conan (Windows)
+        if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
         run: pip3 install --user conan
+        shell: bash
+
+      - name: Install Conan (macOS)
+        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
+        run: brew install conan
         shell: bash
 
       - name: Cache conan packages
