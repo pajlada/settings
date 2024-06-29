@@ -9,6 +9,33 @@
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
+
+namespace {
+
+void
+renameFile(const std::filesystem::path &from, const std::filesystem::path &to,
+           std::error_code &ec)
+{
+#ifdef _WIN32
+    // MOVEFILE_WRITE_THROUGH to bypass the filesystem cache
+    if (MoveFileExW(from.c_str(), to.c_str(),
+                    MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING |
+                        MOVEFILE_WRITE_THROUGH) == TRUE) {
+        ec = {0, std::system_category()};
+    } else {
+        ec = {static_cast<int>(GetLastError()), std::system_category()};
+    }
+#else
+    std::filesystem::rename(from, to, ec);
+#endif
+}
+
+}  // namespace
+
 namespace pajlada::Settings {
 
 SettingManager::SettingManager()
@@ -499,15 +526,15 @@ SettingManager::saveAs(const std::filesystem::path &_path)
                 if (ec) {
                     return false;
                 }
-                std::filesystem::rename(p1, p2, ec);
+                renameFile(p1, p2, ec);
             }
         }
 
         // Move current save to first backup slot
-        std::filesystem::rename(path, firstBkpPath, ec);
+        renameFile(path, firstBkpPath, ec);
     }
 
-    std::filesystem::rename(tmpPath, path, ec);
+    renameFile(tmpPath, path, ec);
 
     if (ec) {
         // TODO(pajlada): Print the error code somewhere?
