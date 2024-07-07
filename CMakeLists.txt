@@ -4,7 +4,11 @@ cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-project(PajladaSettings)
+project(PajladaSettings
+    VERSION 0.2.0
+    DESCRIPTION "Settings library"
+    HOMEPAGE_URL "https://github.com/pajlada/settings"
+)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.0
+
 - Breaking: Remove move ctor/operator for SettingListener. (#32)
 - Breaking: Updated to C++20. (#42)
 - Breaking: Remove boost::any `userData` support. (#44)
