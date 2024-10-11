@@ -65,6 +65,61 @@ TEST(Backup, Basic)
     EXPECT_TRUE(fs::exists("files/out.backup.basic.json.bkp-3"));
 }
 
+TEST(Backup, Single)
+{
+    size_t writeCalls = 0;
+    auto doSave = [&] {
+        std::error_code ec;
+        Backup::saveWithBackup(
+            "files/out.backup.single.json", {.enabled = true, .slots = 1},
+            [&](const auto &path, auto &ec) {
+                writeCalls++;
+                std::ofstream of(path, std::ios::out);
+                if (!of) {
+                    ec = std::make_error_code(std::errc::io_error);
+                    return;
+                }
+                of << "yo";
+            },
+            ec);
+        return !ec;
+    };
+
+    RemoveFile("files/out.backup.single.json");
+    RemoveFile("files/out.backup.single.json.bkp-1");
+
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json"));
+
+    EXPECT_TRUE(doSave());
+    EXPECT_EQ(writeCalls, 1);
+
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json.bkp-1"));
+
+    EXPECT_TRUE(doSave());
+    EXPECT_EQ(writeCalls, 2);
+
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json"));
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json.bkp-1"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json.bkp-2"));
+
+    EXPECT_TRUE(doSave());
+    EXPECT_EQ(writeCalls, 3);
+
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json"));
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json.bkp-1"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json.bkp-2"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json.bkp-3"));
+
+    EXPECT_TRUE(doSave());
+    EXPECT_EQ(writeCalls, 4);
+
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json"));
+    EXPECT_TRUE(fs::exists("files/out.backup.single.json.bkp-1"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json.bkp-2"));
+    EXPECT_TRUE(!fs::exists("files/out.backup.single.json.bkp-3"));
+}
+
 TEST(Backup, Disabled)
 {
     size_t writeCalls = 0;
