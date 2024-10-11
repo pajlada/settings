@@ -48,6 +48,7 @@ add_executable(${PROJECT_NAME}
     src/bad-instance.cpp
     src/misc.cpp
     src/listener.cpp
+    src/backup.cpp
 
     src/foo.cpp
     src/channel.cpp

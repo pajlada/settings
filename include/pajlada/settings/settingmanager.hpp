@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
@@ -130,10 +131,7 @@ private:
                 static_cast<uint64_t>(testSaveMethod)) != 0;
     }
 
-    struct {
-        bool enabled{};
-        uint8_t numSlots = 3;
-    } backup;
+    Backup::Options backup;
 
 public:
     void setBackupEnabled(bool enabled = true);

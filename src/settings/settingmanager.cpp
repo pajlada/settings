@@ -3,38 +3,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/detail/realpath.hpp>
 #include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#endif
-
-namespace {
-
-void
-renameFile(const std::filesystem::path &from, const std::filesystem::path &to,
-           std::error_code &ec)
-{
-#ifdef _WIN32
-    // MOVEFILE_WRITE_THROUGH to bypass the filesystem cache
-    if (MoveFileExW(from.c_str(), to.c_str(),
-                    MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING |
-                        MOVEFILE_WRITE_THROUGH) == TRUE) {
-        ec = {0, std::system_category()};
-    } else {
-        ec = {static_cast<int>(GetLastError()), std::system_category()};
-    }
-#else
-    std::filesystem::rename(from, to, ec);
-#endif
-}
-
-}  // namespace
 
 namespace pajlada::Settings {
 
@@ -479,70 +453,21 @@ SettingManager::save(const std::filesystem::path &path)
 }
 
 bool
-SettingManager::saveAs(const std::filesystem::path &_path)
+SettingManager::saveAs(const std::filesystem::path &path)
 {
     std::error_code ec;
-    std::filesystem::path path = detail::RealPath(_path, ec);
-    if (ec) {
-        return false;
-    }
-    std::filesystem::path tmpPath(_path);
-    tmpPath += ".tmp";
-
-    std::filesystem::path bkpPath(_path);
-    bkpPath += ".bkp";
-
-    auto res = this->writeTo(tmpPath);
-    if (!res) {
-        return res;
-    }
-
-    if (this->backup.enabled) {
-        std::filesystem::path firstBkpPath(bkpPath);
-        firstBkpPath += "-" + std::to_string(1);
-
-        if (this->backup.numSlots > 1) {
-            std::filesystem::path topBkpPath(bkpPath);
-            topBkpPath += "-" + std::to_string(this->backup.numSlots);
-            topBkpPath = detail::RealPath(topBkpPath, ec);
-            if (ec) {
-                return false;
+    Backup::saveWithBackup(
+        path, this->backup,
+        [this](const auto &tmpPath, auto &ec) {
+            if (!this->writeTo(tmpPath)) {
+                ec = std::make_error_code(std::errc::io_error);
             }
-            // Remove top slot backup
-            std::filesystem::remove(topBkpPath, ec);
+        },
+        ec);
 
-            // Shift backups one slot up
-            for (uint8_t slotIndex = this->backup.numSlots - 1; slotIndex >= 1;
-                 --slotIndex) {
-                std::filesystem::path p1(bkpPath);
-                p1 += "-" + std::to_string(slotIndex);
-                p1 = detail::RealPath(p1, ec);
-                if (ec) {
-                    return false;
-                }
-                std::filesystem::path p2(bkpPath);
-                p2 += "-" + std::to_string(slotIndex + 1);
-                p2 = detail::RealPath(p2, ec);
-                if (ec) {
-                    return false;
-                }
-                renameFile(p1, p2, ec);
-            }
-        }
-
-        // Move current save to first backup slot
-        renameFile(path, firstBkpPath, ec);
-    }
-
-    renameFile(tmpPath, path, ec);
-
-    if (ec) {
-        // TODO(pajlada): Print the error code somewhere?
-        return false;
-    }
-
-    return true;
+    return !ec;
 }
+
 bool
 SettingManager::writeTo(const std::filesystem::path &path)
 {
@@ -570,7 +495,7 @@ SettingManager::setBackupEnabled(bool enabled)
 void
 SettingManager::setBackupSlots(uint8_t numSlots)
 {
-    this->backup.numSlots = numSlots;
+    this->backup.slots = numSlots;
 }
 
 std::weak_ptr<SettingData>
