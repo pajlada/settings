@@ -29,9 +29,9 @@ saveWithBackup(const std::filesystem::path &path, Options options,
         std::filesystem::path firstBkpPath(bkpPath);
         firstBkpPath += "-" + std::to_string(1);
 
-        if (options.slots > 1) {
+        if (options.numSlots > 1) {
             std::filesystem::path topBkpPath(bkpPath);
-            topBkpPath += "-" + std::to_string(options.slots);
+            topBkpPath += "-" + std::to_string(options.numSlots);
             topBkpPath = detail::RealPath(topBkpPath, ec);
             if (ec) {
                 return;
@@ -40,7 +40,7 @@ saveWithBackup(const std::filesystem::path &path, Options options,
             std::filesystem::remove(topBkpPath, ec);
 
             // Shift backups one slot up
-            for (uint8_t slotIndex = options.slots - 1; slotIndex >= 1;
+            for (uint8_t slotIndex = options.numSlots - 1; slotIndex >= 1;
                  --slotIndex) {
                 std::filesystem::path p1(bkpPath);
                 p1 += "-" + std::to_string(slotIndex);

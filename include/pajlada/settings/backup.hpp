@@ -10,7 +10,7 @@ struct Options {
     /// Whether the backup is done or not
     bool enabled = true;
     /// The number of backup files to use
-    std::uint8_t slots = 3;
+    std::uint8_t numSlots = 3;
 };
 
 /// @brief Orchestrates saving of a file (`path`) with optional backups
