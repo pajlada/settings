@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.1
+
 - Minor: Added standalone backup API `pajlada::Settings::Backup::saveWithBackup` in `backup.hpp` (#90)
 
 ## v0.2.0
