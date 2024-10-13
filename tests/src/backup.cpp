@@ -14,7 +14,7 @@ TEST(Backup, Basic)
     auto doSave = [&] {
         std::error_code ec;
         Backup::saveWithBackup(
-            "files/out.backup.basic.json", {.enabled = true, .slots = 3},
+            "files/out.backup.basic.json", {.enabled = true, .numSlots = 3},
             [&](const auto &path, auto &ec) {
                 writeCalls++;
                 std::ofstream of(path, std::ios::out);
@@ -71,7 +71,7 @@ TEST(Backup, Single)
     auto doSave = [&] {
         std::error_code ec;
         Backup::saveWithBackup(
-            "files/out.backup.single.json", {.enabled = true, .slots = 1},
+            "files/out.backup.single.json", {.enabled = true, .numSlots = 1},
             [&](const auto &path, auto &ec) {
                 writeCalls++;
                 std::ofstream of(path, std::ios::out);
@@ -126,7 +126,7 @@ TEST(Backup, Disabled)
     auto doSave = [&] {
         std::error_code ec;
         Backup::saveWithBackup(
-            "files/out.backup.disabled.json", {.enabled = false, .slots = 3},
+            "files/out.backup.disabled.json", {.enabled = false, .numSlots = 3},
             [&](const auto &path, auto &ec) {
                 writeCalls++;
                 std::ofstream of(path, std::ios::out);
@@ -183,7 +183,7 @@ TEST(Backup, Failing)
     std::error_code ec;
     auto doSave = [&](bool fail) {
         Backup::saveWithBackup(
-            "files/out.backup.failing.json", {.enabled = true, .slots = 3},
+            "files/out.backup.failing.json", {.enabled = true, .numSlots = 3},
             [&](const auto &path, auto &ec) {
                 writeCalls++;
                 std::ofstream of(path, std::ios::out);

@@ -495,7 +495,7 @@ SettingManager::setBackupEnabled(bool enabled)
 void
 SettingManager::setBackupSlots(uint8_t numSlots)
 {
-    this->backup.slots = numSlots;
+    this->backup.numSlots = numSlots;
 }
 
 std::weak_ptr<SettingData>
