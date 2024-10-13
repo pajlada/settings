@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.2
+
 - Bugfix: Renamed `slots` in the backup options to `numSlots` to avoid conflicts with Qt (#92)
 
 ## v0.2.1
