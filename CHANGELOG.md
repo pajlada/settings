@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bugfix: Renamed `slots` in the backup options to `numSlots` to avoid conflicts with Qt (#92)
+
 ## v0.2.1
 
 - Minor: Added standalone backup API `pajlada::Settings::Backup::saveWithBackup` in `backup.hpp` (#90)
