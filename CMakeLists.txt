@@ -20,9 +20,11 @@ if (PAJLADA_SETTINGS_USE_CONAN)
 endif ()
 
 set(PajladaSettings_SOURCES
+    src/settings/backup.cpp
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
 
+    src/settings/detail/rename.cpp
     src/settings/detail/realpath.cpp
     )
 
