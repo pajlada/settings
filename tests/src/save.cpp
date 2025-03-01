@@ -6,6 +6,7 @@
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 
 namespace fs = std::filesystem;
 
@@ -19,7 +20,7 @@ TEST(Save, Int)
 
     Setting<int>::set("/lol", 10);
 
-    EXPECT_TRUE(SaveFile("out.save.save_int.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.save.save_int.json"));
 
     EXPECT_TRUE(
         FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
@@ -31,7 +32,7 @@ TEST(Save, DoNotWriteToJSON)
 
     Setting<int>::set("/lol", 10);
 
-    EXPECT_TRUE(SaveFile("out.save.save_int.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.save.save_int.json"));
 
     EXPECT_TRUE(
         FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
@@ -62,7 +63,7 @@ TEST(Save, Symlink)
 
     Setting<int>::set("/lol", 10);
 
-    EXPECT_TRUE(sm->saveAs(ps.c_str()));
+    EXPECT_EQ(SaveResult::Success, SaveFile("save.symlink.json"));
 
     EXPECT_TRUE(fs::is_symlink(ps));
 }
@@ -118,25 +119,25 @@ TEST(Save, Backup)
 
     EXPECT_TRUE(!fs::exists("files/out.backup.json"));
 
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::exists("files/out.backup.json"));
     EXPECT_TRUE(!fs::exists("files/out.backup.json.bkp-1"));
 
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::exists("files/out.backup.json"));
     EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-1"));
     EXPECT_TRUE(!fs::exists("files/out.backup.json.bkp-2"));
 
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::exists("files/out.backup.json"));
     EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-1"));
     EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-2"));
     EXPECT_TRUE(!fs::exists("files/out.backup.json.bkp-3"));
 
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::exists("files/out.backup.json"));
     EXPECT_TRUE(fs::exists("files/out.backup.json.bkp-1"));
@@ -165,7 +166,7 @@ TEST(Save, SaveSymlink)
         setting.setValue(13);
     }
 
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::exists(bp));
     EXPECT_TRUE(fs::is_symlink(bp));
@@ -212,7 +213,7 @@ TEST(Save, SaveBackupSymlink)
     EXPECT_TRUE(!fs::exists(tp));
 
     // Save to base file (following the symlink)
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::is_symlink(bp));
     EXPECT_TRUE(fs::exists(tp));
@@ -220,7 +221,7 @@ TEST(Save, SaveBackupSymlink)
     EXPECT_TRUE(!fs::exists(tp1));
 
     // Save to base file, should create bkp-1
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::exists(tp1));
 
@@ -228,8 +229,33 @@ TEST(Save, SaveBackupSymlink)
     EXPECT_TRUE(!fs::exists(tp2));
 
     // Save to base file, should follow bkp-2 and save a file there
-    EXPECT_TRUE(sm->save());
+    EXPECT_EQ(SaveResult::Success, sm->save());
 
     EXPECT_TRUE(fs::is_symlink(bp2));
     EXPECT_TRUE(fs::exists(tp2));
+}
+
+TEST(Save, OnlySaveIfChanged)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::OnlySaveIfChanged;
+
+    EXPECT_EQ(SaveResult::Skipped,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+
+    Setting<int> s("/compare_before_save_lol", sm);
+
+    EXPECT_EQ(SaveResult::Skipped,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+
+    s.setValue(15);
+
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+
+    EXPECT_TRUE(FilesMatch("out.save.compare_before_save.json",
+                           "correct.save.compare_before_save.json"));
+
+    EXPECT_EQ(SaveResult::Skipped,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
 }

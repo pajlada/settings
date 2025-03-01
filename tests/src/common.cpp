@@ -56,7 +56,7 @@ LoadFile(const std::string &fileName, SettingManager *sm)
     return sm->loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
 }
 
-bool
+pajlada::Settings::SettingManager::SaveResult
 SaveFile(const std::string &fileName, SettingManager *sm)
 {
     if (sm == nullptr) {

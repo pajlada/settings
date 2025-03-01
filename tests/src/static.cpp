@@ -3,6 +3,7 @@
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 
 namespace {
 
@@ -113,5 +114,5 @@ TEST(Static, Static)
 
     f7 = 0.f;
 
-    EXPECT_TRUE(SaveFile("out.test2.json", ssm.get()));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.test2.json", ssm.get()));
 }

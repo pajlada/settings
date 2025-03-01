@@ -11,8 +11,9 @@ bool FilesMatch(const std::string &fileName1, const std::string &fileName2);
 
 bool LoadFile(const std::string &fileName,
               pajlada::Settings::SettingManager *sm = nullptr);
-bool SaveFile(const std::string &fileName,
-              pajlada::Settings::SettingManager *sm = nullptr);
+pajlada::Settings::SettingManager::SaveResult SaveFile(
+    const std::string &fileName,
+    pajlada::Settings::SettingManager *sm = nullptr);
 
 bool RemoveFile(const std::string &path);
 

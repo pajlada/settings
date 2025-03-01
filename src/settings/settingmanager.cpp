@@ -79,6 +79,8 @@ SettingManager::set(const char *path, const rapidjson::Value &value,
         }
     }
 
+    this->hasUnsavedChanges = true;
+
     if (args.writeToFile) {
         rapidjson::Pointer(path).Set(this->document, value);
 
@@ -426,7 +428,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
     return LoadError::NoError;
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::gSave(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -434,7 +436,7 @@ SettingManager::gSave(const std::filesystem::path &path)
     return instance->save(path);
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::gSaveAs(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -442,7 +444,7 @@ SettingManager::gSaveAs(const std::filesystem::path &path)
     return instance->saveAs(path);
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::save(const std::filesystem::path &path)
 {
     if (!path.empty()) {
@@ -452,20 +454,32 @@ SettingManager::save(const std::filesystem::path &path)
     return this->saveAs(this->filePath);
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::saveAs(const std::filesystem::path &path)
 {
+    if (this->hasSaveMethodFlag(SaveMethod::OnlySaveIfChanged) &&
+        !this->hasUnsavedChanges) {
+        // No save necessary - no changes have been made
+        return SaveResult::Skipped;
+    }
+
     std::error_code ec;
     Backup::saveWithBackup(
         path, this->backup,
         [this](const auto &tmpPath, auto &ec) {
             if (!this->writeTo(tmpPath)) {
                 ec = std::make_error_code(std::errc::io_error);
+            } else {
+                this->hasUnsavedChanges = false;
             }
         },
         ec);
 
-    return !ec;
+    if (ec) {
+        return SaveResult::Failed;
+    }
+
+    return SaveResult::Success;
 }
 
 bool

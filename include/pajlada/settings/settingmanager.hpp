@@ -3,6 +3,7 @@
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cinttypes>
 #include <filesystem>
 #include <map>
@@ -30,6 +31,18 @@ public:
         FileReadError,
         FileSeekError,
         JSONParseError,
+    };
+
+    enum class SaveResult : std::uint8_t {
+        /// Saving the settings to a file failed
+        /// We currently don't elaborate why it failed
+        Failed,
+
+        /// The settings were successfully saved to a file
+        Success,
+
+        /// No save was attempted because we deemed it unneccessary
+        Skipped,
     };
 
     // Print given document json data prettily
@@ -94,17 +107,17 @@ public:
     // Load from given path
     LoadError loadFrom(const std::filesystem::path &path);
 
-    static bool gSave(const std::filesystem::path &path = {});
-    static bool gSaveAs(const std::filesystem::path &path);
+    static SaveResult gSave(const std::filesystem::path &path = {});
+    static SaveResult gSaveAs(const std::filesystem::path &path);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your application
     // is crash free
     // Save to given path and set path as the default path (or save from default
     // path if filePath is a nullptr)
-    bool save(const std::filesystem::path &path = {});
+    SaveResult save(const std::filesystem::path &path = {});
     // Save to given path
-    bool saveAs(const std::filesystem::path &path);
+    SaveResult saveAs(const std::filesystem::path &path);
 
 private:
     bool writeTo(const std::filesystem::path &path);
@@ -117,12 +130,23 @@ public:
         SaveOnExit = (1ULL << 1ULL),
         SaveOnSettingChange = (1ULL << 2ULL),
 
-        // Force user to manually call SettingsManager::save() to save
+        /// Only perform the save (& and backup) if a call to `set` has come in, meaning
+        /// some setting has changed.
+        ///
+        /// Pairs well with `SettingOption::CompareBeforeSet`, ensuring `set` does not
+        /// set the `hasUnsavedChanges` flag unnecessarily.
+        OnlySaveIfChanged = (1ULL << 3ULL),
+
+        /// Force user to manually call SettingsManager::save() to save
         SaveManually = 0,
         SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
     } saveMethod = SaveMethod::SaveOnExit;
 
 private:
+    /// Set to true by `set` if a value has changed
+    /// Reset to false when a save has succeeded
+    std::atomic<bool> hasUnsavedChanges = false;
+
     // Returns true if the given save method is activated
     inline bool
     hasSaveMethodFlag(SettingManager::SaveMethod testSaveMethod) const
