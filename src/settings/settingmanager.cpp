@@ -79,6 +79,8 @@ SettingManager::set(const char *path, const rapidjson::Value &value,
         }
     }
 
+    this->hasUnsavedChanges = true;
+
     if (args.writeToFile) {
         rapidjson::Pointer(path).Set(this->document, value);
 
@@ -455,12 +457,20 @@ SettingManager::save(const std::filesystem::path &path)
 SettingManager::SaveResult
 SettingManager::saveAs(const std::filesystem::path &path)
 {
+    if (this->hasSaveMethodFlag(SaveMethod::CompareBeforeSave) &&
+        !this->hasUnsavedChanges) {
+        // No save necessary - no changes have been made
+        return SaveResult::Skipped;
+    }
+
     std::error_code ec;
     Backup::saveWithBackup(
         path, this->backup,
         [this](const auto &tmpPath, auto &ec) {
             if (!this->writeTo(tmpPath)) {
                 ec = std::make_error_code(std::errc::io_error);
+            } else {
+                this->hasUnsavedChanges = false;
             }
         },
         ec);

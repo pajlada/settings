@@ -3,6 +3,7 @@
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cinttypes>
 #include <filesystem>
 #include <map>
@@ -39,6 +40,9 @@ public:
 
         /// The settings were successfully saved to a file
         Success,
+
+        /// No save was attempted because we deemed it unneccessary
+        Skipped,
     };
 
     // Print given document json data prettily
@@ -126,12 +130,21 @@ public:
         SaveOnExit = (1ULL << 1ULL),
         SaveOnSettingChange = (1ULL << 2ULL),
 
+        /// Compare the last payload before actually making any filesystem changes
+        /// This is done before the backup options are read, so if no changes
+        /// are detected, no backup will be created
+        CompareBeforeSave = (1ULL << 3ULL),
+
         // Force user to manually call SettingsManager::save() to save
         SaveManually = 0,
         SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
     } saveMethod = SaveMethod::SaveOnExit;
 
 private:
+    /// Set to true by `set` if a value has changed
+    /// Reset to false when a save has succeeded
+    std::atomic<bool> hasUnsavedChanges = false;
+
     // Returns true if the given save method is activated
     inline bool
     hasSaveMethodFlag(SettingManager::SaveMethod testSaveMethod) const

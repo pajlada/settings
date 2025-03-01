@@ -234,3 +234,28 @@ TEST(Save, SaveBackupSymlink)
     EXPECT_TRUE(fs::is_symlink(bp2));
     EXPECT_TRUE(fs::exists(tp2));
 }
+
+TEST(Save, CompareBeforeSave)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::CompareBeforeSave;
+
+    EXPECT_EQ(SaveResult::Skipped,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+
+    Setting<int> s("/compare_before_save_lol", sm);
+
+    EXPECT_EQ(SaveResult::Skipped,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+
+    s.setValue(15);
+
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+
+    EXPECT_TRUE(FilesMatch("out.save.compare_before_save.json",
+                           "correct.save.compare_before_save.json"));
+
+    EXPECT_EQ(SaveResult::Skipped,
+              SaveFile("out.save.compare_before_save.json", sm.get()));
+}
