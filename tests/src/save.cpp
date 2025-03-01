@@ -235,10 +235,10 @@ TEST(Save, SaveBackupSymlink)
     EXPECT_TRUE(fs::exists(tp2));
 }
 
-TEST(Save, CompareBeforeSave)
+TEST(Save, OnlySaveIfChanged)
 {
     auto sm = std::make_shared<SettingManager>();
-    sm->saveMethod = SettingManager::SaveMethod::CompareBeforeSave;
+    sm->saveMethod = SettingManager::SaveMethod::OnlySaveIfChanged;
 
     EXPECT_EQ(SaveResult::Skipped,
               SaveFile("out.save.compare_before_save.json", sm.get()));

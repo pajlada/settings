@@ -130,10 +130,12 @@ public:
         SaveOnExit = (1ULL << 1ULL),
         SaveOnSettingChange = (1ULL << 2ULL),
 
-        /// Compare the last payload before actually making any filesystem changes
-        /// This is done before the backup options are read, so if no changes
-        /// are detected, no backup will be created
-        CompareBeforeSave = (1ULL << 3ULL),
+        /// Only perform the save (& and backup) if a call to `set` has come in, meaning
+        /// some setting has changed.
+        ///
+        /// Pairs well with `SettingOption::CompareBeforeSet`, ensuring `set` does not
+        /// set the `hasUnsavedChanges` flag unnecessarily.
+        OnlySaveIfChanged = (1ULL << 3ULL),
 
         /// Force user to manually call SettingsManager::save() to save
         SaveManually = 0,

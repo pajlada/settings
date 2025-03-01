@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Breaking: Save methods now return a `SaveResult` enum instead of a bool. (#100)
-- Minor: Setting managers can be configured to only save if a change has come in through its `set` function (e.g. by changing the value of a setting) with the `SaveMethod::CompareBeforeSave` flag. (#100)
+- Minor: Setting managers can be configured to only save if a change has come in through its `set` function (e.g. by changing the value of a setting) with the `SaveMethod::OnlySaveIfChanged` flag. (#100)
 
 ## v0.2.2
 

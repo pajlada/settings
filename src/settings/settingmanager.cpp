@@ -457,7 +457,7 @@ SettingManager::save(const std::filesystem::path &path)
 SettingManager::SaveResult
 SettingManager::saveAs(const std::filesystem::path &path)
 {
-    if (this->hasSaveMethodFlag(SaveMethod::CompareBeforeSave) &&
+    if (this->hasSaveMethodFlag(SaveMethod::OnlySaveIfChanged) &&
         !this->hasUnsavedChanges) {
         // No save necessary - no changes have been made
         return SaveResult::Skipped;
