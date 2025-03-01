@@ -3,6 +3,7 @@
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 
 TEST(Map, Simple)
 {
@@ -22,7 +23,7 @@ TEST(Map, Simple)
 
     EXPECT_TRUE(keys == SettingManager::getObjectKeys("/map"));
 
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.simplemap.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.simplemap.json"));
 }
 
 TEST(Map, Complex)
@@ -62,5 +63,5 @@ TEST(Map, Complex)
     EXPECT_TRUE(any_cast<int>(innerArrayMap["b"]) == 2);
     EXPECT_TRUE(any_cast<int>(innerArrayMap["c"]) == 3);
 
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.complexmap.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.complexmap.json"));
 }

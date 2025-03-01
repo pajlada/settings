@@ -32,6 +32,15 @@ public:
         JSONParseError,
     };
 
+    enum class SaveResult : std::uint8_t {
+        /// Saving the settings to a file failed
+        /// We currently don't elaborate why it failed
+        Failed,
+
+        /// The settings were successfully saved to a file
+        Success,
+    };
+
     // Print given document json data prettily
     void pp(const std::string &prefix = std::string());
     static void gPP(const std::string &prefix = std::string());
@@ -94,17 +103,17 @@ public:
     // Load from given path
     LoadError loadFrom(const std::filesystem::path &path);
 
-    static bool gSave(const std::filesystem::path &path = {});
-    static bool gSaveAs(const std::filesystem::path &path);
+    static SaveResult gSave(const std::filesystem::path &path = {});
+    static SaveResult gSaveAs(const std::filesystem::path &path);
 
     // Force a settings save
     // It is recommended to run this every now and then unless your application
     // is crash free
     // Save to given path and set path as the default path (or save from default
     // path if filePath is a nullptr)
-    bool save(const std::filesystem::path &path = {});
+    SaveResult save(const std::filesystem::path &path = {});
     // Save to given path
-    bool saveAs(const std::filesystem::path &path);
+    SaveResult saveAs(const std::filesystem::path &path);
 
 private:
     bool writeTo(const std::filesystem::path &path);

@@ -1,6 +1,7 @@
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 
 TEST(Remove, Simple)
 {
@@ -20,11 +21,11 @@ TEST(Remove, Simple)
     EXPECT_TRUE(b == 10);
     EXPECT_TRUE(c == 0);
 
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.pre.removesetting.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.pre.removesetting.json"));
 
     EXPECT_TRUE(a.remove());
 
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.post.removesetting.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.post.removesetting.json"));
 
     EXPECT_TRUE(!FilesMatch("out.pre.removesetting.json",
                             "out.post.removesetting.json"));
@@ -60,8 +61,8 @@ TEST(Remove, Nested)
     EXPECT_TRUE(d.isValid());
     EXPECT_TRUE(e.isValid());
 
-    EXPECT_TRUE(
-        SettingManager::gSaveAs("files/out.removenestedsetting.state1.json"));
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.removenestedsetting.state1.json"));
     EXPECT_TRUE(FilesMatch("out.removenestedsetting.state1.json",
                            "in.removenestedsetting.state1.json"));
 
@@ -73,8 +74,8 @@ TEST(Remove, Nested)
     EXPECT_TRUE(d.isValid());
     EXPECT_TRUE(e.isValid());
 
-    EXPECT_TRUE(
-        SettingManager::gSaveAs("files/out.removenestedsetting.state2.json"));
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.removenestedsetting.state2.json"));
     EXPECT_TRUE(FilesMatch("out.removenestedsetting.state2.json",
                            "in.removenestedsetting.state2.json"));
 
@@ -86,8 +87,8 @@ TEST(Remove, Nested)
     EXPECT_TRUE(d.isValid());
     EXPECT_TRUE(e.isValid());
 
-    EXPECT_TRUE(
-        SettingManager::gSaveAs("files/out.removenestedsetting.state3.json"));
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.removenestedsetting.state3.json"));
     EXPECT_TRUE(FilesMatch("out.removenestedsetting.state3.json",
                            "in.removenestedsetting.state3.json"));
 }

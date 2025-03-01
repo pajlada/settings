@@ -13,6 +13,7 @@
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
+using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 
 TEST(Misc, StdAny)
 {
@@ -39,7 +40,7 @@ TEST(Misc, Array)
     // been changed
     EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
 
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.array_test.json") == true);
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.array_test.json"));
 
     EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
 }
@@ -75,7 +76,7 @@ TEST(Misc, Vector)
 
     test = x;
 
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.vector.json") == true);
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.vector.json"));
 }
 
 TEST(Misc, ChannelManager)
@@ -105,7 +106,7 @@ TEST(Misc, ChannelManager)
     }
 
     EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
-    EXPECT_TRUE(SettingManager::gSaveAs("files/out.test3.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.test3.json"));
     EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 }
 

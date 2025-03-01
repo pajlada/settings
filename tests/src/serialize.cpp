@@ -3,6 +3,7 @@
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 
 TEST(Serialize, VectorBeforeLoading)
 {
@@ -44,7 +45,7 @@ TEST(Serialize, VectorMisc)
 
     a = newData;
 
-    EXPECT_TRUE(SaveFile("out.serialize.vector.str.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.vector.str.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.vector.str.json"));
@@ -86,7 +87,8 @@ TEST(Serialize, StdAnyVectorString)
 
     a = newData;
 
-    EXPECT_TRUE(SaveFile("out.serialize.any.vector.str.json"));
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.serialize.any.vector.str.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.any.vector.str.json"));
@@ -130,7 +132,8 @@ TEST(Serialize, StdAnyVectorAny)
 
     a = newData;
 
-    EXPECT_TRUE(SaveFile("out.serialize.any.vector.str.json"));
+    EXPECT_EQ(SaveResult::Success,
+              SaveFile("out.serialize.any.vector.str.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.any.vector.str.json"));
@@ -175,7 +178,7 @@ TEST(Serialize, Int4)
     SettingManager::clear();
     Setting<int> a("/a");
     EXPECT_TRUE(LoadFile("in.serialize.int.json"));
-    EXPECT_TRUE(SaveFile("out.serialize.int.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.int.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.int.json", "out.serialize.int.json"));
 }
@@ -237,7 +240,7 @@ TEST(Serialize, Bool)
     EXPECT_TRUE(a.getValue() == true);
     val = a;
     EXPECT_TRUE(val == true);
-    EXPECT_TRUE(SaveFile("out.serialize.bool.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.bool.json"));
     EXPECT_TRUE(
         FilesMatch("in.serialize.bool.json", "out.serialize.bool.json"));
 
@@ -246,7 +249,7 @@ TEST(Serialize, Bool)
     EXPECT_TRUE(a.getValue() == false);
     val = a;
     EXPECT_TRUE(val == false);
-    EXPECT_TRUE(SaveFile("out.serialize.bool.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.bool.json"));
     EXPECT_TRUE(
         FilesMatch("in.serialize.bool.false.json", "out.serialize.bool.json"));
 }

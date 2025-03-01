@@ -426,7 +426,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
     return LoadError::NoError;
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::gSave(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -434,7 +434,7 @@ SettingManager::gSave(const std::filesystem::path &path)
     return instance->save(path);
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::gSaveAs(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -442,7 +442,7 @@ SettingManager::gSaveAs(const std::filesystem::path &path)
     return instance->saveAs(path);
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::save(const std::filesystem::path &path)
 {
     if (!path.empty()) {
@@ -452,7 +452,7 @@ SettingManager::save(const std::filesystem::path &path)
     return this->saveAs(this->filePath);
 }
 
-bool
+SettingManager::SaveResult
 SettingManager::saveAs(const std::filesystem::path &path)
 {
     std::error_code ec;
@@ -465,7 +465,11 @@ SettingManager::saveAs(const std::filesystem::path &path)
         },
         ec);
 
-    return !ec;
+    if (ec) {
+        return SaveResult::Failed;
+    }
+
+    return SaveResult::Success;
 }
 
 bool
