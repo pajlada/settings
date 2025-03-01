@@ -135,7 +135,7 @@ public:
         /// are detected, no backup will be created
         CompareBeforeSave = (1ULL << 3ULL),
 
-        // Force user to manually call SettingsManager::save() to save
+        /// Force user to manually call SettingsManager::save() to save
         SaveManually = 0,
         SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
     } saveMethod = SaveMethod::SaveOnExit;
