@@ -22,19 +22,6 @@ jobs:
       fail-fast: false
 
     steps:
-      - id: package-manager
-        env:
-          PACKAGE_MANAGER: ${{ matrix.package-manager }}
-        run: |
-          if [ "$PACKAGE_MANAGER" = "conan" ]; then
-            echo "use-conan=1" > "$GITHUB_OUTPUT"
-            echo "toolchain-file=conan_toolchain.cmake" > "$GITHUB_OUTPUT"
-          else
-            echo "use-conan=0" > "$GITHUB_OUTPUT"
-            echo "toolchain-file=" > "$GITHUB_OUTPUT"
-          fi
-        shell: bash
-
       - uses: actions/checkout@v4
         with:
           submodules: true
@@ -44,68 +31,35 @@ jobs:
           mkdir build
         shell: bash
 
-      - name: Setup environment (MacOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          python3 -c "import site; print(site.USER_BASE + '/bin')" >> "$GITHUB_PATH"
-        shell: bash
-
-      - name: Setup environment (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: |
-          python3 -c "import site; import sys; print(f'{site.USER_BASE}\\Python{sys.version_info.major}{sys.version_info.minor}\\Scripts')" >> "$GITHUB_PATH"
-        shell: bash
-
       - name: Enable Developer Command Prompt
         if: startsWith(matrix.os, 'windows')
         uses: ilammy/msvc-dev-cmd@v1.13.0
 
-      - name: Install Conan (Windows)
-        if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
-        run: pip3 install --user conan
-        shell: bash
-
-      - name: Install Conan (macOS)
-        if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'conan'
-        run: brew install conan
-        shell: bash
-
-      - name: Cache conan packages
+      - name: Install the latest version of uv
         if: matrix.package-manager == 'conan'
-        uses: actions/cache@v4
+        uses: astral-sh/setup-uv@v5
         with:
-          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.txt') }}-20211205
-          path: ~/.conan/
+          cache-dependency-glob: "" # we have recursive symlinks
 
-      - name: Cache conan packages (Windows, Part 2)
-        if: startsWith(matrix.os, 'windows') && matrix.package-manager == 'conan'
-        uses: actions/cache@v4
-        with:
-          key: ${{ runner.os }}-conan-root-${{ hashFiles('**/conanfile.txt') }}-20211205
-          path: C:/.conan/
+      - name: Install Conan
+        if: matrix.package-manager == 'conan'
+        run: |
+          uv tool install conan
+          conan --version
+          conan profile detect
 
       - name: Install libraries (MacOS)
         if: startsWith(matrix.os, 'macos') && matrix.package-manager == 'none'
         run: |
-          brew install rapidjson
+          brew install rapidjson ninja
         shell: bash
-
-      - name: Install dependencies with Conan
-        if: matrix.package-manager == 'conan'
-        run: |
-          conan --version
-          conan profile detect
-          conan install --output-folder=. --build=missing -s build_type=Debug -pr:b=default ..
-        shell: bash
-        working-directory: build
 
       - name: Build
         run: |
           cmake \
-              -DPAJLADA_SETTINGS_USE_CONAN=${{ steps.package-manager.outputs.use-conan }} \
-              -DCMAKE_TOOLCHAIN_FILE="${{ steps.package-manager.outputs.toolchain-file }}" \
-              -DCMAKE_BUILD_TYPE=Debug \
-              ../tests
+            --preset ${{ matrix.package-manager == 'conan' && 'debug-conan' || 'debug' }} \
+            -G Ninja \
+            ..
           cmake --build . --config Debug --parallel
         shell: bash
         working-directory: build

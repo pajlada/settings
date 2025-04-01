@@ -1,0 +1,29 @@
+{
+  "version": 7,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PAJLADA_SETTINGS_BUILD_TESTS": true
+      }
+    },
+    {
+      "name": "debug-coverage",
+      "displayName": "Debug with coverage",
+      "inherits": "debug",
+      "cacheVariables": {
+        "PAJLADA_SETTINGS_COVERAGE": true
+      }
+    },
+    {
+      "name": "debug-conan",
+      "displayName": "Debug (conan)",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan_provider.cmake"
+      }
+    }
+  ]
+}

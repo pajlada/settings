@@ -14,6 +14,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
+option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
     message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
@@ -113,4 +114,9 @@ if(NOT MSVC)
         endif()
     endif()
     target_link_libraries(PajladaSettings INTERFACE $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
+endif()
+
+if(PAJLADA_SETTINGS_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()

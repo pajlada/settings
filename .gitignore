@@ -1,5 +1,6 @@
 # Build directories
 /*build*
+/out
 
 compile_commands.json
 .cache/
@@ -10,3 +11,4 @@ CMakeUserPresets.json
 .vscode
 .vs
 .idea
+.clangd
