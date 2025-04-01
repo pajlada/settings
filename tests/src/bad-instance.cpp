@@ -1,3 +1,6 @@
+#include <gtest/gtest.h>
+#include <rapidjson/document.h>
+
 #include <pajlada/signals/connection.hpp>
 
 #include "common.hpp"
@@ -42,7 +45,8 @@ TEST(BadInstance, Two)
     rapidjson::Value val;
 
     EXPECT_TRUE(lockedData->marshal<int>(53) == false);
-    EXPECT_TRUE(lockedData->unmarshalJSON() == nullptr);
+    rapidjson::Document doc;
+    EXPECT_FALSE(lockedData->unmarshalJSON(doc));
     EXPECT_TRUE(lockedData->getPath() == "/multi/a");
     EXPECT_TRUE(lockedData->unmarshal<int>() == std::nullopt);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
@@ -12,6 +13,7 @@
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/signalargs.hpp>
+#include <shared_mutex>
 #include <vector>
 
 namespace pajlada::Settings {
@@ -50,7 +52,18 @@ public:
     static void gPP(const std::string &prefix = std::string());
     static std::string stringify(const rapidjson::Value &v);
 
-    rapidjson::Value *get(const char *path);
+    bool get(const char *path, rapidjson::Document &doc);
+
+    decltype(auto)
+    get(const char *path, auto &&fn)
+    {
+        std::shared_lock g(this->settingsDataMutex);
+        auto *ptr = this->rawGet(path);
+        return fn(ptr);
+    }
+
+    bool compare(const char *path, const rapidjson::Value &value);
+
     bool set(const char *path, const rapidjson::Value &value,
              SignalArgs args = SignalArgs());
 
@@ -61,6 +74,11 @@ private:
 
     // Called from load
     void notifyLoadedValues();
+
+    /// Get a value at a path
+    ///
+    /// The caller must ensure that `settingsDataMutex` is locked
+    rapidjson::Value *rawGet(const char *path);
 
 public:
     // Useful array helper methods
@@ -178,7 +196,9 @@ public:
 private:
     std::filesystem::path filePath = "settings.json";
 
-    std::mutex settingsMutex;
+    std::shared_mutex settingsDataMutex;  // for `document`
+
+    std::mutex settingsMutex;  // for `settings`
 
     //       path         setting
     std::map<std::string, std::shared_ptr<SettingData>> settings;
