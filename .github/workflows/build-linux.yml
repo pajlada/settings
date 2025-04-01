@@ -20,27 +20,29 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
-            compiler: g++ # g++-9
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             compiler: g++-10
-          # clang-10 is disabled since it's not supported
-          # - os: ubuntu-20.04
-          #   compiler: clang # clang-10
-          - os: ubuntu-20.04
-            compiler: clang-11
-          - os: ubuntu-20.04
-            compiler: clang-12
-
           - os: ubuntu-22.04
             compiler: g++ # g++-11
-            upload-coverage: true
           - os: ubuntu-22.04
             compiler: g++-12
           - os: ubuntu-22.04
             compiler: clang # clang-14
           - os: ubuntu-22.04
             compiler: clang-15
+
+          - os: ubuntu-24.04
+            upload-coverage: true
+            compiler: g++ # g++-13
+          # Build fails due to old rapidjson
+          # - os: ubuntu-24.04
+          #   compiler: g++-14
+          # Coverage fails (for some reason)
+          # - os: ubuntu-24.04
+          #   compiler: clang # clang-18
+          # Build fails due to old rapidjson
+          # - os: ubuntu-24.04
+          #   compiler: clang-19
 
     steps:
       - uses: actions/checkout@v4
