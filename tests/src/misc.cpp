@@ -1,5 +1,8 @@
+#include <gtest/gtest.h>
+
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <pajlada/serialize.hpp>
 #include <pajlada/settings/setting.hpp>
 #include <pajlada/settings/settingdata.hpp>
@@ -18,7 +21,8 @@ using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 TEST(Misc, StdAny)
 {
     Setting<std::any> test("/anyTest");
-    auto test2 = new Setting<std::any>("/anyTest2");
+    std::unique_ptr<Setting<std::any>> test2(
+        new Setting<std::any>("/anyTest2"));
 
     auto v1 = test.getValue();
     auto v2 = test2->getValue();
@@ -202,4 +206,51 @@ TEST(Misc, MoveSet)
     EXPECT_TRUE(lol.getValue() == "lol");
     EXPECT_TRUE(lol.getValue() == "lol");
     EXPECT_TRUE(lol.getValue() == "lol");
+}
+
+TEST(Misc, recursiveSetSame)
+{
+    Setting<int> a("/multithread/basic/a");
+
+    a = 0;
+
+    a.connect(
+        [&](const int &it) {
+            ASSERT_TRUE(it == 1 || it == 2);
+            if (it == 1) {
+                a = 2;
+            }
+        },
+        false);
+
+    a = 1;
+    ASSERT_EQ(a, 2);
+}
+
+TEST(Misc, recursiveSetDiff)
+{
+    Setting<int> a("/multithread/basic/a");
+    Setting<int> b("/multithread/basic/b");
+
+    a = 0;
+    b = 0;
+
+    a.connect(
+        [&](const int &it) {
+            ASSERT_TRUE(it == 1 || it == 2);
+            if (it == 1) {
+                b = 1;
+            }
+        },
+        false);
+    b.connect(
+        [&](const int &it) {
+            ASSERT_EQ(it, 1);
+            a = 2;
+        },
+        false);
+
+    a = 1;
+    ASSERT_EQ(a, 2);
+    ASSERT_EQ(b, 1);
 }

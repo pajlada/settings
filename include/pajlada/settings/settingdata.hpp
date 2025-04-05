@@ -34,22 +34,13 @@ public:
 
     const std::string &getPath() const;
 
-    void notifyUpdate(const rapidjson::Value &value, SignalArgs args);
+    void notifyUpdate(const rapidjson::Value &value, const SignalArgs &args);
 
-    bool
-    marshalJSON(const rapidjson::Value &v, SignalArgs &&args = {})
-    {
-        auto locked = this->instance.lock();
-        if (!locked) {
-            return false;
-        }
-
-        return locked->set(this->path.c_str(), v, std::move(args));
-    }
+    bool marshalJSON(const rapidjson::Value &v, const SignalArgs &args = {});
 
     template <typename Type>
     bool
-    marshal(const Type &v, SignalArgs args = SignalArgs())
+    marshal(const Type &v, const SignalArgs &args = {})
     {
         auto locked = this->instance.lock();
         if (!locked) {
@@ -59,34 +50,33 @@ public:
         auto jsonValue =
             Serialize<Type>::get(v, locked->document.GetAllocator());
 
-        return locked->set(this->path.c_str(), jsonValue, std::move(args));
+        return locked->set(this->path, jsonValue, args);
     }
 
-    rapidjson::Value *
-    unmarshalJSON()
-    {
-        return this->get();
-    }
+    bool unmarshalJSON(rapidjson::Document &doc);
 
     template <typename Type>
     std::optional<Type>
     unmarshal() const
     {
-        auto *ptr = this->get();
-
-        if (ptr == nullptr) {
+        auto locked = this->instance.lock();
+        if (!locked) {
             return std::nullopt;
         }
 
-        return Deserialize<Type>::get(*ptr);
+        return locked->get(this->path, [](auto *ptr) -> std::optional<Type> {
+            if (ptr == nullptr) {
+                return std::nullopt;
+            }
+
+            return Deserialize<Type>::get(*ptr);
+        });
     }
 
     int getUpdateIteration() const;
 
 private:
     friend class SettingManager;
-
-    rapidjson::Value *get() const;
 };
 
 }  // namespace pajlada::Settings

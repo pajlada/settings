@@ -17,7 +17,7 @@ SettingData::getPath() const
 }
 
 void
-SettingData::notifyUpdate(const rapidjson::Value &value, SignalArgs args)
+SettingData::notifyUpdate(const rapidjson::Value &value, const SignalArgs &args)
 {
     ++this->updateIteration;
 
@@ -30,15 +30,25 @@ SettingData::getUpdateIteration() const
     return this->updateIteration;
 }
 
-rapidjson::Value *
-SettingData::get() const
+bool
+SettingData::marshalJSON(const rapidjson::Value &v, const SignalArgs &args)
 {
     auto locked = this->instance.lock();
     if (!locked) {
-        return nullptr;
+        return false;
+    }
+    return locked->set(path, v, args);
+}
+
+bool
+SettingData::unmarshalJSON(rapidjson::Document &doc)
+{
+    auto locked = this->instance.lock();
+    if (!locked) {
+        return false;
     }
 
-    return locked->get(this->path.c_str());
+    return locked->get(this->path, doc);
 }
 
 }  // namespace pajlada::Settings
