@@ -75,10 +75,7 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cmake \
-              -DPAJLADA_SETTINGS_COVERAGE=On \
-              -DCMAKE_BUILD_TYPE=Debug \
-              ../tests
+          cmake --preset debug-coverage ..
           cmake --build . --config Debug --parallel
         working-directory: build
 

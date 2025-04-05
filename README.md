@@ -16,7 +16,7 @@ My C++ Settings library
 ```sh
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ../tests
+cmake --preset debug ..
 cmake --build
 ctest
 ```

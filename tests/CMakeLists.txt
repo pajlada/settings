@@ -1,16 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
-
-cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")
-
 project(PajladaSettingsTest)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
-
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/.." PajladaSettings)
 
 # For MSVC: Prevent overriding the parent project's compiler/linker settings
 # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
@@ -28,8 +16,6 @@ set_target_properties(gtest PROPERTIES FOLDER lib)
 set_target_properties(gtest_main PROPERTIES FOLDER lib)
 set_target_properties(gmock PROPERTIES FOLDER lib)
 set_target_properties(gmock_main PROPERTIES FOLDER lib)
-
-enable_testing()
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -59,7 +45,6 @@ add_executable(${PROJECT_NAME}
     )
 
 if(PAJLADA_SETTINGS_COVERAGE)
-    include(CodeCoverage)
     append_coverage_compiler_flags()
     message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
 
