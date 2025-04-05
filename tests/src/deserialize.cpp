@@ -29,8 +29,8 @@ TEST_F(FDeserialize, Int)
 {
     Setting<int> a1("/int");
     Setting<int> a2("/float");
-    auto a3 = new Setting<int>("/std::string");
-    auto a4 = new Setting<int>("/bool");
+    std::unique_ptr<Setting<int>> a3(new Setting<int>("/std::string"));
+    std::unique_ptr<Setting<int>> a4(new Setting<int>("/bool"));
 
     EXPECT_TRUE(a1.getValue() == 5);
     EXPECT_TRUE(a2.getValue() == 5);
@@ -42,8 +42,8 @@ TEST_F(FDeserialize, Float)
 {
     Setting<float> a1("/int");
     Setting<float> a2("/float");
-    auto a3 = new Setting<float>("/std::string");
-    auto a4 = new Setting<float>("/bool");
+    std::unique_ptr<Setting<float>> a3(new Setting<float>("/std::string"));
+    std::unique_ptr<Setting<float>> a4(new Setting<float>("/bool"));
 
     EXPECT_NEAR(a1.getValue(), 5.f, EPSILON);
     EXPECT_NEAR(a2.getValue(), 5.3f, EPSILON);
@@ -55,8 +55,8 @@ TEST_F(FDeserialize, Double)
 {
     Setting<double> a1("/int");
     Setting<double> a2("/float");
-    auto a3 = new Setting<double>("/std::string");
-    auto a4 = new Setting<double>("/bool");
+    std::unique_ptr<Setting<double>> a3(new Setting<double>("/std::string"));
+    std::unique_ptr<Setting<double>> a4(new Setting<double>("/bool"));
 
     EXPECT_NEAR(a1.getValue(), 5., EPSILON);
     EXPECT_NEAR(a2.getValue(), 5.3, EPSILON);
@@ -67,9 +67,9 @@ TEST_F(FDeserialize, Double)
 TEST_F(FDeserialize, Bool)
 {
     Setting<bool> a1("/int");
-    auto a2 = new Setting<bool>("/float");
-    auto a3 = new Setting<bool>("/std::string");
-    auto a4 = new Setting<bool>("/bool");
+    std::unique_ptr<Setting<bool>> a2(new Setting<bool>("/float"));
+    std::unique_ptr<Setting<bool>> a3(new Setting<bool>("/std::string"));
+    std::unique_ptr<Setting<bool>> a4(new Setting<bool>("/bool"));
 
     Setting<bool> a5("/int1");
 
@@ -82,11 +82,12 @@ TEST_F(FDeserialize, Bool)
 
 TEST_F(FDeserialize, String)
 {
-    Setting<std::string> *a1, *a2, *a3, *a4;
-    a1 = new Setting<std::string>("/int");
-    a2 = new Setting<std::string>("/float");
-    a3 = new Setting<std::string>("/string");
-    a4 = new Setting<std::string>("/bool");
+    std::unique_ptr<Setting<std::string>> a1(new Setting<std::string>("/int"));
+    std::unique_ptr<Setting<std::string>> a2(
+        new Setting<std::string>("/float"));
+    std::unique_ptr<Setting<std::string>> a3(
+        new Setting<std::string>("/string"));
+    std::unique_ptr<Setting<std::string>> a4(new Setting<std::string>("/bool"));
 
     DD_THROWS(a1->getValue());
     DD_THROWS(a2->getValue());
