@@ -8,6 +8,7 @@
 #include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
+#include <shared_mutex>
 #include <string>
 
 namespace pajlada::Settings {
@@ -31,8 +32,11 @@ void
 SettingManager::pp(const std::string &prefix)
 {
     rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    this->document.Accept(writer);
+    {
+        std::shared_lock g(this->settingsDataMutex);
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        this->document.Accept(writer);
+    }
 
     std::cout << prefix << buffer.GetString() << std::endl;
 }
@@ -56,23 +60,41 @@ SettingManager::stringify(const rapidjson::Value &v)
 }
 
 rapidjson::Value *
-SettingManager::get(const char *path)
+SettingManager::rawGet(const std::string &path)
 {
-    auto ptr = rapidjson::Pointer(path);
-
-    if (!ptr.IsValid()) {
-        // For invalid paths, i.e. "988934jksgrhjkh" or "jgkh34gjk" (missing /)
+    rapidjson::Pointer p(path);
+    if (!p.IsValid()) {
         return nullptr;
     }
-
-    return ptr.Get(this->document);
+    return p.Get(this->document);
 }
 
 bool
-SettingManager::set(const char *path, const rapidjson::Value &value,
-                    SignalArgs args)
+SettingManager::get(const std::string &path, rapidjson::Document &doc)
+{
+    std::shared_lock g(this->settingsDataMutex);
+    const auto *value = rapidjson::Pointer(path).Get(this->document);
+    if (!value) {
+        return false;
+    }
+    doc.CopyFrom(*value, doc.GetAllocator());
+    return true;
+}
+
+bool
+SettingManager::compare(const std::string &path, const rapidjson::Value &value)
+{
+    std::shared_lock g(this->settingsDataMutex);
+    const auto *prevValue = rapidjson::Pointer(path).Get(this->document);
+    return prevValue != nullptr && *prevValue == value;
+}
+
+bool
+SettingManager::set(const std::string &path, const rapidjson::Value &value,
+                    const SignalArgs &args)
 {
     if (args.compareBeforeSet) {
+        std::shared_lock g(this->settingsDataMutex);
         const auto *prevValue = rapidjson::Pointer(path).Get(this->document);
         if (prevValue != nullptr && *prevValue == value) {
             return false;
@@ -82,28 +104,32 @@ SettingManager::set(const char *path, const rapidjson::Value &value,
     this->hasUnsavedChanges = true;
 
     if (args.writeToFile) {
-        rapidjson::Pointer(path).Set(this->document, value);
+        {
+            std::unique_lock g(this->settingsDataMutex);
+            rapidjson::Pointer(path).Set(this->document, value);
+        }
 
         if (this->hasSaveMethodFlag(SaveMethod::SaveOnSettingChange)) {
             this->save();
         }
     }
 
-    this->notifyUpdate(path, value, std::move(args));
+    this->notifyUpdate(path, value, args);
 
     return true;
 }
 
 void
 SettingManager::notifyUpdate(const std::string &path,
-                             const rapidjson::Value &value, SignalArgs args)
+                             const rapidjson::Value &value,
+                             const SignalArgs &args)
 {
     auto setting = this->getSetting(path);
     if (!setting) {
         return;
     }
 
-    setting->notifyUpdate(value, std::move(args));
+    setting->notifyUpdate(value, args);
 }
 
 void
@@ -116,17 +142,22 @@ SettingManager::notifyLoadedValues()
 
     this->settingsMutex.unlock();
 
+    rapidjson::Document cpy;
     for (const auto &it : loadedSettings) {
-        auto *v = this->get(it.first.c_str());
-        if (v == nullptr) {
-            continue;
+        {
+            std::shared_lock g(this->settingsDataMutex);
+            auto *v = this->rawGet(it.first);
+            if (v == nullptr) {
+                continue;
+            }
+            cpy.CopyFrom(*v, cpy.GetAllocator());
         }
 
         // Maybe a "Load" source would make sense?
         SignalArgs args;
         args.source = SignalArgs::Source::Setter;
 
-        it.second->notifyUpdate(*v, std::move(args));
+        it.second->notifyUpdate(cpy, args);
     }
 }
 
@@ -135,8 +166,8 @@ SettingManager::arraySize(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    auto *valuePointer =
-        rapidjson::Pointer(path.c_str()).Get(instance->document);
+    std::shared_lock g(instance->settingsDataMutex);
+    auto *valuePointer = rapidjson::Pointer(path).Get(instance->document);
     if (valuePointer == nullptr) {
         return 0;
     }
@@ -163,7 +194,8 @@ SettingManager::isNull(const std::string &path)
 bool
 SettingManager::_isNull(const std::string &path)
 {
-    auto *valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
+    std::shared_lock g(this->settingsDataMutex);
+    auto *valuePointer = rapidjson::Pointer(path).Get(this->document);
     if (valuePointer == nullptr) {
         return true;
     }
@@ -176,8 +208,8 @@ SettingManager::setNull(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    rapidjson::Pointer(path.c_str())
-        .Set(instance->document, rapidjson::Value());
+    std::unique_lock g(instance->settingsDataMutex);
+    rapidjson::Pointer(path).Set(instance->document, rapidjson::Value());
 }
 
 bool
@@ -200,19 +232,23 @@ SettingManager::removeArrayValue(const std::string &arrayPath,
         return false;
     }
 
-    auto *valuePointer =
-        rapidjson::Pointer(arrayPath.c_str()).Get(instance->document);
-    if (valuePointer == nullptr) {
-        return false;
-    }
+    {
+        std::shared_lock g(instance->settingsDataMutex);
+        auto *valuePointer =
+            rapidjson::Pointer(arrayPath).Get(instance->document);
+        if (valuePointer == nullptr) {
+            return false;
+        }
 
-    rapidjson::Value &array = *valuePointer;
+        rapidjson::Value &array = *valuePointer;
 
-    if (index == size - 1) {
-        // We want to remove the last element
-        array.PopBack();
-    } else {
-        SettingManager::setNull(arrayPath + "/" + std::to_string(index));
+        if (index == size - 1) {
+            // We want to remove the last element
+            array.PopBack();
+        } else {
+            g.unlock();
+            SettingManager::setNull(arrayPath + "/" + std::to_string(index));
+        }
     }
 
     instance->clearSettings(arrayPath + "/" + std::to_string(index) + "/");
@@ -251,7 +287,9 @@ SettingManager::getObjectKeys(const std::string &objectPath)
 
     std::vector<std::string> ret;
 
-    auto *root = instance->get(objectPath.c_str());
+    std::shared_lock g(instance->settingsDataMutex);
+
+    auto *root = instance->rawGet(objectPath);
 
     if (root == nullptr || !root->IsObject()) {
         return ret;
@@ -271,7 +309,10 @@ SettingManager::clear()
     const auto &instance = SettingManager::getInstance();
 
     // Clear document
-    rapidjson::Value(rapidjson::kObjectType).Swap(instance->document);
+    {
+        std::unique_lock g(instance->settingsDataMutex);
+        rapidjson::Value(rapidjson::kObjectType).Swap(instance->document);
+    }
 
     // Clear map of settings
     std::lock_guard<std::mutex> lock(instance->settingsMutex);
@@ -293,6 +334,7 @@ SettingManager::_removeSetting(const std::string &path)
     auto ptr = rapidjson::Pointer(path.c_str());
 
     std::lock_guard<std::mutex> lock(this->settingsMutex);
+    std::unique_lock g(this->settingsDataMutex);
 
     this->settings.erase(path);
 
@@ -408,16 +450,20 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
+    {
+        std::unique_lock g(this->settingsDataMutex);
+        rapidjson::ParseResult ok =
+            this->document.Parse(&fileBuffer[0], fileSize);
 
-    // Make sure the file parsed okay
-    if (!ok) {
-        return LoadError::JSONParseError;
-    }
+        // Make sure the file parsed okay
+        if (!ok) {
+            return LoadError::JSONParseError;
+        }
 
-    // This restricts config files a bit. They NEED to have an object root
-    if (!this->document.IsObject()) {
-        return LoadError::JSONParseError;
+        // This restricts config files a bit. They NEED to have an object root
+        if (!this->document.IsObject()) {
+            return LoadError::JSONParseError;
+        }
     }
 
     // Perform deep merge of objects
@@ -492,8 +538,11 @@ SettingManager::writeTo(const std::filesystem::path &path)
     }
 
     rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    this->document.Accept(writer);
+    {
+        std::shared_lock g(this->settingsDataMutex);
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        this->document.Accept(writer);
+    }
 
     fh.write(buffer.GetString(), buffer.GetSize());
 

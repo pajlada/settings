@@ -1,5 +1,6 @@
 #pragma once
 
+#include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
 
 #include <algorithm>
@@ -12,6 +13,7 @@
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/signalargs.hpp>
+#include <shared_mutex>
 #include <vector>
 
 namespace pajlada::Settings {
@@ -50,17 +52,30 @@ public:
     static void gPP(const std::string &prefix = std::string());
     static std::string stringify(const rapidjson::Value &v);
 
-    rapidjson::Value *get(const char *path);
-    bool set(const char *path, const rapidjson::Value &value,
-             SignalArgs args = SignalArgs());
+    bool get(const std::string &path, rapidjson::Document &doc);
+
+    decltype(auto)
+    get(const std::string &path, auto &&fn)
+    {
+        std::shared_lock g(this->settingsDataMutex);
+        auto *ptr = this->rawGet(path);
+        return fn(ptr);
+    }
+
+    bool compare(const std::string &path, const rapidjson::Value &value);
+
+    bool set(const std::string &path, const rapidjson::Value &value,
+             const SignalArgs &args = SignalArgs());
 
 private:
     // Called from set
     void notifyUpdate(const std::string &path, const rapidjson::Value &value,
-                      SignalArgs args = SignalArgs());
+                      const SignalArgs &args = {});
 
     // Called from load
     void notifyLoadedValues();
+
+    rapidjson::Value *rawGet(const std::string &path);
 
 public:
     // Useful array helper methods
@@ -179,6 +194,8 @@ private:
     std::filesystem::path filePath = "settings.json";
 
     std::mutex settingsMutex;
+
+    std::shared_mutex settingsDataMutex;
 
     //       path         setting
     std::map<std::string, std::shared_ptr<SettingData>> settings;
