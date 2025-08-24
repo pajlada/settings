@@ -210,7 +210,7 @@ TEST(Misc, MoveSet)
 
 TEST(Misc, recursiveSetSame)
 {
-    Setting<int> a("/multithread/basic/a");
+    Setting<int> a("/basic/a");
 
     a = 0;
 
@@ -229,8 +229,8 @@ TEST(Misc, recursiveSetSame)
 
 TEST(Misc, recursiveSetDiff)
 {
-    Setting<int> a("/multithread/basic/a");
-    Setting<int> b("/multithread/basic/b");
+    Setting<int> a("/basic/a");
+    Setting<int> b("/basic/b");
 
     a = 0;
     b = 0;
