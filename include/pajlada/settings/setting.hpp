@@ -440,7 +440,7 @@ public:
             if (ptr != nullptr) {
                 d.CopyFrom(*ptr, d.GetAllocator());
             }
-            connection.invoke(std::move(d), detail::onConnectArgs());
+            lockedSetting->updated.invoke(d, detail::onConnectArgs());
         }
 
         this->managedConnections.emplace_back(
@@ -467,7 +467,7 @@ public:
             if (ptr != nullptr) {
                 d.CopyFrom(*ptr, d.GetAllocator());
             }
-            connection.invoke(std::move(d), detail::onConnectArgs());
+            lockedSetting->updated.invoke(d, detail::onConnectArgs());
         }
 
         userDefinedManagedConnections.emplace_back(
