@@ -45,7 +45,7 @@ jobs:
           #   compiler: clang-19
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
 
@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         if: matrix.upload-coverage
-        uses: codecov/codecov-action@v5.4.0
+        uses: codecov/codecov-action@v5.5.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true

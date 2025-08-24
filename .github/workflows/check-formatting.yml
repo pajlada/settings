@@ -13,14 +13,14 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: jidicula/clang-format-action@v4.14.0
+      - uses: jidicula/clang-format-action@v4.15.0
         with:
-          clang-format-version: "15"
+          clang-format-version: "19"
 
       - uses: actionsx/prettier@v3
         with:

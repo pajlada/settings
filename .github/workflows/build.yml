@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install the latest version of uv
         if: matrix.package-manager == 'conan'
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
         with:
           cache-dependency-glob: "" # we have recursive symlinks
 
