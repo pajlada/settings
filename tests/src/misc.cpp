@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <rapidjson/document.h>
 
 #include <cassert>
 #include <iostream>
@@ -272,4 +273,23 @@ TEST(Misc, marshalJSON)
     auto lockedB = b.getData().lock();
     ASSERT_TRUE(lockedB->marshalJSON(str));
     ASSERT_EQ(b.getValue(), "my string");
+}
+
+TEST(Misc, managerGet)
+{
+    Setting<int> a("/a");
+    Setting<std::string> b("/foo/b");
+
+    a = 42;
+    b = "str";
+
+    auto instance = SettingManager::getInstance();
+    rapidjson::Document doc;
+    ASSERT_TRUE(instance->get("/a", doc));
+    ASSERT_EQ(doc.GetInt(), 42);
+
+    ASSERT_TRUE(instance->get("/foo/b", doc));
+    ASSERT_EQ(std::string_view(doc.GetString(), doc.GetStringLength()), "str");
+
+    ASSERT_FALSE(instance->get("/bar", doc));
 }

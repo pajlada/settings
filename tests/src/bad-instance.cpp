@@ -49,6 +49,7 @@ TEST(BadInstance, Two)
     EXPECT_FALSE(lockedData->unmarshalJSON(doc));
     EXPECT_TRUE(lockedData->getPath() == "/multi/a");
     EXPECT_TRUE(lockedData->unmarshal<int>() == std::nullopt);
+    EXPECT_FALSE(lockedData->marshalJSON(rapidjson::Value(42)));
 
     a.getValue();
 }
