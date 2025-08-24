@@ -1,5 +1,6 @@
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <pajlada/serialize.hpp>
 #include <pajlada/settings/setting.hpp>
 #include <pajlada/settings/settingdata.hpp>
@@ -18,7 +19,8 @@ using SaveResult = pajlada::Settings::SettingManager::SaveResult;
 TEST(Misc, StdAny)
 {
     Setting<std::any> test("/anyTest");
-    auto test2 = new Setting<std::any>("/anyTest2");
+    std::unique_ptr<Setting<std::any>> test2(
+        new Setting<std::any>("/anyTest2"));
 
     auto v1 = test.getValue();
     auto v2 = test2->getValue();
