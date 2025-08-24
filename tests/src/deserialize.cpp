@@ -82,7 +82,7 @@ TEST_F(FDeserialize, Bool)
 
 TEST_F(FDeserialize, String)
 {
-    auto a1(new Setting<std::string>("/int"));
+    std::unique_ptr<Setting<std::string>> a1(new Setting<std::string>("/int"));
     std::unique_ptr<Setting<std::string>> a2(
         new Setting<std::string>("/float"));
     std::unique_ptr<Setting<std::string>> a3(
