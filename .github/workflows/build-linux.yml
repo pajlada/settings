@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }}
+    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }}${{ matrix.asan && ' (ASAN)' || ''}}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -34,6 +34,10 @@ jobs:
           - os: ubuntu-24.04
             upload-coverage: true
             compiler: g++ # g++-13
+
+          - os: ubuntu-24.04
+            asan: true
+            compiler: g++ # g++-13
           # Build fails due to old rapidjson
           # - os: ubuntu-24.04
           #   compiler: g++-14
@@ -44,6 +48,8 @@ jobs:
           # - os: ubuntu-24.04
           #   compiler: clang-19
 
+    env:
+      SETTINGS_CONFIGURE_PRESET: ${{ matrix.asan && 'debug-asan' || 'debug-coverage'}}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -75,15 +81,16 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cmake --preset debug-coverage ..
+          cmake --preset ${{ env.SETTINGS_CONFIGURE_PRESET }} ..
           cmake --build . --config Debug --parallel
         working-directory: build
 
       - name: Run tests
-        run: ctest
+        run: ctest --output-on-failure
         working-directory: build
 
       - name: Generate coverage
+        if: endsWith(env.SETTINGS_CONFIGURE_PRESET, '-coverage')
         run: make coverage
         working-directory: build
 
