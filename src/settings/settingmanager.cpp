@@ -82,14 +82,6 @@ SettingManager::get(const char *path, rapidjson::Document &doc)
 }
 
 bool
-SettingManager::compare(const char *path, const rapidjson::Value &value)
-{
-    std::shared_lock g(this->settingsDataMutex);
-    const auto *prevValue = rapidjson::Pointer(path).Get(this->document);
-    return prevValue != nullptr && *prevValue == value;
-}
-
-bool
 SettingManager::set(const char *path, const rapidjson::Value &value,
                     SignalArgs args)
 {

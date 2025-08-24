@@ -62,8 +62,6 @@ public:
         return fn(ptr);
     }
 
-    bool compare(const char *path, const rapidjson::Value &value);
-
     bool set(const char *path, const rapidjson::Value &value,
              SignalArgs args = SignalArgs());
 

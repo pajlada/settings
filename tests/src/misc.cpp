@@ -254,3 +254,22 @@ TEST(Misc, recursiveSetDiff)
     ASSERT_EQ(a, 2);
     ASSERT_EQ(b, 1);
 }
+
+TEST(Misc, marshalJSON)
+{
+    Setting<int> a("/a");
+    Setting<std::string> b("/b");
+
+    a = 0;
+    b = "";
+
+    auto lockedA = a.getData().lock();
+    ASSERT_TRUE(lockedA->marshalJSON(rapidjson::Value(42)));
+    ASSERT_EQ(a.getValue(), 42);
+
+    auto &alloc = SettingManager::getInstance()->document.GetAllocator();
+    rapidjson::Value str("my string", alloc);
+    auto lockedB = b.getData().lock();
+    ASSERT_TRUE(lockedB->marshalJSON(str));
+    ASSERT_EQ(b.getValue(), "my string");
+}
