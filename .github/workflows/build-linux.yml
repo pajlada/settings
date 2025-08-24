@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }} (asan=${{ matrix.asan }})
+    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }} (asan=${{ matrix.asan == true }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
