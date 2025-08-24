@@ -90,6 +90,7 @@ jobs:
         working-directory: build
 
       - name: Generate coverage
+        if: endsWith(env.SETTINGS_CONFIGURE_PRESET, '-coverage')
         run: make coverage
         working-directory: build
 
