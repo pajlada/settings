@@ -24,6 +24,32 @@
       "cacheVariables": {
         "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan_provider.cmake"
       }
+    },
+    {
+      "name": "asan-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_FLAGS": "-fsanitize=address",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address"
+      }
+    },
+    {
+      "name": "tsan-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_FLAGS": "-fsanitize=thread",
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread"
+      }
+    },
+    {
+      "name": "debug-asan",
+      "displayName": "Debug + ASAN",
+      "inherits": ["debug", "asan-base"]
+    },
+    {
+      "name": "debug-tsan",
+      "displayName": "Debug + TSAN",
+      "inherits": ["debug", "tsan-base"]
     }
   ]
 }
