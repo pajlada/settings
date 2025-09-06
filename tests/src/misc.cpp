@@ -1,3 +1,6 @@
+#include <gtest/gtest.h>
+#include <rapidjson/document.h>
+
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -204,4 +207,89 @@ TEST(Misc, MoveSet)
     EXPECT_TRUE(lol.getValue() == "lol");
     EXPECT_TRUE(lol.getValue() == "lol");
     EXPECT_TRUE(lol.getValue() == "lol");
+}
+
+TEST(Misc, recursiveSetSame)
+{
+    Setting<int> a("/basic/a");
+
+    a = 0;
+
+    a.connect(
+        [&](const int &it) {
+            ASSERT_TRUE(it == 1 || it == 2);
+            if (it == 1) {
+                a = 2;
+            }
+        },
+        false);
+
+    a = 1;
+    ASSERT_EQ(a, 2);
+}
+
+TEST(Misc, recursiveSetDiff)
+{
+    Setting<int> a("/basic/a");
+    Setting<int> b("/basic/b");
+
+    a = 0;
+    b = 0;
+
+    a.connect(
+        [&](const int &it) {
+            ASSERT_TRUE(it == 1 || it == 2);
+            if (it == 1) {
+                b = 1;
+            }
+        },
+        false);
+    b.connect(
+        [&](const int &it) {
+            ASSERT_EQ(it, 1);
+            a = 2;
+        },
+        false);
+
+    a = 1;
+    ASSERT_EQ(a, 2);
+    ASSERT_EQ(b, 1);
+}
+
+TEST(Misc, marshalJSON)
+{
+    Setting<int> a("/a");
+    Setting<std::string> b("/b");
+
+    a = 0;
+    b = "";
+
+    auto lockedA = a.getData().lock();
+    ASSERT_TRUE(lockedA->marshalJSON(rapidjson::Value(42)));
+    ASSERT_EQ(a.getValue(), 42);
+
+    auto &alloc = SettingManager::getInstance()->document.GetAllocator();
+    rapidjson::Value str("my string", alloc);
+    auto lockedB = b.getData().lock();
+    ASSERT_TRUE(lockedB->marshalJSON(str));
+    ASSERT_EQ(b.getValue(), "my string");
+}
+
+TEST(Misc, managerGet)
+{
+    Setting<int> a("/a");
+    Setting<std::string> b("/foo/b");
+
+    a = 42;
+    b = "str";
+
+    auto instance = SettingManager::getInstance();
+    rapidjson::Document doc;
+    ASSERT_TRUE(instance->get("/a", doc));
+    ASSERT_EQ(doc.GetInt(), 42);
+
+    ASSERT_TRUE(instance->get("/foo/b", doc));
+    ASSERT_EQ(std::string_view(doc.GetString(), doc.GetStringLength()), "str");
+
+    ASSERT_FALSE(instance->get("/bar", doc));
 }
