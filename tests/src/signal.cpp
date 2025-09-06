@@ -1,4 +1,6 @@
 #include "common.hpp"
+#include "pajlada/signals/scoped-connection.hpp"
+#include "pajlada/signals/signalholder.hpp"
 
 using namespace pajlada::Settings;
 
@@ -151,4 +153,104 @@ TEST(Signal, ScopedConnection2)
 
         EXPECT_TRUE(count == 5);
     }
+}
+
+TEST(Signal, ConnectEverything)
+{
+    int count = 0;
+    int currentValue = 0;
+    auto cb = [&count, &currentValue](const int &newValue, auto) {
+        ++count;
+        currentValue = newValue;
+    };
+
+    Setting<int> c("/connect/c");
+    c = 0;
+
+    {
+        pajlada::Signals::ScopedConnection conn;
+        c.connect(cb, conn, false);
+        c = 1;
+        ASSERT_EQ(count, 1);
+        ASSERT_EQ(currentValue, 1);
+    }
+    c = 2;
+    ASSERT_EQ(count, 1);
+    ASSERT_EQ(currentValue, 1);
+
+    {
+        std::list<pajlada::Signals::ScopedConnection> conns;
+        c.connect(cb, conns, false);
+        c = 3;
+        ASSERT_EQ(count, 2);
+        ASSERT_EQ(currentValue, 3);
+        c.connect(cb, conns, false);
+        c = 4;
+        ASSERT_EQ(count, 4);
+        ASSERT_EQ(currentValue, 4);
+    }
+    c = 5;
+    ASSERT_EQ(count, 4);
+    ASSERT_EQ(currentValue, 4);
+
+    {
+        std::list<std::unique_ptr<pajlada::Signals::ScopedConnection>> conns;
+        c.connect(cb, conns, false);
+        c = 6;
+        ASSERT_EQ(count, 5);
+        ASSERT_EQ(currentValue, 6);
+        c.connect(cb, conns, false);
+        c = 7;
+        ASSERT_EQ(count, 7);
+        ASSERT_EQ(currentValue, 7);
+    }
+    c = 8;
+    ASSERT_EQ(count, 7);
+    ASSERT_EQ(currentValue, 7);
+
+    // same but with std::vector<>
+    {
+        std::vector<pajlada::Signals::ScopedConnection> conns;
+        c.connect(cb, conns, false);
+        c = 9;
+        ASSERT_EQ(count, 8);
+        ASSERT_EQ(currentValue, 9);
+        c.connect(cb, conns, false);
+        c = 10;
+        ASSERT_EQ(count, 10);
+        ASSERT_EQ(currentValue, 10);
+    }
+    c = 11;
+    ASSERT_EQ(count, 10);
+    ASSERT_EQ(currentValue, 10);
+
+    {
+        std::vector<std::unique_ptr<pajlada::Signals::ScopedConnection>> conns;
+        c.connect(cb, conns, false);
+        c = 12;
+        ASSERT_EQ(count, 11);
+        ASSERT_EQ(currentValue, 12);
+        c.connect(cb, conns, false);
+        c = 13;
+        ASSERT_EQ(count, 13);
+        ASSERT_EQ(currentValue, 13);
+    }
+    c = 14;
+    ASSERT_EQ(count, 13);
+    ASSERT_EQ(currentValue, 13);
+
+    {
+        pajlada::Signals::SignalHolder conns;
+        c.connect(cb, conns, false);
+        c = 15;
+        ASSERT_EQ(count, 14);
+        ASSERT_EQ(currentValue, 15);
+        c.connect(cb, conns, false);
+        c = 16;
+        ASSERT_EQ(count, 16);
+        ASSERT_EQ(currentValue, 16);
+    }
+    c = 17;
+    ASSERT_EQ(count, 16);
+    ASSERT_EQ(currentValue, 16);
 }
