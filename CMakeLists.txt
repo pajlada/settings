@@ -22,6 +22,7 @@ endif ()
 
 set(PajladaSettings_SOURCES
     src/settings/backup.cpp
+    src/settings/setting.cpp
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
 

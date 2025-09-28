@@ -28,6 +28,41 @@ onConnectArgs()
     return a;
 }
 
+template <typename Manager>
+concept IsScopedList =
+    std::is_same_v<typename Manager::value_type, Signals::ScopedConnection>;
+
+template <typename Manager>
+concept IsUpScopedList =
+    std::is_same_v<typename Manager::value_type,
+                   std::unique_ptr<Signals::ScopedConnection>>;
+
+template <typename Manager>
+void connectToManager(Manager &manager, Signals::Connection &&connection);
+
+template <IsScopedList Manager>
+void
+connectToManager(Manager &manager, Signals::Connection &&connection)
+{
+    manager.emplace_back(std::move(connection));
+}
+
+template <IsUpScopedList Manager>
+void
+connectToManager(Manager &manager, Signals::Connection &&connection)
+{
+    manager.emplace_back(
+        std::make_unique<Signals::ScopedConnection>(std::move(connection)));
+}
+
+template <>
+void connectToManager<Signals::ScopedConnection>(
+    Signals::ScopedConnection &manager, Signals::Connection &&connection);
+
+template <>
+void connectToManager<Signals::SignalHolder>(Signals::SignalHolder &manager,
+                                             Signals::Connection &&connection);
+
 }  // namespace detail
 
 // A default value passed to a setting is only local to this specific instance of the setting
@@ -470,8 +505,8 @@ public:
             lockedSetting->updated.invoke(d, detail::onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(
-            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
+        detail::connectToManager(userDefinedManagedConnections,
+                                 std::move(connection));
     }
 
     // Connect: Value and SignalArgs
@@ -517,8 +552,8 @@ public:
             func(this->getValue(), detail::onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(
-            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
+        detail::connectToManager(userDefinedManagedConnections,
+                                 std::move(connection));
     }
 
     // Connect: Value
@@ -563,8 +598,8 @@ public:
             func(this->getValue());
         }
 
-        userDefinedManagedConnections.emplace_back(
-            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
+        detail::connectToManager(userDefinedManagedConnections,
+                                 std::move(connection));
     }
 
     // Connect: no args
@@ -609,8 +644,8 @@ public:
             func();
         }
 
-        userDefinedManagedConnections.emplace_back(
-            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
+        detail::connectToManager(userDefinedManagedConnections,
+                                 std::move(connection));
     }
 
     // ConnectSimple: Signal args only
@@ -656,8 +691,8 @@ public:
             func(detail::onConnectArgs());
         }
 
-        userDefinedManagedConnections.emplace_back(
-            std::make_unique<Signals::ScopedConnection>(std::move(connection)));
+        detail::connectToManager(userDefinedManagedConnections,
+                                 std::move(connection));
     }
 
     // Static helper methods for one-offs (get or set setting)
