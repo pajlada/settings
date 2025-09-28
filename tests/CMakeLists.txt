@@ -1,21 +1,22 @@
+cmake_minimum_required(VERSION 3.15...4.1.1)
+
 project(PajladaSettingsTest)
 
 # For MSVC: Prevent overriding the parent project's compiler/linker settings
 # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../external/googletest" "googletest")
+include(FetchContent)
+include(GoogleTest)
 
-mark_as_advanced(
-    BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
-    gmock_build_tests gtest_build_samples gtest_build_tests
-    gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
-    )
+FetchContent_Declare(
+    googletest
+    URL ${CMAKE_CURRENT_LIST_DIR}/../external/googletest
+    EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS NAMES GTest
+)
 
-set_target_properties(gtest PROPERTIES FOLDER lib)
-set_target_properties(gtest_main PROPERTIES FOLDER lib)
-set_target_properties(gmock PROPERTIES FOLDER lib)
-set_target_properties(gmock_main PROPERTIES FOLDER lib)
+FetchContent_MakeAvailable(googletest)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -58,7 +59,6 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Pajlada::Settings)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
-include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SETTINGS_DEBUG)
