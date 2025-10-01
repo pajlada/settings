@@ -106,6 +106,9 @@ else()
     endif ()
 endif()
 
+# Enable std::string overloads - this needs to be public because we use these overloads in headers
+target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
+
 # TODO: Try find_package, and if not found, do the conan link
 
 if(NOT MSVC)
