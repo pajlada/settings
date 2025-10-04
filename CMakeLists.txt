@@ -1,19 +1,22 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.15..4.1.1)
 
 cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+list(APPEND CMAKE_MESSAGE_CONTEXT PajladaSettings)
 project(PajladaSettings
     VERSION 0.3.0
     DESCRIPTION "Settings library"
     HOMEPAGE_URL "https://github.com/pajlada/settings"
+    LANGUAGES CXX
 )
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(FetchContent)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
-option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
 option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
@@ -32,15 +35,6 @@ set(PajladaSettings_SOURCES
 
 add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 add_library(Pajlada::Settings ALIAS PajladaSettings)
-
-if(PAJLADA_SETTINGS_COVERAGE)
-    include(CodeCoverage)
-    append_coverage_compiler_flags()
-    message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
-endif()
-
-set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD 20)
-set_property(TARGET PajladaSettings PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Enable strict compiler settings
 if (MSVC)
@@ -69,44 +63,35 @@ endif()
 
 target_include_directories(PajladaSettings PUBLIC include)
 
-if (DEFINED COVERAGE)
-    message("++ Coverage flags enabled")
-    target_compile_options(PajladaSettings PRIVATE --coverage -fno-inline -O0 -g)
-    target_link_libraries(PajladaSettings PRIVATE --coverage)
-endif()
-
 # Dependencies
+FetchContent_Declare(
+    RapidJSON
+    EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS REQUIRED
+)
+FetchContent_Declare(
+    PajladaSignals
+    URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
+    EXCLUDE_FROM_ALL
+)
+FetchContent_Declare(
+    PajladaSerialize
+    URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
+    EXCLUDE_FROM_ALL
+)
 
-if (TARGET Pajlada::Signals)
-    target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
+FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
+
+target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
+target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
+
+if(TARGET rapidjson)
+    message(DEBUG "Linking to rapidjson target")
+    target_link_libraries(PajladaSettings PUBLIC rapidjson)
 else()
-    find_package(PajladaSignals REQUIRED)
-    target_include_directories(PajladaSettings PUBLIC ${PajladaSignals_INCLUDE_DIRS})
+    message(DEBUG "No rapidjson target found, this is most likely a system install. Adding include directories (${RAPIDJSON_INCLUDE_DIRS}) instead")
+    target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
 endif()
-
-if (TARGET Pajlada::Serialize)
-    target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
-else()
-    find_package(PajladaSerialize REQUIRED)
-    target_include_directories(PajladaSettings PUBLIC ${PajladaSerialize_INCLUDE_DIRS})
-endif()
-
-# rapidjson = c++ json library
-if (TARGET RapidJSON::RapidJSON)
-    message(STATUS "Using preexisting rapidjson target")
-    target_link_libraries(PajladaSettings PUBLIC RapidJSON::RapidJSON)
-else()
-    find_package(RapidJSON REQUIRED)
-    if (TARGET rapidjson)
-        message(STATUS "Using rapidjson target")
-        target_link_libraries(PajladaSettings PUBLIC rapidjson)
-    else ()
-        message(STATUS "Including rapidjson directory ${RAPIDJSON_INCLUDE_DIRS}")
-        target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
-    endif ()
-endif()
-
-# TODO: Try find_package, and if not found, do the conan link
 
 if(NOT MSVC)
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
