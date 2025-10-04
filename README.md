@@ -66,7 +66,7 @@ class Server {
 | Ubuntu 22.04 | ✅ Clang 14 (default `clang`) |
 | Ubuntu 22.04 | ✅ Clang 15 (`clang-15`)      |
 | Ubuntu 24.04 | ✅ GCC 13 (default `g++`)     |
-| Ubuntu 24.04 | ✅ GCC 18 (default `clang`)     |
+| Ubuntu 24.04 | ✅ GCC 18 (default `clang`)   |
 
 ### Windows
 
