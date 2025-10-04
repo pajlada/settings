@@ -97,7 +97,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
 
 target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
-target_link_libraries(PajladaSettings PUBLIC PajladaSerialize)
+target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
 
 if(TARGET rapidjson)
     message(DEBUG "Linking to rapidjson target")
