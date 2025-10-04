@@ -98,7 +98,13 @@ FetchContent_MakeAvailable(PajladaSignals PajladaSerialize RapidJSON)
 
 target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
 target_link_libraries(PajladaSettings PUBLIC PajladaSerialize)
-target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
+
+if(TARGET rapidjson)
+    target_link_libraries(PajladaSettings PUBLIC rapidjson)
+else()
+    message(DEBUG "No rapidjson target found, this is most likely a system install. Adding include directories (${RAPIDJSON_INCLUDE_DIRS}) instead")
+    target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
+endif()
 
 if(NOT MSVC)
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
