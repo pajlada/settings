@@ -82,6 +82,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
 
+# Enable std::string overloads - this needs to be public because we use these overloads in headers
+target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
+
 target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
 target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
 
