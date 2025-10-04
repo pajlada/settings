@@ -9,6 +9,8 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 include(FetchContent)
 include(GoogleTest)
 
+option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
+
 FetchContent_Declare(
     googletest
     URL ${CMAKE_CURRENT_LIST_DIR}/../external/googletest
@@ -46,6 +48,10 @@ add_executable(${PROJECT_NAME}
     )
 
 if(PAJLADA_SETTINGS_COVERAGE)
+    list(APPEND CMAKE_MODULE_PATH
+        "${CMAKE_CURRENT_LIST_DIR}/cmake"
+    )
+    include(CodeCoverage)
     append_coverage_compiler_flags()
     message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
 

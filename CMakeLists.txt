@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.15..4.1.1)
 
 cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 list(APPEND CMAKE_MESSAGE_CONTEXT PajladaSettings)
 project(PajladaSettings
@@ -18,7 +17,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
-option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
 option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
@@ -37,12 +35,6 @@ set(PajladaSettings_SOURCES
 
 add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
 add_library(Pajlada::Settings ALIAS PajladaSettings)
-
-if(PAJLADA_SETTINGS_COVERAGE)
-    include(CodeCoverage)
-    append_coverage_compiler_flags()
-    message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
-endif()
 
 # Enable strict compiler settings
 if (MSVC)
@@ -70,12 +62,6 @@ else()
 endif()
 
 target_include_directories(PajladaSettings PUBLIC include)
-
-if (DEFINED COVERAGE)
-    message("++ Coverage flags enabled")
-    target_compile_options(PajladaSettings PRIVATE --coverage -fno-inline -O0 -g)
-    target_link_libraries(PajladaSettings PRIVATE --coverage)
-endif()
 
 # Dependencies
 FetchContent_Declare(
