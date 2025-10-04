@@ -38,15 +38,8 @@ jobs:
           - os: ubuntu-24.04
             asan: true
             compiler: g++ # g++-13
-          # Build fails due to old rapidjson
-          # - os: ubuntu-24.04
-          #   compiler: g++-14
-          # Coverage fails (for some reason)
-          # - os: ubuntu-24.04
-          #   compiler: clang # clang-18
-          # Build fails due to old rapidjson
-          # - os: ubuntu-24.04
-          #   compiler: clang-19
+          - os: ubuntu-24.04
+            compiler: clang # clang-18
 
     env:
       SETTINGS_CONFIGURE_PRESET: ${{ matrix.asan && 'debug-asan' || 'debug-coverage'}}
