@@ -79,6 +79,11 @@ endif()
 
 # Dependencies
 FetchContent_Declare(
+    RapidJSON
+    EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS REQUIRED
+)
+FetchContent_Declare(
     PajladaSignals
     URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
     EXCLUDE_FROM_ALL
@@ -88,18 +93,14 @@ FetchContent_Declare(
     URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
     EXCLUDE_FROM_ALL
 )
-FetchContent_Declare(
-    RapidJSON
-    EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS REQUIRED
-)
 
-FetchContent_MakeAvailable(PajladaSignals PajladaSerialize RapidJSON)
+FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
 
 target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
 target_link_libraries(PajladaSettings PUBLIC PajladaSerialize)
 
 if(TARGET rapidjson)
+    message(DEBUG "Linking to rapidjson target")
     target_link_libraries(PajladaSettings PUBLIC rapidjson)
 else()
     message(DEBUG "No rapidjson target found, this is most likely a system install. Adding include directories (${RAPIDJSON_INCLUDE_DIRS}) instead")
