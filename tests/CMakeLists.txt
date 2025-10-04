@@ -53,7 +53,7 @@ if(PAJLADA_SETTINGS_COVERAGE)
         NAME coverage
         EXECUTABLE ctest
         BASE_DIRECTORY "../"
-        EXCLUDE "external/*" "tests/*"
+        EXCLUDE "external/*" "tests/*" "build*/*"
         )
 endif()
 
