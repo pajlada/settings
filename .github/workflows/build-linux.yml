@@ -75,7 +75,10 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cmake --preset ${{ env.SETTINGS_CONFIGURE_PRESET }} ..
+          cmake \
+            --preset ${{ env.SETTINGS_CONFIGURE_PRESET }} \
+            ${{ matrix.os == 'ubuntu-24.04' && '-DGCOVR_ADDITIONAL_ARGS="--gcov-ignore-parse-errors=negative_hits.warn_once_per_file"' || '' }} \
+            ..
           cmake --build . --config Debug --parallel
         working-directory: build
 
