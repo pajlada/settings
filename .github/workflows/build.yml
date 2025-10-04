@@ -59,6 +59,8 @@ jobs:
           cmake \
             --preset ${{ matrix.package-manager == 'conan' && 'debug-conan' || 'debug' }} \
             -G Ninja \
+            --log-level=DEBUG \
+            --log-context \
             ..
           cmake --build . --config Debug --parallel
         shell: bash

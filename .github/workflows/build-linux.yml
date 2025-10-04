@@ -38,18 +38,12 @@ jobs:
           - os: ubuntu-24.04
             asan: true
             compiler: g++ # g++-13
-          # Build fails due to old rapidjson
-          # - os: ubuntu-24.04
-          #   compiler: g++-14
-          # Coverage fails (for some reason)
-          # - os: ubuntu-24.04
-          #   compiler: clang # clang-18
-          # Build fails due to old rapidjson
-          # - os: ubuntu-24.04
-          #   compiler: clang-19
+          - os: ubuntu-24.04
+            compiler: clang # clang-18
+            skip-coverage: true # coverage target fails to run here for some reason
 
     env:
-      SETTINGS_CONFIGURE_PRESET: ${{ matrix.asan && 'debug-asan' || 'debug-coverage'}}
+      SETTINGS_CONFIGURE_PRESET: ${{ matrix.asan && 'debug-asan' || (matrix.skip-coverage && 'debug' || 'debug-coverage')}}
     steps:
       - uses: actions/checkout@v5
         with:

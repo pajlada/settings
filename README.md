@@ -60,15 +60,13 @@ class Server {
 
 | Version      | Compiler                      |
 | ------------ | ----------------------------- |
-| Ubuntu 20.04 | ✅ GCC 9 (default `g++`)      |
-| Ubuntu 20.04 | ✅ GCC 10 (`g++-10`)          |
-| Ubuntu 20.04 | ❌ Clang 10 (default `clang`) |
-| Ubuntu 20.04 | ✅ Clang 11 (`clang-11`)      |
-| Ubuntu 20.04 | ✅ Clang 12 (`clang-12`)      |
+| Ubuntu 22.04 | ✅ GCC 10 (`g++-10`)          |
 | Ubuntu 22.04 | ✅ GCC 11 (default `g++`)     |
 | Ubuntu 22.04 | ✅ GCC 12 (`g++-12`)          |
 | Ubuntu 22.04 | ✅ Clang 14 (default `clang`) |
 | Ubuntu 22.04 | ✅ Clang 15 (`clang-15`)      |
+| Ubuntu 24.04 | ✅ GCC 13 (default `g++`)     |
+| Ubuntu 24.04 | ✅ GCC 18 (default `clang`)   |
 
 ### Windows
 
