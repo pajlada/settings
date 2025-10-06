@@ -50,8 +50,8 @@ public:
     static void gPP(const std::string &prefix = std::string());
     static std::string stringify(const rapidjson::Value &v);
 
-    rapidjson::Value *get(const char *path);
-    bool set(const char *path, const rapidjson::Value &value,
+    rapidjson::Value *get(const std::string &path);
+    bool set(const std::string &path, const rapidjson::Value &value,
              SignalArgs args = SignalArgs());
 
 private:
