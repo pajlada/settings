@@ -1,0 +1,17 @@
+ARG FEDORA_VERSION="41"
+
+FROM fedora:${FEDORA_VERSION}
+WORKDIR /src
+
+ARG BUILD_TYPE="system"
+ENV BUILD_TYPE=${BUILD_TYPE}
+
+RUN dnf update --assumeyes && \
+        dnf install --assumeyes cmake g++ ninja git
+
+ADD . /src
+
+
+RUN ./scripts/install-dependencies-fedora.sh
+
+CMD ["./scripts/run-test.sh"]
