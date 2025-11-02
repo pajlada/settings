@@ -1,5 +1,5 @@
 /build*
 
-/external/rapidjson/*
+/external/rapidjson
 
 /logs
