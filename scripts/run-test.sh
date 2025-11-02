@@ -2,7 +2,7 @@
 
 set -e
 
-echo "hello!!!!!!!!! ${BUILD_TYPE}"
+echo "build type: ${BUILD_TYPE}"
 
 cat /etc/os-release
 
