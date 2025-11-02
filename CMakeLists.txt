@@ -65,22 +65,27 @@ target_include_directories(PajladaSettings PUBLIC include)
 
 # Dependencies
 FetchContent_Declare(
-    RapidJSON
+    rapidjson
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/rapidjson
     EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS REQUIRED
+    FIND_PACKAGE_ARGS NAMES RapidJSON
 )
+set(RAPIDJSON_BUILD_EXAMPLES Off CACHE INTERNAL "")
+set(RAPIDJSON_BUILD_TESTS Off CACHE INTERNAL "")
+
 FetchContent_Declare(
     PajladaSignals
     URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
     EXCLUDE_FROM_ALL
 )
+
 FetchContent_Declare(
     PajladaSerialize
     URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
     EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
+FetchContent_MakeAvailable(rapidjson PajladaSignals PajladaSerialize)
 
 # Enable std::string overloads - this needs to be public because we use these overloads in headers
 target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
@@ -91,6 +96,9 @@ target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
 if(TARGET rapidjson)
     message(DEBUG "Linking to rapidjson target")
     target_link_libraries(PajladaSettings PUBLIC rapidjson)
+elseif(DEFINED RapidJSON_SOURCE_DIR)
+    message(DEBUG "RapidJSON_SOURCE_DIR defined, assuming this is a submodule/source build. (${RapidJSON_SOURCE_DIR})")
+    target_include_directories(PajladaSettings SYSTEM PUBLIC ${RapidJSON_SOURCE_DIR}/include)
 else()
     message(DEBUG "No rapidjson target found, this is most likely a system install. Adding include directories (${RAPIDJSON_INCLUDE_DIRS}) instead")
     target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
