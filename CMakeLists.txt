@@ -65,7 +65,7 @@ target_include_directories(PajladaSettings PUBLIC include)
 
 # Dependencies
 FetchContent_Declare(
-    rapidjson
+    rjlib
     SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/rapidjson
     EXCLUDE_FROM_ALL
     FIND_PACKAGE_ARGS NAMES RapidJSON
@@ -85,7 +85,7 @@ FetchContent_Declare(
     EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(rapidjson PajladaSignals PajladaSerialize)
+FetchContent_MakeAvailable(rjlib PajladaSignals PajladaSerialize)
 
 # Enable std::string overloads - this needs to be public because we use these overloads in headers
 target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
