@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15..4.1.1)
+set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY On) # For rapidjson
 
 cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
 
@@ -65,10 +66,10 @@ target_include_directories(PajladaSettings PUBLIC include)
 
 # Dependencies
 FetchContent_Declare(
-    rjlib
+    RapidJSON
     SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/rapidjson
     EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS NAMES RapidJSON
+    FIND_PACKAGE_ARGS
 )
 set(RAPIDJSON_BUILD_EXAMPLES Off CACHE INTERNAL "")
 set(RAPIDJSON_BUILD_TESTS Off CACHE INTERNAL "")
@@ -85,7 +86,7 @@ FetchContent_Declare(
     EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(rjlib PajladaSignals PajladaSerialize)
+FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
 
 # Enable std::string overloads - this needs to be public because we use these overloads in headers
 target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
