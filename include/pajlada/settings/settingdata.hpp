@@ -44,7 +44,7 @@ public:
             return false;
         }
 
-        return locked->set(this->path.c_str(), v, std::move(args));
+        return locked->set(this->path, v, std::move(args));
     }
 
     template <typename Type>
@@ -59,7 +59,7 @@ public:
         auto jsonValue =
             Serialize<Type>::get(v, locked->document.GetAllocator());
 
-        return locked->set(this->path.c_str(), jsonValue, std::move(args));
+        return locked->set(this->path, jsonValue, std::move(args));
     }
 
     rapidjson::Value *
