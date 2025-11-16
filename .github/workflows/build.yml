@@ -37,7 +37,7 @@ jobs:
 
       - name: Install the latest version of uv
         if: matrix.package-manager == 'conan'
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: "" # we have recursive symlinks
 
