@@ -2,12 +2,7 @@ cmake_minimum_required(VERSION 3.15...4.1.1)
 
 project(PajladaSettingsTest)
 
-# For MSVC: Prevent overriding the parent project's compiler/linker settings
-# See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
 include(FetchContent)
-include(GoogleTest)
 
 option(PAJLADA_SETTINGS_COVERAGE "Enable code coverage output" OFF)
 
@@ -18,7 +13,13 @@ FetchContent_Declare(
     FIND_PACKAGE_ARGS NAMES GTest
 )
 
+# For MSVC: Prevent overriding the parent project's compiler/linker settings
+# See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(googletest)
+
+include(GoogleTest)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -71,6 +72,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SETTINGS_DEBUG)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
+# Disable C++20 module scanning since we don't use it
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_SCAN_FOR_MODULES OFF)
 
 
 # Make a symlink for files
