@@ -11,6 +11,7 @@
 #include <mutex>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
+#include <pajlada/settings/error.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
@@ -23,15 +24,6 @@ class SettingManager
 public:
     SettingManager();
     ~SettingManager();
-
-    enum class LoadError {
-        NoError,
-        CannotOpenFile,
-        FileHandleError,
-        FileReadError,
-        FileSeekError,
-        JSONParseError,
-    };
 
     enum class SaveResult : std::uint8_t {
         /// Saving the settings to a file failed
@@ -98,14 +90,14 @@ private:
 public:
     void setPath(const std::filesystem::path &newPath);
 
-    static LoadError gLoad(const std::filesystem::path &path = {});
-    static LoadError gLoadFrom(const std::filesystem::path &path);
+    static Error gLoad(const std::filesystem::path &path = {});
+    static Error gLoadFrom(const std::filesystem::path &path);
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    LoadError load(const std::filesystem::path &path = {});
+    Error load(const std::filesystem::path &path = {});
     // Load from given path
-    LoadError loadFrom(const std::filesystem::path &path);
+    Error loadFrom(const std::filesystem::path &path);
 
     static SaveResult gSave(const std::filesystem::path &path = {});
     static SaveResult gSaveAs(const std::filesystem::path &path);

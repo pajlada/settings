@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Breaking: `SettingManager`'s `(g)load` and `(g)loadFrom` now return `Error` objects with more detailed information about errors. These must be checked.
+
 ## v0.3.0
 
 - Breaking: Save methods now return a `SaveResult` enum instead of a bool. (#105)

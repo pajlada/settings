@@ -53,8 +53,7 @@ TEST(MultiInstance, Good1)
 {
     auto sm = std::make_shared<SettingManager>();
 
-    EXPECT_TRUE(sm->loadFrom("files/in.multi.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_TRUE(sm->loadFrom("files/in.multi.json").isSuccess());
 
     Setting<int> a("/multi/a", sm);
 
@@ -92,8 +91,7 @@ TEST(MultiInstance, Good2)
 {
     auto sm = std::make_shared<SettingManager>();
 
-    EXPECT_TRUE(sm->loadFrom("files/in.multi.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_TRUE(sm->loadFrom("files/in.multi.json").isSuccess());
 
     Setting<int> a("/multi/a", sm);
 
