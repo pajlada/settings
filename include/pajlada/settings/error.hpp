@@ -57,9 +57,7 @@ public:
 
     ~Error()
     {
-        if (!std::is_constant_evaluated()) {
-            assert(this->checked_ && "Unchecked error");
-        }
+        assert(this->checked_ && "Unchecked error");
     }
 
     explicit
