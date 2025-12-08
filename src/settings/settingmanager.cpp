@@ -392,6 +392,10 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
         fileBuffer << fh.rdbuf();
     }
 
+    if (fileBuffer.str().empty()) {
+        return LoadError::NoError;
+    }
+
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
