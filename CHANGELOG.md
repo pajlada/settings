@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Breaking: `SettingManager`'s `(g)load` and `(g)loadFrom` now return `Error` objects with more detailed information about errors. These must be checked.
+- Breaking: `SettingManager`'s `(g)load` and `(g)loadFrom` now return `Error` objects with more detailed information about errors. These must be checked. (#143)
 
 ## v0.3.0
 
