@@ -8,6 +8,7 @@
 #include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
+#include <sstream>
 #include <string>
 
 namespace pajlada::Settings {
