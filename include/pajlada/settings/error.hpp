@@ -10,6 +10,7 @@ namespace pajlada::Settings {
 ///
 /// This error must be checked using `operator bool`, #isSuccess(), #isError(),
 /// or #kind().
+// FIXME: make constexpr (libstdc++ 12 required)
 class [[nodiscard("Errors must be checked")]] Error
 {
 public:
@@ -21,7 +22,7 @@ public:
         ReadJSON,
     };
 
-    constexpr static Error
+    static Error
     success()
     {
         return {};
@@ -36,7 +37,7 @@ public:
     Error(const Error &) = delete;
     Error &operator=(const Error &) = delete;
 
-    constexpr Error(Error &&other) noexcept
+    Error(Error &&other) noexcept
         : message_(std::move(other.message_))
         , kind_(other.kind_)
         , checked_(other.checked_)
@@ -44,7 +45,7 @@ public:
         other.checked_ = true;
     }
 
-    constexpr Error &
+    Error &
     operator=(Error &&other) noexcept
     {
         this->message_ = std::move(other.message_);
@@ -54,21 +55,21 @@ public:
         return *this;
     }
 
-    constexpr ~Error()
+    ~Error()
     {
         if (!std::is_constant_evaluated()) {
             assert(this->checked_ && "Unchecked error");
         }
     }
 
-    constexpr explicit
+    explicit
     operator bool()
     {
         return this->isError();
     }
 
     [[nodiscard]]
-    constexpr bool
+    bool
     isSuccess()
     {
         this->checked_ = true;
@@ -76,21 +77,21 @@ public:
     }
 
     [[nodiscard]]
-    constexpr bool
+    bool
     isError()
     {
         return !this->isSuccess();
     }
 
     [[nodiscard]]
-    constexpr std::string_view
+    std::string_view
     message() const
     {
         return this->message_;
     }
 
     [[nodiscard]]
-    constexpr Kind
+    Kind
     kind()
     {
         this->checked_ = true;
@@ -98,7 +99,7 @@ public:
     }
 
 private:
-    constexpr Error() = default;
+    Error() = default;
 
     Error(Kind kind, std::string message)
         : message_(std::move(message))
