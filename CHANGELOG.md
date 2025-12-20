@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Dev: Clean up the SaveSymlink test. (#145)
+
 ## v0.3.0
 
 - Breaking: Save methods now return a `SaveResult` enum instead of a bool. (#105)

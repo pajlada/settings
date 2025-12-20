@@ -55,17 +55,24 @@ TEST(Save, NonSymlink)
 
 TEST(Save, Symlink)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->setBackupEnabled(false);
+
+    RemoveFile("files/out.after-symlink.json");
+
     std::string ps = "files/save.symlink.json";
     EXPECT_TRUE(fs::is_symlink(ps));
 
-    SettingManager::clear();
-    auto sm = SettingManager::getInstance().get();
+    Setting<int> s("/lol", sm);
+    s.setValue(10);
 
-    Setting<int>::set("/lol", 10);
-
-    EXPECT_EQ(SaveResult::Success, SaveFile("save.symlink.json"));
+    EXPECT_EQ(SaveResult::Success, SaveFile("save.symlink.json", sm.get()));
 
     EXPECT_TRUE(fs::is_symlink(ps));
+
+    EXPECT_TRUE(FilesMatch("save.symlink.json", "correct.save.symlink.json"));
+    EXPECT_TRUE(
+        FilesMatch("out.after-symlink.json", "correct.save.symlink.json"));
 }
 
 TEST(Save, ErrorOnRecursiveSymlink)
