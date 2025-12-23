@@ -140,18 +140,18 @@ TEST(Misc, LoadFilesInvalidFiles)
 {
     auto err1 = SettingManager::gLoadFrom("files/bad-1.json");
     EXPECT_TRUE(err1.isError());
-    EXPECT_EQ(err1.kind(), Error::Kind::ReadJSON);
-    EXPECT_TRUE(err1.message().starts_with("Failed to parse"));
+    EXPECT_EQ(err1.getKind(), LoadResult::Kind::ReadJSON);
+    EXPECT_TRUE(err1.getMessage().starts_with("Failed to parse"));
 
     auto err2 = SettingManager::gLoadFrom("files/bad-2.json");
     EXPECT_TRUE(err2.isError());
-    EXPECT_EQ(err2.kind(), Error::Kind::ReadJSON);
-    EXPECT_TRUE(err2.message().starts_with("Failed to parse"));
+    EXPECT_EQ(err2.getKind(), LoadResult::Kind::ReadJSON);
+    EXPECT_TRUE(err2.getMessage().starts_with("Failed to parse"));
 
     auto err3 = SettingManager::gLoadFrom("files/bad-3.json");
     EXPECT_TRUE(err3.isError());
-    EXPECT_EQ(err3.kind(), Error::Kind::ReadJSON);
-    EXPECT_TRUE(err3.message().starts_with(
+    EXPECT_EQ(err3.getKind(), LoadResult::Kind::ReadJSON);
+    EXPECT_TRUE(err3.getMessage().starts_with(
         "Expected top level JSON type to be 'object', got 'number'"));
 
     EXPECT_TRUE(SettingManager::gLoadFrom("files/empty.json").isSuccess());
@@ -161,8 +161,8 @@ TEST(Misc, NonExistantFiles)
 {
     auto e = SettingManager::gLoadFrom("files/test-non-existant-file.json");
     EXPECT_TRUE(e.isError());
-    EXPECT_EQ(e.kind(), Error::Kind::OpenFile);
-    EXPECT_TRUE(e.message().starts_with("Failed to open"));
+    EXPECT_EQ(e.getKind(), LoadResult::Kind::OpenFile);
+    EXPECT_TRUE(e.getMessage().starts_with("Failed to open"));
 }
 
 TEST(Misc, ValidFiles)
