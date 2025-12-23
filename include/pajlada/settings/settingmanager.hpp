@@ -11,7 +11,7 @@
 #include <mutex>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
-#include <pajlada/settings/error.hpp>
+#include <pajlada/settings/loadresult.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
@@ -90,14 +90,14 @@ private:
 public:
     void setPath(const std::filesystem::path &newPath);
 
-    static Error gLoad(const std::filesystem::path &path = {});
-    static Error gLoadFrom(const std::filesystem::path &path);
+    static LoadResult gLoad(const std::filesystem::path &path = {});
+    static LoadResult gLoadFrom(const std::filesystem::path &path);
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    Error load(const std::filesystem::path &path = {});
+    LoadResult load(const std::filesystem::path &path = {});
     // Load from given path
-    Error loadFrom(const std::filesystem::path &path);
+    LoadResult loadFrom(const std::filesystem::path &path);
 
     static SaveResult gSave(const std::filesystem::path &path = {});
     static SaveResult gSaveAs(const std::filesystem::path &path);

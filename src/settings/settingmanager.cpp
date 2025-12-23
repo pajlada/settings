@@ -7,8 +7,8 @@
 #include <iostream>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/detail/realpath.hpp>
-#include <pajlada/settings/error.hpp>
 #include <pajlada/settings/internal.hpp>
+#include <pajlada/settings/loadresult.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
@@ -416,7 +416,7 @@ SettingManager::setPath(const std::filesystem::path &newPath)
     this->filePath = newPath;
 }
 
-Error
+LoadResult
 SettingManager::gLoad(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -424,7 +424,7 @@ SettingManager::gLoad(const std::filesystem::path &path)
     return instance->load(path);
 }
 
-Error
+LoadResult
 SettingManager::gLoadFrom(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -432,7 +432,7 @@ SettingManager::gLoadFrom(const std::filesystem::path &path)
     return instance->loadFrom(path);
 }
 
-Error
+LoadResult
 SettingManager::load(const std::filesystem::path &path)
 {
     if (!path.empty()) {
@@ -442,7 +442,7 @@ SettingManager::load(const std::filesystem::path &path)
     return this->loadFrom(this->filePath);
 }
 
-Error
+LoadResult
 SettingManager::loadFrom(const std::filesystem::path &_path)
 {
     std::error_code ec;
@@ -454,7 +454,8 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
         msg += _path.string();
         msg += "' through symlinks: ";
         msg += ec.message();
-        return Error::failure(Error::Kind::ResolveSymlinks, std::move(msg));
+        return LoadResult::failure(LoadResult::Kind::ResolveSymlinks,
+                                   std::move(msg));
     }
 
     // Open file
@@ -463,7 +464,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
         std::string msg("Failed to open '");
         msg += path.string();
         msg += "'";
-        return Error::failure(Error::Kind::OpenFile, std::move(msg));
+        return LoadResult::failure(LoadResult::Kind::OpenFile, std::move(msg));
     }
 
     // Read size of file
@@ -473,12 +474,13 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
         msg += _path.string();
         msg += "': ";
         msg += ec.message();
-        return Error::failure(Error::Kind::ReadFileSize, std::move(msg));
+        return LoadResult::failure(LoadResult::Kind::ReadFileSize,
+                                   std::move(msg));
     }
 
     if (fileSize == 0) {
         // Nothing to load
-        return Error::success();
+        return LoadResult::success();
     }
 
     // Create std::vector of appropriate size
@@ -501,7 +503,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
         msg += stringifyRapidjsonCode(ok.Code());
         msg += " at offset ";
         msg += std::to_string(ok.Offset());
-        return Error::failure(Error::Kind::ReadJSON, std::move(msg));
+        return LoadResult::failure(LoadResult::Kind::ReadJSON, std::move(msg));
     }
 
     // This restricts config files a bit. They NEED to have an object root
@@ -511,7 +513,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
         msg += "' (file: '";
         msg += _path.string();
         msg += "')";
-        return Error::failure(Error::Kind::ReadJSON, std::move(msg));
+        return LoadResult::failure(LoadResult::Kind::ReadJSON, std::move(msg));
     }
 
     // Perform deep merge of objects
@@ -519,7 +521,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
 
     this->notifyLoadedValues();
 
-    return Error::success();
+    return LoadResult::success();
 }
 
 SettingManager::SaveResult
