@@ -19,6 +19,7 @@ include(FetchContent)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
+option(PAJLADA_SETTINGS_CHECKED_RESULT "(C-)Assert results are checked before they're destroyed" ON)
 
 if (PAJLADA_SETTINGS_USE_CONAN)
     message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
@@ -26,6 +27,7 @@ endif ()
 
 set(PajladaSettings_SOURCES
     src/settings/backup.cpp
+    src/settings/loadresult.cpp
     src/settings/setting.cpp
     src/settings/settingdata.cpp
     src/settings/settingmanager.cpp
@@ -63,6 +65,9 @@ else()
 endif()
 
 target_include_directories(PajladaSettings PUBLIC include)
+target_compile_definitions(PajladaSettings PRIVATE 
+    $<$<BOOL:${PAJLADA_SETTINGS_CHECKED_RESULT}>:PAJLADA_SETTINGS_CHECKED_RESULT>
+)
 
 # Dependencies
 FetchContent_Declare(

@@ -16,7 +16,7 @@ TEST(Load, Unicode)
 
     for (const auto &p : fs::directory_iterator("files/unicode/a")) {
         auto sm = SettingManager::getInstance().get();
-        EXPECT_TRUE(sm->loadFrom(p) == SettingManager::LoadError::NoError);
+        EXPECT_TRUE(sm->loadFrom(p).isSuccess());
     }
 
     EXPECT_TRUE(a == 5);

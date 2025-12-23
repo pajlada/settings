@@ -1,3 +1,5 @@
+#include <rapidjson/document.h>
+#include <rapidjson/error/error.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
 
@@ -6,9 +8,80 @@
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/detail/realpath.hpp>
 #include <pajlada/settings/internal.hpp>
+#include <pajlada/settings/loadresult.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <string>
+
+namespace {
+
+std::string_view
+stringifyRapidjsonCode(rapidjson::ParseErrorCode code)
+{
+    switch (code) {
+        case rapidjson::kParseErrorNone:
+            return "No error";
+        case rapidjson::kParseErrorDocumentEmpty:
+            return "The document is empty";
+        case rapidjson::kParseErrorDocumentRootNotSingular:
+            return "The document root must not follow by other values";
+        case rapidjson::kParseErrorValueInvalid:
+            return "Invalid value";
+        case rapidjson::kParseErrorObjectMissName:
+            return "Missing a name for object member";
+        case rapidjson::kParseErrorObjectMissColon:
+            return "Missing a colon after a name of object member";
+        case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket:
+            return "Missing a comma or '}' after an object member";
+        case rapidjson::kParseErrorArrayMissCommaOrSquareBracket:
+            return "Missing a comma or ']' after an array element";
+        case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex:
+            return "Incorrect hex digit after \\u escape in string";
+        case rapidjson::kParseErrorStringUnicodeSurrogateInvalid:
+            return "The surrogate pair in string is invalid";
+        case rapidjson::kParseErrorStringEscapeInvalid:
+            return "Invalid escape character in string";
+        case rapidjson::kParseErrorStringMissQuotationMark:
+            return "Missing a closing quotation mark in string";
+        case rapidjson::kParseErrorStringInvalidEncoding:
+            return "Invalid encoding in string";
+        case rapidjson::kParseErrorNumberTooBig:
+            return "Number too big to be stored in double";
+        case rapidjson::kParseErrorNumberMissFraction:
+            return "Miss fraction part in number";
+        case rapidjson::kParseErrorNumberMissExponent:
+            return "Miss exponent in number";
+        case rapidjson::kParseErrorTermination:
+            return "Parsing was terminated";
+        case rapidjson::kParseErrorUnspecificSyntaxError:
+            return "Unspecific syntax error";
+    }
+    return "Unknown error";
+}
+
+std::string_view
+stringifyRapidjsonType(rapidjson::Type ty)
+{
+    switch (ty) {
+        case rapidjson::kNullType:
+            return "null";
+        case rapidjson::kFalseType:
+            return "false";
+        case rapidjson::kTrueType:
+            return "true";
+        case rapidjson::kObjectType:
+            return "object";
+        case rapidjson::kArrayType:
+            return "array";
+        case rapidjson::kStringType:
+            return "string";
+        case rapidjson::kNumberType:
+            return "number";
+    }
+    return "unknown";
+}
+
+}  // namespace
 
 namespace pajlada::Settings {
 
@@ -343,7 +416,7 @@ SettingManager::setPath(const std::filesystem::path &newPath)
     this->filePath = newPath;
 }
 
-SettingManager::LoadError
+LoadResult
 SettingManager::gLoad(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -351,7 +424,7 @@ SettingManager::gLoad(const std::filesystem::path &path)
     return instance->load(path);
 }
 
-SettingManager::LoadError
+LoadResult
 SettingManager::gLoadFrom(const std::filesystem::path &path)
 {
     const auto &instance = SettingManager::getInstance();
@@ -359,7 +432,7 @@ SettingManager::gLoadFrom(const std::filesystem::path &path)
     return instance->loadFrom(path);
 }
 
-SettingManager::LoadError
+LoadResult
 SettingManager::load(const std::filesystem::path &path)
 {
     if (!path.empty()) {
@@ -369,7 +442,7 @@ SettingManager::load(const std::filesystem::path &path)
     return this->loadFrom(this->filePath);
 }
 
-SettingManager::LoadError
+LoadResult
 SettingManager::loadFrom(const std::filesystem::path &_path)
 {
     std::error_code ec;
@@ -377,25 +450,37 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
     auto path = detail::RealPath(_path, ec);
 
     if (ec) {
-        return LoadError::FileHandleError;
+        std::string msg("Failed to resolve '");
+        msg += _path.string();
+        msg += "' through symlinks: ";
+        msg += ec.message();
+        return LoadResult::failure(LoadResult::Kind::ResolveSymlinks,
+                                   std::move(msg));
     }
 
     // Open file
     std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
     if (!fh) {
-        // Unable to open file at `path`
-        return LoadError::CannotOpenFile;
+        std::string msg("Failed to open '");
+        msg += path.string();
+        msg += "'";
+        return LoadResult::failure(LoadResult::Kind::OpenFile, std::move(msg));
     }
 
     // Read size of file
     auto fileSize = std::filesystem::file_size(path, ec);
     if (ec) {
-        return LoadError::FileHandleError;
+        std::string msg("Failed to determine file size of '");
+        msg += _path.string();
+        msg += "': ";
+        msg += ec.message();
+        return LoadResult::failure(LoadResult::Kind::ReadFileSize,
+                                   std::move(msg));
     }
 
     if (fileSize == 0) {
         // Nothing to load
-        return LoadError::NoError;
+        return LoadResult::success();
     }
 
     // Create std::vector of appropriate size
@@ -412,12 +497,23 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
 
     // Make sure the file parsed okay
     if (!ok) {
-        return LoadError::JSONParseError;
+        std::string msg("Failed to parse '");
+        msg += _path.string();
+        msg += "' as JSON: ";
+        msg += stringifyRapidjsonCode(ok.Code());
+        msg += " at offset ";
+        msg += std::to_string(ok.Offset());
+        return LoadResult::failure(LoadResult::Kind::ReadJSON, std::move(msg));
     }
 
     // This restricts config files a bit. They NEED to have an object root
     if (!this->document.IsObject()) {
-        return LoadError::JSONParseError;
+        std::string msg("Expected top level JSON type to be 'object', got '");
+        msg += stringifyRapidjsonType(this->document.GetType());
+        msg += "' (file: '";
+        msg += _path.string();
+        msg += "')";
+        return LoadResult::failure(LoadResult::Kind::ReadJSON, std::move(msg));
     }
 
     // Perform deep merge of objects
@@ -425,7 +521,7 @@ SettingManager::loadFrom(const std::filesystem::path &_path)
 
     this->notifyLoadedValues();
 
-    return LoadError::NoError;
+    return LoadResult::success();
 }
 
 SettingManager::SaveResult

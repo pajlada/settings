@@ -53,7 +53,7 @@ LoadFile(const std::string &fileName, SettingManager *sm)
 
     std::string path = initialPath + fileName;
 
-    return sm->loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
+    return sm->loadFrom(path.c_str()).isSuccess();
 }
 
 pajlada::Settings::SettingManager::SaveResult

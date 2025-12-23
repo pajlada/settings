@@ -138,27 +138,36 @@ TEST(Misc, Channel)
 
 TEST(Misc, LoadFilesInvalidFiles)
 {
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-1.json") ==
-                SettingManager::LoadError::JSONParseError);
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-2.json") ==
-                SettingManager::LoadError::JSONParseError);
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-3.json") ==
-                SettingManager::LoadError::JSONParseError);
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/empty.json") ==
-                SettingManager::LoadError::NoError);
+    auto err1 = SettingManager::gLoadFrom("files/bad-1.json");
+    EXPECT_TRUE(err1.isError());
+    EXPECT_EQ(err1.getKind(), LoadResult::Kind::ReadJSON);
+    EXPECT_TRUE(err1.getMessage().starts_with("Failed to parse"));
+
+    auto err2 = SettingManager::gLoadFrom("files/bad-2.json");
+    EXPECT_TRUE(err2.isError());
+    EXPECT_EQ(err2.getKind(), LoadResult::Kind::ReadJSON);
+    EXPECT_TRUE(err2.getMessage().starts_with("Failed to parse"));
+
+    auto err3 = SettingManager::gLoadFrom("files/bad-3.json");
+    EXPECT_TRUE(err3.isError());
+    EXPECT_EQ(err3.getKind(), LoadResult::Kind::ReadJSON);
+    EXPECT_TRUE(err3.getMessage().starts_with(
+        "Expected top level JSON type to be 'object', got 'number'"));
+
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/empty.json").isSuccess());
 }
 
 TEST(Misc, NonExistantFiles)
 {
-    EXPECT_TRUE(
-        SettingManager::gLoadFrom("files/test-non-existant-file.json") ==
-        SettingManager::LoadError::CannotOpenFile);
+    auto e = SettingManager::gLoadFrom("files/test-non-existant-file.json");
+    EXPECT_TRUE(e.isError());
+    EXPECT_EQ(e.getKind(), LoadResult::Kind::OpenFile);
+    EXPECT_TRUE(e.getMessage().starts_with("Failed to open"));
 }
 
 TEST(Misc, ValidFiles)
 {
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/default.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_TRUE(SettingManager::gLoadFrom("files/default.json").isSuccess());
 }
 
 TEST(Misc, Misc)

@@ -65,10 +65,8 @@ TEST(AdvancedArray, MultiFiles)
 
     // EXPECT_TRUE(myWindows->size() == 0);
 
-    EXPECT_TRUE(sm1->load("files/advanced-window-multi.json") ==
-                SettingManager::LoadError::NoError);
-    EXPECT_TRUE(sm2->load("files/advanced-window-multi.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_TRUE(sm1->load("files/advanced-window-multi.json").isSuccess());
+    EXPECT_TRUE(sm2->load("files/advanced-window-multi.json").isSuccess());
 
     // EXPECT_TRUE(myWindows->size() == 3);
 
