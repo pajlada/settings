@@ -36,16 +36,7 @@ public:
 
     void notifyUpdate(const rapidjson::Value &value, SignalArgs args);
 
-    bool
-    marshalJSON(const rapidjson::Value &v, SignalArgs &&args = {})
-    {
-        auto locked = this->instance.lock();
-        if (!locked) {
-            return false;
-        }
-
-        return locked->set(this->path.c_str(), v, std::move(args));
-    }
+    bool marshalJSON(const rapidjson::Value &v, SignalArgs &&args = {});
 
     template <typename Type>
     bool
@@ -62,31 +53,31 @@ public:
         return locked->set(this->path.c_str(), jsonValue, std::move(args));
     }
 
-    rapidjson::Value *
-    unmarshalJSON()
-    {
-        return this->get();
-    }
+    bool unmarshalJSON(rapidjson::Document &doc);
 
     template <typename Type>
     std::optional<Type>
     unmarshal() const
     {
-        auto *ptr = this->get();
-
-        if (ptr == nullptr) {
+        auto locked = this->instance.lock();
+        if (!locked) {
             return std::nullopt;
         }
 
-        return Deserialize<Type>::get(*ptr);
+        return locked->get(this->path.c_str(),
+                           [](auto *ptr) -> std::optional<Type> {
+                               if (ptr == nullptr) {
+                                   return std::nullopt;
+                               }
+
+                               return Deserialize<Type>::get(*ptr);
+                           });
     }
 
     int getUpdateIteration() const;
 
 private:
     friend class SettingManager;
-
-    rapidjson::Value *get() const;
 };
 
 }  // namespace pajlada::Settings

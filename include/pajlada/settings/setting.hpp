@@ -175,12 +175,6 @@ public:
     }
 
     Type
-    getValueCopy() const
-    {
-        return this->getValue();
-    }
-
-    const Type &
     getValue() const
     {
         std::unique_lock<std::mutex> lock(this->valueMutex);
@@ -470,11 +464,8 @@ public:
         auto connection = lockedSetting->updated.connect(func);
 
         if (autoInvoke) {
-            auto ptr = lockedSetting->unmarshalJSON();
             rapidjson::Document d;
-            if (ptr != nullptr) {
-                d.CopyFrom(*ptr, d.GetAllocator());
-            }
+            lockedSetting->unmarshalJSON(d);
             lockedSetting->updated.invoke(d, detail::onConnectArgs());
         }
 
@@ -497,11 +488,8 @@ public:
         auto connection = lockedSetting->updated.connect(func);
 
         if (autoInvoke) {
-            auto ptr = lockedSetting->unmarshalJSON();
             rapidjson::Document d;
-            if (ptr != nullptr) {
-                d.CopyFrom(*ptr, d.GetAllocator());
-            }
+            lockedSetting->unmarshalJSON(d);
             lockedSetting->updated.invoke(d, detail::onConnectArgs());
         }
 
