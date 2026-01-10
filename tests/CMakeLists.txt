@@ -38,7 +38,6 @@ add_executable(${PROJECT_NAME}
     src/listener.cpp
     src/backup.cpp
 
-    src/foo.cpp
     src/channel.cpp
 
     src/option-compare-before-set.cpp

@@ -1,22 +1,27 @@
+#include <gtest/gtest.h>
+
 #include <pajlada/settings.hpp>
 
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 namespace fs = std::filesystem;
 
 TEST(Load, Unicode)
 {
-    SettingManager::clear();
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    Setting<int> a("/a", 1);
+    Setting<int> a("/a", 1, sm);
 
     EXPECT_TRUE(a == 1);
 
     for (const auto &p : fs::directory_iterator("files/unicode/a")) {
-        auto sm = SettingManager::getInstance().get();
-        EXPECT_TRUE(sm->loadFrom(p) == SettingManager::LoadError::NoError);
+        EXPECT_EQ(LoadError::NoError, sm->loadFrom(p));
     }
 
     EXPECT_TRUE(a == 5);
@@ -24,49 +29,52 @@ TEST(Load, Unicode)
 
 TEST(Load, Space)
 {
-    SettingManager::clear();
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    Setting<int> a("/a", 1);
+    Setting<int> a("/a", 1, sm);
 
     EXPECT_TRUE(a == 1);
 
-    EXPECT_TRUE(LoadFile("load. .json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/load. .json"));
 
     EXPECT_TRUE(a == 5);
 }
 
 TEST(Load, Symlink)
 {
-    std::string bp("in.symlink.json");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    SettingManager::clear();
-
-    Setting<int> lol("/lol", 1);
+    Setting<int> lol("/lol", 1, sm);
 
     EXPECT_TRUE(lol == 1);
 
-    EXPECT_TRUE(LoadFile(bp));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.symlink.json"));
 
     EXPECT_TRUE(lol == 10);
 }
 
 TEST(Load, RelativeSymlink)
 {
-    std::string bp("in.relative-symlink.json");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    SettingManager::clear();
-
-    Setting<int> lol("/lol", 1);
+    Setting<int> lol("/lol", 1, sm);
 
     EXPECT_TRUE(lol == 1);
 
-    EXPECT_TRUE(LoadFile(bp));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.relative-symlink.json"));
 
     EXPECT_TRUE(lol == 10);
 }
 
 TEST(Load, AbsoluteSymlinkSameFolder)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     std::string bp("files/in.absolute-symlink-same-folder.json");
 
     RemoveFile(bp);
@@ -75,13 +83,11 @@ TEST(Load, AbsoluteSymlinkSameFolder)
 
     fs::create_symlink(cwd / "files" / "correct.save.save_int.json", bp);
 
-    SettingManager::clear();
-
-    Setting<int> lol("/lol", 1);
+    Setting<int> lol("/lol", 1, sm);
 
     EXPECT_TRUE(lol == 1);
 
-    EXPECT_TRUE(LoadFile("in.absolute-symlink-same-folder.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom(bp));
 
     EXPECT_TRUE(lol == 10);
 }

@@ -1,46 +1,44 @@
 #include <gtest/gtest.h>
 
-#include "common.hpp"
+#include <pajlada/settings.hpp>
 
 using namespace pajlada::Settings;
 using SaveResult = pajlada::Settings::SettingManager::SaveResult;
-
-namespace {
-
-// The static settings have been delegated to their own setting manager to not mess up other tests
-auto ssm = std::make_shared<SettingManager>();
-
-Setting<int> iNoDefault("/iNoDefault", ssm);
-Setting<int> iDefault("/iDefault", 5, ssm);
-
-Setting<float> f1("/float1", 1.0101f, ssm);
-Setting<float> f2("/float2", 1.0101010101f, ssm);
-Setting<float> f3("/float3", 1.123456789f, ssm);
-Setting<float> f4("/float4", 1.f, ssm);
-Setting<float> f5("/float5", 0.f, ssm);
-Setting<float> f6("/float6", -.1f, ssm);
-Setting<float> f7("/float7", 1.0f, ssm);
-
-Setting<double> d1("/double1", 1.0101, ssm);
-Setting<double> d2("/double2", 1.0101010101, ssm);
-Setting<double> d3("/double3", 1.123456789, ssm);
-Setting<double> d4("/double4", 1., ssm);
-Setting<double> d5("/double5", 0., ssm);
-Setting<double> d6("/double6", -.1, ssm);
-Setting<double> d7("/double7", 123.456, ssm);
-
-Setting<bool> b1("/bool1", true, ssm);
-Setting<bool> b2("/bool2", false, ssm);
-Setting<bool> b3("/bool3", true, ssm);
-Setting<bool> b4("/bool4", false, ssm);
-Setting<bool> b5("/bool5", true, ssm);
-Setting<bool> b6("/bool6", false, ssm);
-Setting<bool> b7("/bool7", true, ssm);
-
-}  // namespace
+using LoadError = pajlada::Settings::SettingManager::LoadError;
 
 TEST(Static, Static)
 {
+    // The static settings have been delegated to their own setting manager to not mess up other tests
+    auto ssm = std::make_shared<SettingManager>();
+    ssm->saveMethod = SettingManager::SaveMethod::SaveManually;
+
+    Setting<int> iNoDefault("/iNoDefault", ssm);
+    Setting<int> iDefault("/iDefault", 5, ssm);
+
+    Setting<float> f1("/float1", 1.0101f, ssm);
+    Setting<float> f2("/float2", 1.0101010101f, ssm);
+    Setting<float> f3("/float3", 1.123456789f, ssm);
+    Setting<float> f4("/float4", 1.f, ssm);
+    Setting<float> f5("/float5", 0.f, ssm);
+    Setting<float> f6("/float6", -.1f, ssm);
+    Setting<float> f7("/float7", 1.0f, ssm);
+
+    Setting<double> d1("/double1", 1.0101, ssm);
+    Setting<double> d2("/double2", 1.0101010101, ssm);
+    Setting<double> d3("/double3", 1.123456789, ssm);
+    Setting<double> d4("/double4", 1., ssm);
+    Setting<double> d5("/double5", 0., ssm);
+    Setting<double> d6("/double6", -.1, ssm);
+    Setting<double> d7("/double7", 123.456, ssm);
+
+    Setting<bool> b1("/bool1", true, ssm);
+    Setting<bool> b2("/bool2", false, ssm);
+    Setting<bool> b3("/bool3", true, ssm);
+    Setting<bool> b4("/bool4", false, ssm);
+    Setting<bool> b5("/bool5", true, ssm);
+    Setting<bool> b6("/bool6", false, ssm);
+    Setting<bool> b7("/bool7", true, ssm);
+
     ssm->setBackupEnabled(true);
     EXPECT_TRUE(iNoDefault.getValue() == 0);
     EXPECT_TRUE(iDefault.getValue() == 5);
@@ -69,7 +67,7 @@ TEST(Static, Static)
     EXPECT_TRUE(b6.getValue() == false);
     EXPECT_TRUE(b7.getValue() == true);
 
-    EXPECT_TRUE(LoadFile("test.json", ssm.get()));
+    ASSERT_EQ(LoadError::NoError, ssm->loadFrom("files/test.json"));
 
     // Floats post-load
     EXPECT_TRUE(f1.getValue() == 1.f);
@@ -114,5 +112,5 @@ TEST(Static, Static)
 
     f7 = 0.f;
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.test2.json", ssm.get()));
+    EXPECT_EQ(SaveResult::Success, ssm->saveAs("files/out.test2.json"));
 }

@@ -1,15 +1,22 @@
-#include <atomic>
+#include <gtest/gtest.h>
 
-#include "common.hpp"
+#include <pajlada/settings.hpp>
+
 #include "pajlada/settings/settinglistener.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 TEST(Listener, simple)
 {
-    Setting<int> a("/listener/simple/a");
-    Setting<int> b("/listener/simple/b");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/listener/simple/a", sm);
+    Setting<int> b("/listener/simple/b", sm);
 
     size_t invocations = 0;
     SettingListener listener([&] { invocations++; });
@@ -32,8 +39,11 @@ TEST(Listener, simple)
 
 TEST(Listener, autoinvoke)
 {
-    Setting<int> a("/listener/autoinvoke/a");
-    Setting<int> b("/listener/autoinvoke/b");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/listener/autoinvoke/a", sm);
+    Setting<int> b("/listener/autoinvoke/b", sm);
 
     size_t invocations = 0;
     SettingListener listener([&] { invocations++; });
@@ -56,8 +66,11 @@ TEST(Listener, autoinvoke)
 
 TEST(Listener, manualInvoke)
 {
-    Setting<int> a("/listener/manual-invoke/a");
-    Setting<int> b("/listener/manual-invoke/b");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/listener/manual-invoke/a", sm);
+    Setting<int> b("/listener/manual-invoke/b", sm);
 
     size_t invocations = 0;
     SettingListener listener([&] { invocations++; });
@@ -78,8 +91,11 @@ TEST(Listener, manualInvoke)
 
 TEST(Listener, resetCallback)
 {
-    Setting<int> a("/listener/reset-callback/a");
-    Setting<int> b("/listener/reset-callback/b");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/listener/reset-callback/a", sm);
+    Setting<int> b("/listener/reset-callback/b", sm);
 
     size_t invocations = 0;
     SettingListener listener([&] { invocations++; });
@@ -102,8 +118,11 @@ TEST(Listener, resetCallback)
 
 TEST(Listener, emptyCallback)
 {
-    Setting<int> a("/listener/empty-callback/a");
-    Setting<int> b("/listener/empty-callback/b");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/listener/empty-callback/a", sm);
+    Setting<int> b("/listener/empty-callback/b", sm);
 
     SettingListener listener;
 

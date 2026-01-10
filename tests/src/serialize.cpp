@@ -1,14 +1,20 @@
-#include <iostream>
+#include <gtest/gtest.h>
+
+#include <pajlada/settings.hpp>
 
 #include "common.hpp"
 
 using namespace pajlada::Settings;
-using SaveResult = pajlada::Settings::SettingManager::SaveResult;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 TEST(Serialize, VectorBeforeLoading)
 {
-    std::vector<std::string> data{"a", "b", "c"};
-    Setting<std::vector<std::string>> a("/a");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<std::vector<std::string>> a("/a", sm);
     auto vec = a.getValue();
 
     EXPECT_TRUE(vec.size() == 0);
@@ -16,36 +22,45 @@ TEST(Serialize, VectorBeforeLoading)
 
 TEST(Serialize, VectorAfterSetting)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     std::vector<std::string> data{"a", "b", "c"};
-    Setting<std::vector<std::string>> a("/a");
+    Setting<std::vector<std::string>> a("/a", sm);
     a = data;
 
-    auto vec = a.getValue();
-
-    EXPECT_TRUE(vec.size() == data.size());
+    EXPECT_TRUE(a.getValue().size() == data.size());
+    EXPECT_EQ(a.getValue(), data);
 }
 
 TEST(Serialize, VectorAfterLoading)
 {
-    std::vector<std::string> data{"a", "b", "c"};
-    Setting<std::vector<std::string>> a("/a");
-    EXPECT_TRUE(LoadFile("in.serialize.vector.str.json"));
-    auto vec = a.getValue();
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    EXPECT_TRUE(vec.size() == 2);
-    EXPECT_TRUE(vec[0] == "x");
-    EXPECT_TRUE(vec[1] == "D");
+    Setting<std::vector<std::string>> a("/a", sm);
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.serialize.vector.str.json"));
+
+    const auto &vec = a.getValue();
+
+    EXPECT_EQ(vec.size(), 2);
+    EXPECT_EQ(vec[0], "x");
+    EXPECT_EQ(vec[1], "D");
 }
 
 TEST(Serialize, VectorMisc)
 {
-    std::vector<std::string> data{"a", "b", "c"};
-    Setting<std::vector<std::string>> a("/a");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<std::vector<std::string>> a("/a", sm);
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
     a = newData;
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.vector.str.json"));
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.serialize.vector.str.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.vector.str.json"));
@@ -53,13 +68,14 @@ TEST(Serialize, VectorMisc)
 
 TEST(Serialize, StdAnyVectorString)
 {
-    using std::any_cast;
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    SettingManager::clear();
+    using std::any_cast;
 
     std::vector<std::string> data{"a", "b", "c"};
 
-    Setting<std::any> a("/a");
+    Setting<std::any> a("/a", sm);
 
     auto rawAny = a.getValue();
     EXPECT_FALSE(rawAny.has_value());
@@ -74,7 +90,8 @@ TEST(Serialize, StdAnyVectorString)
 
     EXPECT_TRUE(vec.size() == data.size());
 
-    EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.serialize.any.vector.str.json"));
 
     rawAny = a.getValue();
     vec = any_cast<std::vector<std::any>>(rawAny);
@@ -88,7 +105,7 @@ TEST(Serialize, StdAnyVectorString)
     a = newData;
 
     EXPECT_EQ(SaveResult::Success,
-              SaveFile("out.serialize.any.vector.str.json"));
+              sm->saveAs("files/out.serialize.any.vector.str.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.any.vector.str.json"));
@@ -96,13 +113,14 @@ TEST(Serialize, StdAnyVectorString)
 
 TEST(Serialize, StdAnyVectorAny)
 {
-    using std::any_cast;
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    SettingManager::clear();
+    using std::any_cast;
 
     std::vector<std::any> data{"test", 5, 13.37};
 
-    Setting<std::any> a("/a");
+    Setting<std::any> a("/a", sm);
 
     auto rawAny = a.getValue();
     EXPECT_FALSE(rawAny.has_value());
@@ -119,7 +137,8 @@ TEST(Serialize, StdAnyVectorAny)
     EXPECT_TRUE(any_cast<int>(vec[1]) == 5);
     EXPECT_DOUBLE_EQ(any_cast<double>(vec[2]), 13.37);
 
-    EXPECT_TRUE(LoadFile("in.serialize.any.vector.str.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.serialize.any.vector.str.json"));
 
     rawAny = a.getValue();
     vec = any_cast<std::vector<std::any>>(rawAny);
@@ -133,7 +152,7 @@ TEST(Serialize, StdAnyVectorAny)
     a = newData;
 
     EXPECT_EQ(SaveResult::Success,
-              SaveFile("out.serialize.any.vector.str.json"));
+              sm->saveAs("files/out.serialize.any.vector.str.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
                            "out.serialize.any.vector.str.json"));
@@ -141,8 +160,10 @@ TEST(Serialize, StdAnyVectorAny)
 
 TEST(Serialize, Int1)
 {
-    SettingManager::clear();
-    Setting<int> a("/a");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/a", sm);
     EXPECT_TRUE(a == 0);
     EXPECT_TRUE(a.getValue() == 0);
     int val = a;
@@ -151,9 +172,11 @@ TEST(Serialize, Int1)
 
 TEST(Serialize, Int2)
 {
-    SettingManager::clear();
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int data = 8;
-    Setting<int> a("/a");
+    Setting<int> a("/a", sm);
     a = data;
 
     EXPECT_TRUE(a == data);
@@ -164,9 +187,11 @@ TEST(Serialize, Int2)
 
 TEST(Serialize, Int3)
 {
-    SettingManager::clear();
-    Setting<int> a("/a");
-    EXPECT_TRUE(LoadFile("in.serialize.int.json"));
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/a", sm);
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.serialize.int.json"));
     EXPECT_TRUE(a == 10);
     EXPECT_TRUE(a.getValue() == 10);
     int val = a;
@@ -175,22 +200,25 @@ TEST(Serialize, Int3)
 
 TEST(Serialize, Int4)
 {
-    SettingManager::clear();
-    Setting<int> a("/a");
-    EXPECT_TRUE(LoadFile("in.serialize.int.json"));
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.int.json"));
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/a", sm);
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.serialize.int.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.serialize.int.json"));
 
     EXPECT_TRUE(FilesMatch("in.serialize.int.json", "out.serialize.int.json"));
 }
 
 TEST(Serialize, Bool)
 {
-    SettingManager::clear();
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
     bool data = true;
     bool val;
 
-    Setting<bool> a("/a");
+    Setting<bool> a("/a", sm);
 
     EXPECT_TRUE(a == false);
     EXPECT_TRUE(a.getValue() == false);
@@ -211,25 +239,28 @@ TEST(Serialize, Bool)
     val = a;
     EXPECT_TRUE(val == false);
 
-    EXPECT_TRUE(LoadFile("in.serialize.bool.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.serialize.bool.json"));
     EXPECT_TRUE(a == true);
     EXPECT_TRUE(a.getValue() == true);
     val = a;
     EXPECT_TRUE(val == true);
 
-    EXPECT_TRUE(LoadFile("in.serialize.bool2.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.serialize.bool2.json"));
     EXPECT_TRUE(a == false);
     EXPECT_TRUE(a.getValue() == false);
     val = a;
     EXPECT_TRUE(val == false);
 
-    EXPECT_TRUE(LoadFile("in.serialize.bool3.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.serialize.bool3.json"));
     EXPECT_TRUE(a == true);
     EXPECT_TRUE(a.getValue() == true);
     val = a;
     EXPECT_TRUE(val == true);
 
-    EXPECT_TRUE(LoadFile("in.serialize.bool4.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.serialize.bool4.json"));
     EXPECT_TRUE(a == false);
     EXPECT_TRUE(a.getValue() == false);
     val = a;
@@ -240,7 +271,7 @@ TEST(Serialize, Bool)
     EXPECT_TRUE(a.getValue() == true);
     val = a;
     EXPECT_TRUE(val == true);
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.bool.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.serialize.bool.json"));
     EXPECT_TRUE(
         FilesMatch("in.serialize.bool.json", "out.serialize.bool.json"));
 
@@ -249,7 +280,7 @@ TEST(Serialize, Bool)
     EXPECT_TRUE(a.getValue() == false);
     val = a;
     EXPECT_TRUE(val == false);
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.serialize.bool.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.serialize.bool.json"));
     EXPECT_TRUE(
         FilesMatch("in.serialize.bool.false.json", "out.serialize.bool.json"));
 }

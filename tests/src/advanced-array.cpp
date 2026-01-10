@@ -1,8 +1,11 @@
+#include <gtest/gtest.h>
+
 #include <pajlada/settings.hpp>
 
-#include "common.hpp"
-
 using namespace pajlada::Settings;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 class MyWindow
 {
@@ -18,24 +21,29 @@ public:
 
 TEST(AdvancedArray, SingleWindow)
 {
-    SettingManager::clear();
-    Setting<MyWindow> myWindow("/a");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<MyWindow> myWindow("/a", sm);
 
     // EXPECT_TRUE(myWindow->x == 0);
 
-    EXPECT_TRUE(LoadFile("advanced-window.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/advanced-window.json"));
 
     // EXPECT_TRUE(myWindow->x == 5);
 }
 
 TEST(AdvancedArray, MultiWindow)
 {
-    SettingManager::clear();
-    Setting<std::vector<MyWindow>> myWindows("/a");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<std::vector<MyWindow>> myWindows("/a", sm);
 
     // EXPECT_TRUE(myWindows->size() == 0);
 
-    EXPECT_TRUE(LoadFile("advanced-window-multi.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/advanced-window-multi.json"));
 
     // EXPECT_TRUE(myWindows->size() == 3);
 

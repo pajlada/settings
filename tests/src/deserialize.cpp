@@ -1,6 +1,13 @@
+#include <gtest/gtest.h>
+
+#include <pajlada/settings.hpp>
+
 #include "common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 using namespace pajlada;
 
 const double EPSILON = 1e-6;
@@ -11,14 +18,19 @@ protected:
     void
     SetUp() override
     {
-        EXPECT_TRUE(LoadFile("deserialize-samples.json"));
+        this->sm = std::make_shared<SettingManager>();
+        this->sm->saveMethod = SaveMethod::SaveManually;
+        ASSERT_EQ(LoadError::NoError,
+                  this->sm->loadFrom("files/deserialize-samples.json"));
     }
 
     void
     TearDown() override
     {
-        SettingManager::clear();
+        this->sm.reset();
     }
+
+    std::shared_ptr<SettingManager> sm;
 };
 
 TEST_F(FDeserialize, A)
@@ -27,10 +39,11 @@ TEST_F(FDeserialize, A)
 
 TEST_F(FDeserialize, Int)
 {
-    Setting<int> a1("/int");
-    Setting<int> a2("/float");
-    std::unique_ptr<Setting<int>> a3(new Setting<int>("/std::string"));
-    std::unique_ptr<Setting<int>> a4(new Setting<int>("/bool"));
+    Setting<int> a1("/int", this->sm);
+    Setting<int> a2("/float", this->sm);
+    std::unique_ptr<Setting<int>> a3(
+        new Setting<int>("/std::string", this->sm));
+    std::unique_ptr<Setting<int>> a4(new Setting<int>("/bool", this->sm));
 
     EXPECT_TRUE(a1.getValue() == 5);
     EXPECT_TRUE(a2.getValue() == 5);
@@ -40,10 +53,11 @@ TEST_F(FDeserialize, Int)
 
 TEST_F(FDeserialize, Float)
 {
-    Setting<float> a1("/int");
-    Setting<float> a2("/float");
-    std::unique_ptr<Setting<float>> a3(new Setting<float>("/std::string"));
-    std::unique_ptr<Setting<float>> a4(new Setting<float>("/bool"));
+    Setting<float> a1("/int", this->sm);
+    Setting<float> a2("/float", this->sm);
+    std::unique_ptr<Setting<float>> a3(
+        new Setting<float>("/std::string", this->sm));
+    std::unique_ptr<Setting<float>> a4(new Setting<float>("/bool", this->sm));
 
     EXPECT_NEAR(a1.getValue(), 5.f, EPSILON);
     EXPECT_NEAR(a2.getValue(), 5.3f, EPSILON);
@@ -53,10 +67,11 @@ TEST_F(FDeserialize, Float)
 
 TEST_F(FDeserialize, Double)
 {
-    Setting<double> a1("/int");
-    Setting<double> a2("/float");
-    std::unique_ptr<Setting<double>> a3(new Setting<double>("/std::string"));
-    std::unique_ptr<Setting<double>> a4(new Setting<double>("/bool"));
+    Setting<double> a1("/int", this->sm);
+    Setting<double> a2("/float", this->sm);
+    std::unique_ptr<Setting<double>> a3(
+        new Setting<double>("/std::string", this->sm));
+    std::unique_ptr<Setting<double>> a4(new Setting<double>("/bool", this->sm));
 
     EXPECT_NEAR(a1.getValue(), 5., EPSILON);
     EXPECT_NEAR(a2.getValue(), 5.3, EPSILON);
@@ -66,12 +81,13 @@ TEST_F(FDeserialize, Double)
 
 TEST_F(FDeserialize, Bool)
 {
-    Setting<bool> a1("/int");
-    std::unique_ptr<Setting<bool>> a2(new Setting<bool>("/float"));
-    std::unique_ptr<Setting<bool>> a3(new Setting<bool>("/std::string"));
-    std::unique_ptr<Setting<bool>> a4(new Setting<bool>("/bool"));
+    Setting<bool> a1("/int", this->sm);
+    std::unique_ptr<Setting<bool>> a2(new Setting<bool>("/float", this->sm));
+    std::unique_ptr<Setting<bool>> a3(
+        new Setting<bool>("/std::string", this->sm));
+    std::unique_ptr<Setting<bool>> a4(new Setting<bool>("/bool", this->sm));
 
-    Setting<bool> a5("/int1");
+    Setting<bool> a5("/int1", this->sm);
 
     EXPECT_TRUE(a1.getValue() == false);
     DD_THROWS(a2->getValue());
@@ -82,12 +98,14 @@ TEST_F(FDeserialize, Bool)
 
 TEST_F(FDeserialize, String)
 {
-    std::unique_ptr<Setting<std::string>> a1(new Setting<std::string>("/int"));
+    std::unique_ptr<Setting<std::string>> a1(
+        new Setting<std::string>("/int", this->sm));
     std::unique_ptr<Setting<std::string>> a2(
-        new Setting<std::string>("/float"));
+        new Setting<std::string>("/float", this->sm));
     std::unique_ptr<Setting<std::string>> a3(
-        new Setting<std::string>("/string"));
-    std::unique_ptr<Setting<std::string>> a4(new Setting<std::string>("/bool"));
+        new Setting<std::string>("/string", this->sm));
+    std::unique_ptr<Setting<std::string>> a4(
+        new Setting<std::string>("/bool", this->sm));
 
     DD_THROWS(a1->getValue());
     DD_THROWS(a2->getValue());
