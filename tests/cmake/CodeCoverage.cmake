@@ -140,59 +140,81 @@ include(CMakeParseArguments)
 option(CODE_COVERAGE_VERBOSE "Verbose information" FALSE)
 
 # Check prereqs
-find_program( GCOV_PATH gcov )
-find_program( LCOV_PATH  NAMES lcov lcov.bat lcov.exe lcov.perl)
+find_program( GCOV_PATH NAMES gcov )
+find_program( LCOV_PATH NAMES lcov lcov.bat lcov.exe lcov.perl )
 find_program( FASTCOV_PATH NAMES fastcov fastcov.py )
 find_program( GENHTML_PATH NAMES genhtml genhtml.perl genhtml.bat )
-find_program( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/scripts/test)
+find_program( GCOVR_PATH NAMES gcovr )
 find_program( CPPFILT_PATH NAMES c++filt )
 
 if(NOT GCOV_PATH)
     message(FATAL_ERROR "gcov not found! Aborting...")
 endif() # NOT GCOV_PATH
 
+if(LCOV_PATH)
+    set(lcov_message "Found Lcov: ${LCOV_PATH}")
+    execute_process(COMMAND ${LCOV_PATH} "--version" OUTPUT_VARIABLE LCOV_VERSION_OUTPUT)
+    if("${LCOV_VERSION_OUTPUT}" MATCHES "lcov: LCOV version ([0-9]+\\.[0-9]+(\\.[0-9]+)?)(-[0-9])?\n")
+        set(LCOV_VERSION "${CMAKE_MATCH_1}")
+        string(APPEND lcov_message " (found version ${LCOV_VERSION})")
+    endif()
+    message(STATUS "${lcov_message}")
+endif()
+
 # Check supported compiler (Clang, GNU and Flang)
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list(REMOVE_ITEM LANGUAGES NONE)
 foreach(LANG ${LANGUAGES})
-  if("${CMAKE_${LANG}_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
-    if("${CMAKE_${LANG}_COMPILER_VERSION}" VERSION_LESS 3)
-      message(FATAL_ERROR "Clang version must be 3.0.0 or greater! Aborting...")
-    endif()
-  elseif(NOT "${CMAKE_${LANG}_COMPILER_ID}" MATCHES "GNU"
+    if("${CMAKE_${LANG}_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
+        if("${CMAKE_${LANG}_COMPILER_VERSION}" VERSION_LESS 3)
+            message(FATAL_ERROR "Clang version must be 3.0.0 or greater! Aborting...")
+        endif()
+    elseif(NOT "${CMAKE_${LANG}_COMPILER_ID}" MATCHES "GNU"
          AND NOT "${CMAKE_${LANG}_COMPILER_ID}" MATCHES "(LLVM)?[Ff]lang")
-    message(FATAL_ERROR "Compiler is not GNU or Flang! Aborting...")
-  endif()
+        message(FATAL_ERROR "Compiler is not GNU or Flang! Aborting...")
+    endif()
 endforeach()
 
 set(COVERAGE_COMPILER_FLAGS "-g --coverage"
     CACHE INTERNAL "")
 
+set(COVERAGE_CXX_COMPILER_FLAGS ${COVERAGE_COMPILER_FLAGS})
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(-fprofile-abs-path HAVE_cxx_fprofile_abs_path)
     if(HAVE_cxx_fprofile_abs_path)
-        set(COVERAGE_CXX_COMPILER_FLAGS "${COVERAGE_COMPILER_FLAGS} -fprofile-abs-path")
+        set(COVERAGE_CXX_COMPILER_FLAGS "${COVERAGE_CXX_COMPILER_FLAGS} -fprofile-abs-path")
     endif()
 endif()
+
+set(COVERAGE_C_COMPILER_FLAGS ${COVERAGE_COMPILER_FLAGS})
 if(CMAKE_C_COMPILER_ID MATCHES "(GNU|Clang)")
     include(CheckCCompilerFlag)
     check_c_compiler_flag(-fprofile-abs-path HAVE_c_fprofile_abs_path)
     if(HAVE_c_fprofile_abs_path)
-        set(COVERAGE_C_COMPILER_FLAGS "${COVERAGE_COMPILER_FLAGS} -fprofile-abs-path")
+        set(COVERAGE_C_COMPILER_FLAGS "${COVERAGE_C_COMPILER_FLAGS} -fprofile-abs-path")
+    endif()
+endif()
+
+set(COVERAGE_Fortran_COMPILER_FLAGS ${COVERAGE_COMPILER_FLAGS})
+if(CMAKE_Fortran_COMPILER_ID MATCHES "(GNU|Clang)")
+    include(CheckFortranCompilerFlag)
+    check_fortran_compiler_flag(-fprofile-abs-path HAVE_fortran_fprofile_abs_path)
+    if(HAVE_fortran_fprofile_abs_path)
+        set(COVERAGE_Fortran_COMPILER_FLAGS "${COVERAGE_Fortran_COMPILER_FLAGS} -fprofile-abs-path")
     endif()
 endif()
 
 set(CMAKE_Fortran_FLAGS_COVERAGE
-    ${COVERAGE_COMPILER_FLAGS}
+    ${COVERAGE_Fortran_COMPILER_FLAGS}
     CACHE STRING "Flags used by the Fortran compiler during coverage builds."
     FORCE )
 set(CMAKE_CXX_FLAGS_COVERAGE
-    ${COVERAGE_COMPILER_FLAGS}
+    ${COVERAGE_C_COMPILER_FLAGS}
     CACHE STRING "Flags used by the C++ compiler during coverage builds."
     FORCE )
 set(CMAKE_C_FLAGS_COVERAGE
-    ${COVERAGE_COMPILER_FLAGS}
+    ${COVERAGE_CXX_COMPILER_FLAGS}
     CACHE STRING "Flags used by the C compiler during coverage builds."
     FORCE )
 set(CMAKE_EXE_LINKER_FLAGS_COVERAGE
@@ -215,10 +237,6 @@ if(NOT (CMAKE_BUILD_TYPE STREQUAL "Debug" OR GENERATOR_IS_MULTI_CONFIG))
     message(WARNING "Code coverage results with an optimised (non-Debug) build may be misleading")
 endif() # NOT (CMAKE_BUILD_TYPE STREQUAL "Debug" OR GENERATOR_IS_MULTI_CONFIG)
 
-if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    link_libraries(gcov)
-endif()
-
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
 # NOTE! The executable should always have a ZERO as exit code otherwise
@@ -230,6 +248,8 @@ endif()
 #     DEPENDENCIES testrunner                     # Dependencies to build first
 #     BASE_DIRECTORY "../"                        # Base directory for report
 #                                                 #  (defaults to PROJECT_SOURCE_DIR)
+#     DATA_DIRECTORY "./"                         # Data directory
+#                                                 #  (defaults to PROJECT_BINARY_DIR)
 #     EXCLUDE "src/dir1/*" "src/dir2/*"           # Patterns to exclude (can be relative
 #                                                 #  to BASE_DIRECTORY, with CMake 3.4+)
 #     NO_DEMANGLE                                 # Don't demangle C++ symbols
@@ -238,7 +258,7 @@ endif()
 function(setup_target_for_coverage_lcov)
 
     set(options NO_DEMANGLE SONARQUBE)
-    set(oneValueArgs BASE_DIRECTORY NAME)
+    set(oneValueArgs BASE_DIRECTORY DATA_DIRECTORY NAME)
     set(multiValueArgs EXCLUDE EXECUTABLE EXECUTABLE_ARGS DEPENDENCIES LCOV_ARGS GENHTML_ARGS)
     cmake_parse_arguments(Coverage "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -269,18 +289,24 @@ function(setup_target_for_coverage_lcov)
 
     # Conditional arguments
     if(CPPFILT_PATH AND NOT ${Coverage_NO_DEMANGLE})
-      set(GENHTML_EXTRA_ARGS "--demangle-cpp")
+        set(GENHTML_EXTRA_ARGS "--demangle-cpp")
+    endif()
+
+    if(DEFINED Coverage_DATA_DIRECTORY)
+        set(LCOV_DATA_DIRECTORY ${Coverage_DATA_DIRECTORY})
+    else()
+        set(LCOV_DATA_DIRECTORY ${PROJECT_BINARY_DIR})
     endif()
 
     # Setting up commands which will be run to generate coverage data.
     # Cleanup lcov
     set(LCOV_CLEAN_CMD
-        ${LCOV_PATH} ${Coverage_LCOV_ARGS} --gcov-tool ${GCOV_PATH} --directory .
+        ${LCOV_PATH} ${Coverage_LCOV_ARGS} --gcov-tool ${GCOV_PATH} --directory ${LCOV_DATA_DIRECTORY}
         -b ${BASEDIR} --zerocounters
     )
     # Create baseline to make sure untouched files show up in the report
     set(LCOV_BASELINE_CMD
-        ${LCOV_PATH} ${Coverage_LCOV_ARGS} --gcov-tool ${GCOV_PATH} -c -i -d . -b
+        ${LCOV_PATH} ${Coverage_LCOV_ARGS} --gcov-tool ${GCOV_PATH} -c -i -d ${LCOV_DATA_DIRECTORY} -b
         ${BASEDIR} -o ${Coverage_NAME}.base
     )
     # Run tests
@@ -289,7 +315,7 @@ function(setup_target_for_coverage_lcov)
     )
     # Capturing lcov counters and generating report
     set(LCOV_CAPTURE_CMD
-        ${LCOV_PATH} ${Coverage_LCOV_ARGS} --gcov-tool ${GCOV_PATH} --directory . -b
+        ${LCOV_PATH} ${Coverage_LCOV_ARGS} --gcov-tool ${GCOV_PATH} --directory ${LCOV_DATA_DIRECTORY} -b
         ${BASEDIR} --capture --output-file ${Coverage_NAME}.capture
     )
     # add baseline counters
@@ -735,16 +761,21 @@ function(setup_target_for_coverage_fastcov)
 endfunction() # setup_target_for_coverage_fastcov
 
 function(append_coverage_compiler_flags)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
-    message(STATUS "Appending code coverage compiler flags: ${COVERAGE_COMPILER_FLAGS}")
+    foreach(LANG ${LANGUAGES})
+        set(CMAKE_${LANG}_FLAGS "${CMAKE_${LANG}_FLAGS} ${CMAKE_${LANG}_FLAGS_COVERAGE}" PARENT_SCOPE)
+        message(STATUS "Appending code coverage compiler flags for ${LANG}: ${CMAKE_${LANG}_FLAGS_COVERAGE}")
+    endforeach()
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+        link_libraries(gcov)
+    endif()
 endfunction() # append_coverage_compiler_flags
 
 # Setup coverage for specific library
 function(append_coverage_compiler_flags_to_target name)
-    separate_arguments(_flag_list NATIVE_COMMAND "${COVERAGE_COMPILER_FLAGS}")
-    target_compile_options(${name} PRIVATE ${_flag_list})
+    foreach(LANG ${LANGUAGES})
+        separate_arguments(_flag_list NATIVE_COMMAND "${CMAKE_${LANG}_FLAGS_COVERAGE}")
+        target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:${LANG}>:${_flag_list}>)
+    endforeach()
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
         target_link_libraries(${name} PRIVATE gcov)
     endif()
