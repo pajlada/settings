@@ -4,6 +4,7 @@
 
 - Dev: Fixed code coverage not generating for source files. (#149)
 - Dev: Clean up the SaveSymlink test. (#145)
+- Dev: Add instanced overloads for `arraySize` and `getObjectKeys`. (#148)
 
 ## v0.3.0
 
