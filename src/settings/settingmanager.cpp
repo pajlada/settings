@@ -349,72 +349,42 @@ SettingManager::gLoadFrom(const std::filesystem::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::load(const std::filesystem::path &path)
+SettingManager::load(const std::filesystem::path &path,
+                     std::optional<LoadOptions> overrideLoadOptions)
 {
     if (!path.empty()) {
         this->filePath = path;
     }
 
-    return this->loadFrom(this->filePath);
+    return this->loadFrom(this->filePath, overrideLoadOptions);
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const std::filesystem::path &_path)
+SettingManager::loadFrom(const std::filesystem::path &path,
+                         std::optional<LoadOptions> overrideLoadOptions)
 {
-    std::error_code ec;
+    auto result = this->readFrom(path);
 
-    auto path = detail::RealPath(_path, ec);
+    auto options = overrideLoadOptions.value_or(this->loadOptions);
 
-    if (ec) {
-        return LoadError::FileHandleError;
+    if (result != LoadError::NoError) {
+        if (options.attemptLoadFromTemporaryFile) {
+            // Loading from initial settings file failed, attempt to load from temporary file
+            auto tmpPath(path);
+            tmpPath += ".tmp";
+
+            auto tmpResult = this->readFrom(tmpPath);
+            if (tmpResult == LoadError::NoError) {
+                if (!this->writeTo(path)) {
+                    return LoadError::SavingFromTemporaryFileFailed;
+                }
+            }
+
+            return tmpResult;
+        }
     }
 
-    // Open file
-    std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
-    if (!fh) {
-        // Unable to open file at `path`
-        return LoadError::CannotOpenFile;
-    }
-
-    // Read size of file
-    auto fileSize = std::filesystem::file_size(path, ec);
-    if (ec) {
-        return LoadError::FileHandleError;
-    }
-
-    if (fileSize == 0) {
-        // Nothing to load
-        return LoadError::NoError;
-    }
-
-    // Create std::vector of appropriate size
-    std::vector<char> fileBuffer;
-    fileBuffer.resize(fileSize);
-
-    // Read file data into buffer
-    fh.read(&fileBuffer[0], fileSize);
-
-    // Merge newly parsed config file into our pre-existing document
-    // The pre-existing document might be empty, but we don't know that
-
-    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
-
-    // Make sure the file parsed okay
-    if (!ok) {
-        return LoadError::JSONParseError;
-    }
-
-    // This restricts config files a bit. They NEED to have an object root
-    if (!this->document.IsObject()) {
-        return LoadError::JSONParseError;
-    }
-
-    // Perform deep merge of objects
-    // detail::mergeObjects(document, d, document.GetAllocator());
-
-    this->notifyLoadedValues();
-
-    return LoadError::NoError;
+    return result;
 }
 
 SettingManager::SaveResult
@@ -487,6 +457,65 @@ SettingManager::writeTo(const std::filesystem::path &path)
     fh.write(buffer.GetString(), buffer.GetSize());
 
     return true;
+}
+
+SettingManager::LoadError
+SettingManager::readFrom(const std::filesystem::path &_path)
+{
+    std::error_code ec;
+
+    auto path = detail::RealPath(_path, ec);
+
+    if (ec) {
+        return LoadError::FileHandleError;
+    }
+
+    // Open file
+    std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
+    if (!fh) {
+        // Unable to open file at `path`
+        return LoadError::CannotOpenFile;
+    }
+
+    // Read size of file
+    auto fileSize = std::filesystem::file_size(path, ec);
+    if (ec) {
+        return LoadError::FileHandleError;
+    }
+
+    if (fileSize == 0) {
+        // Nothing to load
+        return LoadError::NoError;
+    }
+
+    // Create std::vector of appropriate size
+    std::vector<char> fileBuffer;
+    fileBuffer.resize(fileSize);
+
+    // Read file data into buffer
+    fh.read(&fileBuffer[0], fileSize);
+
+    // Merge newly parsed config file into our pre-existing document
+    // The pre-existing document might be empty, but we don't know that
+
+    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
+
+    // Make sure the file parsed okay
+    if (!ok) {
+        return LoadError::JSONParseError;
+    }
+
+    // This restricts config files a bit. They NEED to have an object root
+    if (!this->document.IsObject()) {
+        return LoadError::JSONParseError;
+    }
+
+    // Perform deep merge of objects
+    // detail::mergeObjects(document, d, document.GetAllocator());
+
+    this->notifyLoadedValues();
+
+    return LoadError::NoError;
 }
 
 void
