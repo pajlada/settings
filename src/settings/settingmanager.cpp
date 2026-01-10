@@ -133,8 +133,13 @@ SettingManager::notifyLoadedValues()
 rapidjson::SizeType
 SettingManager::arraySize(const std::string &path)
 {
-    const auto &instance = SettingManager::getInstance();
+    return SettingManager::arraySize(path, SettingManager::getInstance());
+}
 
+rapidjson::SizeType
+SettingManager::arraySize(const std::string &path,
+                          std::shared_ptr<SettingManager> instance)
+{
     auto *valuePointer =
         rapidjson::Pointer(path.c_str()).Get(instance->document);
     if (valuePointer == nullptr) {
@@ -247,8 +252,14 @@ SettingManager::cleanArray(const std::string &arrayPath)
 std::vector<std::string>
 SettingManager::getObjectKeys(const std::string &objectPath)
 {
-    auto instance = SettingManager::getInstance();
+    return SettingManager::getObjectKeys(objectPath,
+                                         SettingManager::getInstance());
+}
 
+std::vector<std::string>
+SettingManager::getObjectKeys(const std::string &objectPath,
+                              std::shared_ptr<SettingManager> instance)
+{
     std::vector<std::string> ret;
 
     auto *root = instance->get(objectPath.c_str());
