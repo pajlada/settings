@@ -45,30 +45,6 @@ FilesMatch(const std::string &fileName1, const std::string &fileName2)
 }
 
 bool
-LoadFile(const std::string &fileName, SettingManager *sm)
-{
-    if (sm == nullptr) {
-        sm = SettingManager::getInstance().get();
-    }
-
-    std::string path = initialPath + fileName;
-
-    return sm->loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
-}
-
-pajlada::Settings::SettingManager::SaveResult
-SaveFile(const std::string &fileName, SettingManager *sm)
-{
-    if (sm == nullptr) {
-        sm = SettingManager::getInstance().get();
-    }
-
-    std::string path = initialPath + fileName;
-
-    return sm->saveAs(path.c_str());
-}
-
-bool
 RemoveFile(const std::string &path)
 {
     std::error_code ec;
