@@ -64,7 +64,15 @@ private:
 
 public:
     // Useful array helper methods
+    /// Return the size of the array at the given path.
+    ///
+    /// Prefer to use the version where you pass your explicit SettingManager instance instead.
     static rapidjson::SizeType arraySize(const std::string &path);
+
+    /// Return the size of the array at the given path.
+    static rapidjson::SizeType arraySize(
+        const std::string &path, std::shared_ptr<SettingManager> instance);
+
     static bool isNull(const std::string &path);
     bool _isNull(const std::string &path);
     static void setNull(const std::string &path);

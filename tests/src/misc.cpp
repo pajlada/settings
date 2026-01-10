@@ -15,6 +15,7 @@
 using namespace pajlada::Settings;
 using namespace pajlada::test;
 using SaveResult = pajlada::Settings::SettingManager::SaveResult;
+using LoadError = pajlada::Settings::SettingManager::LoadError;
 
 TEST(Misc, StdAny)
 {
@@ -28,9 +29,12 @@ TEST(Misc, StdAny)
 
 TEST(Misc, Array)
 {
-    Setting<int> test1("/array/0/int");
-    Setting<int> test2("/array/1/int");
-    Setting<int> test3("/array/2/int");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
+
+    Setting<int> test1("/array/0/int", sm);
+    Setting<int> test2("/array/1/int", sm);
+    Setting<int> test3("/array/2/int", sm);
 
     test1 = 5;
     test2 = 10;
@@ -40,24 +44,27 @@ TEST(Misc, Array)
     // It will only be true if the settings above area created with
     // "SaveInitialValue", or if "SaveOnChange" is enabled and the value has
     // been changed
-    EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/array", sm) == 3);
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.array_test.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.array_test.json"));
 
-    EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/array", sm) == 3);
 }
 
 TEST(Misc, ArraySize)
 {
-    EXPECT_TRUE(LoadFile("in.array_size.json"));
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
 
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize1") == 1);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize2") == 2);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize3") == 3);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize4") == 4);
+    EXPECT_EQ(sm->loadFrom("files/in.array_size.json"), LoadError::NoError);
+
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize1", sm) == 1);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize2", sm) == 2);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize3", sm) == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize4", sm) == 4);
 
     // Not an array
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize5") == 0);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize5", sm) == 0);
 }
 
 TEST(Misc, Vector)
