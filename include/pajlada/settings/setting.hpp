@@ -424,13 +424,16 @@ public:
         return IsEqual<Type>::get(this->getValue(), this->getDefaultValue());
     }
 
-    // Remove will invalidate this setting and all other settings that point at the same path
-    // If the setting is an object or array, any child settings will also be invalidated
-    // the remove function handles the exception handling in case this setting is already invalid
+    /// Remove will invalidate this setting and all other settings that point at the same path
+    /// If the setting is an object or array, any child settings will also be invalidated
+    /// the remove function handles the exception handling in case this setting is already invalid
+    ///
+    /// Where possible, try to use SettingManager::removeSetting instead
+    [[deprecated("Prefer SettingManager::removeSetting instead")]]
     bool
     remove()
     {
-        return SettingManager::removeSetting(this->getPath());
+        return SettingManager::gRemoveSetting(this->getPath());
     }
 
     int

@@ -101,7 +101,15 @@ public:
     static std::weak_ptr<SettingData> getSetting(
         const std::string &path, std::shared_ptr<SettingManager> instance);
 
-    static bool removeSetting(const std::string &path);
+    /// Invalidate the setting and all other settings that point at the same path
+    /// If the setting is an object or array, any child settings will also be invalidated
+    ///
+    /// Where possible, try to use SettingManager::removeSetting instead
+    static bool gRemoveSetting(const std::string &path);
+
+    /// Invalidate the setting and all other settings that point at the same path
+    /// If the setting is an object or array, any child settings will also be invalidated
+    bool removeSetting(const std::string &path);
 
 private:
     template <typename Type>
