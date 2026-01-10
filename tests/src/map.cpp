@@ -4,14 +4,18 @@
 
 using namespace pajlada::Settings;
 using SaveResult = pajlada::Settings::SettingManager::SaveResult;
+using LoadError = pajlada::Settings::SettingManager::LoadError;
 
 TEST(Map, Simple)
 {
     using std::any_cast;
 
-    Setting<std::map<std::string, std::any>> test("/map");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
 
-    EXPECT_TRUE(LoadFile("in.simplemap.json"));
+    Setting<std::map<std::string, std::any>> test("/map", sm);
+
+    EXPECT_EQ(LoadError::NoError, sm->loadFrom("files/in.simplemap.json"));
 
     auto myMap = test.getValue();
     EXPECT_TRUE(myMap.size() == 3);
@@ -21,9 +25,9 @@ TEST(Map, Simple)
 
     std::vector<std::string> keys{"a", "b", "c"};
 
-    EXPECT_TRUE(keys == SettingManager::getObjectKeys("/map"));
+    EXPECT_TRUE(keys == SettingManager::getObjectKeys("/map", sm));
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.simplemap.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.simplemap.json"));
 }
 
 TEST(Map, Complex)

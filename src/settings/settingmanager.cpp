@@ -252,8 +252,14 @@ SettingManager::cleanArray(const std::string &arrayPath)
 std::vector<std::string>
 SettingManager::getObjectKeys(const std::string &objectPath)
 {
-    auto instance = SettingManager::getInstance();
+    return SettingManager::getObjectKeys(objectPath,
+                                         SettingManager::getInstance());
+}
 
+std::vector<std::string>
+SettingManager::getObjectKeys(const std::string &objectPath,
+                              std::shared_ptr<SettingManager> instance)
+{
     std::vector<std::string> ret;
 
     auto *root = instance->get(objectPath.c_str());

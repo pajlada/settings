@@ -85,8 +85,16 @@ public:
     static rapidjson::SizeType cleanArray(const std::string &arrayPath);
 
     // Useful object helper methods
+    /// Return a list of keys of the object at the given path
+    ///
+    /// Prefer to use the version where you pass your explicit SettingManager instance instead.
     static std::vector<std::string> getObjectKeys(
         const std::string &objectPath);
+
+    /// Return a list of keys of the object at the given path
+    static std::vector<std::string> getObjectKeys(
+        const std::string &objectPath,
+        std::shared_ptr<SettingManager> instance);
 
     static void clear();
 
