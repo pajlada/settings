@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Dev: Fixed code coverage not generating for source files. (#149)
 - Dev: Clean up the SaveSymlink test. (#145)
 
 ## v0.3.0
