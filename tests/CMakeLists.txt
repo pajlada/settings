@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.15...4.1.1)
-
 project(PajladaSettingsTest)
 
 include(FetchContent)
@@ -53,7 +51,8 @@ if(PAJLADA_SETTINGS_COVERAGE)
         "${CMAKE_CURRENT_LIST_DIR}/cmake"
     )
     include(CodeCoverage)
-    append_coverage_compiler_flags()
+    append_coverage_compiler_flags_to_target(PajladaSettings)
+    append_coverage_compiler_flags_to_target(PajladaSettingsTest)
     message("++ ${PROJECT_NAME} Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
 
     setup_target_for_coverage_gcovr_html(
