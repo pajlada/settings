@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Breaking: `SettingManager::removeSetting` is no longer static. A static replacement is available as `SettingManager::gRemoveSetting`. Avoid using `Setting::remove()` if possible. (#151)
 - Dev: Fixed code coverage not generating for source files. (#149)
 - Dev: Clean up the SaveSymlink test. (#145)
 - Dev: Add instanced overloads for `arraySize` and `getObjectKeys`. (#148)

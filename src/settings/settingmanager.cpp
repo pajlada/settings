@@ -291,11 +291,17 @@ SettingManager::clear()
 }
 
 bool
-SettingManager::removeSetting(const std::string &path)
+SettingManager::gRemoveSetting(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
     return instance->_removeSetting(path);
+}
+
+bool
+SettingManager::removeSetting(const std::string &path)
+{
+    return this->_removeSetting(path);
 }
 
 bool
