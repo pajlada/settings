@@ -6,21 +6,21 @@
 #include "common.hpp"
 
 using namespace pajlada::Settings;
-using SaveResult = pajlada::Settings::SettingManager::SaveResult;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 namespace fs = std::filesystem;
 
 TEST(Save, Int)
 {
-    SettingManager::clear();
-    // This will not be part of the final file, since we clear the settings right afterwards
-    // Setting<int>::set("/asd", 5);
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+    sm->setBackupEnabled(false);
 
-    // SettingManager::clear();
+    Setting<int>::set("/lol", 10, sm);
 
-    Setting<int>::set("/lol", 10);
-
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.save.save_int.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.save.save_int.json"));
 
     EXPECT_TRUE(
         FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
@@ -28,11 +28,15 @@ TEST(Save, Int)
 
 TEST(Save, DoNotWriteToJSON)
 {
-    Setting<int>::set("/asd", 5, SettingOption::DoNotWriteToJSON);
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+    sm->setBackupEnabled(false);
 
-    Setting<int>::set("/lol", 10);
+    Setting<int>::set("/asd", 5, sm, SettingOption::DoNotWriteToJSON);
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.save.save_int.json"));
+    Setting<int>::set("/lol", 10, sm);
+
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.save.save_int.json"));
 
     EXPECT_TRUE(
         FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
@@ -56,6 +60,7 @@ TEST(Save, NonSymlink)
 TEST(Save, Symlink)
 {
     auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
     sm->setBackupEnabled(false);
 
     RemoveFile("files/out.after-symlink.json");
@@ -66,7 +71,7 @@ TEST(Save, Symlink)
     Setting<int> s("/lol", sm);
     s.setValue(10);
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("save.symlink.json", sm.get()));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/save.symlink.json"));
 
     EXPECT_TRUE(fs::is_symlink(ps));
 
@@ -248,21 +253,21 @@ TEST(Save, OnlySaveIfChanged)
     sm->saveMethod = SettingManager::SaveMethod::OnlySaveIfChanged;
 
     EXPECT_EQ(SaveResult::Skipped,
-              SaveFile("out.save.compare_before_save.json", sm.get()));
+              sm->saveAs("files/out.save.compare_before_save.json"));
 
     Setting<int> s("/compare_before_save_lol", sm);
 
     EXPECT_EQ(SaveResult::Skipped,
-              SaveFile("out.save.compare_before_save.json", sm.get()));
+              sm->saveAs("files/out.save.compare_before_save.json"));
 
     s.setValue(15);
 
     EXPECT_EQ(SaveResult::Success,
-              SaveFile("out.save.compare_before_save.json", sm.get()));
+              sm->saveAs("files/out.save.compare_before_save.json"));
 
     EXPECT_TRUE(FilesMatch("out.save.compare_before_save.json",
                            "correct.save.compare_before_save.json"));
 
     EXPECT_EQ(SaveResult::Skipped,
-              SaveFile("out.save.compare_before_save.json", sm.get()));
+              sm->saveAs("files/out.save.compare_before_save.json"));
 }
