@@ -3,12 +3,14 @@
 #include <rapidjson/document.h>
 
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/equal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <pajlada/signals.hpp>
+#include <string>
 #include <type_traits>
 
 namespace pajlada::Settings {
@@ -696,6 +698,9 @@ public:
     }
 
     // Static helper methods for one-offs (get or set setting)
+    /// Create a temporary setting at the given path and read its value if it's already set
+    ///
+    /// Prefer to use the version where you pass your explicit SettingManager instance instead.
     static const Type
     get(const std::string &path, SettingOption options = SettingOption::Default)
     {
@@ -704,11 +709,36 @@ public:
         return setting.getValue();
     }
 
+    /// Create a temporary setting at the given path and read its value if it's already set
+    static const Type
+    get(const std::string &path,
+        const std::shared_ptr<SettingManager> &instance,
+        SettingOption options = SettingOption::Default)
+    {
+        Setting<Type> setting(path, options, instance);
+
+        return setting.getValue();
+    }
+
+    /// Create a temporary setting at the given path and set its value on the static instance manager.
+    ///
+    /// Prefer to use the version where you pass your explicit SettingManager instance instead.
     static void
     set(const std::string &path, const Type &newValue,
         SettingOption options = SettingOption::Default)
     {
         Setting<Type> setting(path, options);
+
+        setting.setValue(newValue);
+    }
+
+    /// Create a temporary setting at the given path and set its value on the static instance manager.
+    static void
+    set(const std::string &path, const Type &newValue,
+        const std::shared_ptr<SettingManager> &instance,
+        SettingOption options = SettingOption::Default)
+    {
+        Setting<Type> setting(path, options, instance);
 
         setting.setValue(newValue);
     }
