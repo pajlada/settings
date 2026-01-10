@@ -529,6 +529,14 @@ SettingManager::setBackupSlots(uint8_t numSlots)
     this->backup.numSlots = numSlots;
 }
 
+const std::shared_ptr<SettingManager> &
+SettingManager::getInstance()
+{
+    static auto m = std::make_shared<SettingManager>();
+
+    return m;
+}
+
 std::weak_ptr<SettingData>
 SettingManager::getSetting(const std::string &path,
                            std::shared_ptr<SettingManager> instance)

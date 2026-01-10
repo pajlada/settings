@@ -185,13 +185,7 @@ public:
     void setBackupEnabled(bool enabled = true);
     void setBackupSlots(uint8_t numSlots);
 
-    static const std::shared_ptr<SettingManager> &
-    getInstance()
-    {
-        static auto m = std::make_shared<SettingManager>();
-
-        return m;
-    }
+    static const std::shared_ptr<SettingManager> &getInstance();
 
 private:
     std::shared_ptr<SettingData> getSetting(const std::string &path);
