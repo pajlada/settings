@@ -1,19 +1,27 @@
-#include "common.hpp"
+#include <gtest/gtest.h>
+
+#include <pajlada/settings.hpp>
+
 #include "pajlada/signals/scoped-connection.hpp"
 #include "pajlada/signals/signalholder.hpp"
 
 using namespace pajlada::Settings;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = pajlada::Settings::SettingManager::LoadError;
 
 TEST(Signal, Simple)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
-    auto cb = [&count, &currentValue](const int &newValue, auto) {
+    auto cb = [&count, &currentValue](const int &newValue) {
         ++count;
         currentValue = newValue;
     };
 
-    Setting<int> a("/simple_signal/a");
+    Setting<int> a("/simple_signal/a", sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue == 0);
@@ -31,6 +39,9 @@ TEST(Signal, Simple)
 
 TEST(Signal, LoadFromFile)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
     auto cb = [&count, &currentValue](const int &newValue, auto) {
@@ -38,8 +49,8 @@ TEST(Signal, LoadFromFile)
         currentValue = newValue;
     };
 
-    Setting<int> a("/signal/a");
-    Setting<int> b("/signal/b");
+    Setting<int> a("/signal/a", sm);
+    Setting<int> b("/signal/b", sm);
 
     EXPECT_TRUE(a.getValue() == 0);
 
@@ -57,7 +68,7 @@ TEST(Signal, LoadFromFile)
     EXPECT_TRUE(count == 1);
     EXPECT_TRUE(currentValue == 5);
 
-    EXPECT_TRUE(LoadFile("in.signal.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.signal.json"));
 
     EXPECT_TRUE(count == 2);
     EXPECT_TRUE(currentValue == 3);
@@ -65,6 +76,9 @@ TEST(Signal, LoadFromFile)
 
 TEST(Signal, ScopedConnection)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
     auto cb = [&count, &currentValue](const int &newValue, auto) {
@@ -76,7 +90,7 @@ TEST(Signal, ScopedConnection)
         connections;
 
     {
-        Setting<int> c("/advancedSignals/c");
+        Setting<int> c("/advancedSignals/c", sm);
 
         EXPECT_TRUE(count == 0);
 
@@ -109,6 +123,9 @@ TEST(Signal, ScopedConnection)
 
 TEST(Signal, ScopedConnection2)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
     auto cb = [&count, &currentValue](const int &newValue, auto) {
@@ -120,7 +137,7 @@ TEST(Signal, ScopedConnection2)
         connections;
 
     {
-        Setting<int> c("/advancedSignals/c");
+        Setting<int> c("/advancedSignals/c", sm);
 
         EXPECT_TRUE(count == 0);
 
@@ -138,7 +155,7 @@ TEST(Signal, ScopedConnection2)
         connections.pop_back();
 
         {
-            Setting<int> c2("/advancedSignals/c");
+            Setting<int> c2("/advancedSignals/c", sm);
         }
 
         // c1 and c2 are active
@@ -157,6 +174,9 @@ TEST(Signal, ScopedConnection2)
 
 TEST(Signal, ConnectEverything)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
     auto cb = [&count, &currentValue](const int &newValue, auto) {
@@ -164,7 +184,7 @@ TEST(Signal, ConnectEverything)
         currentValue = newValue;
     };
 
-    Setting<int> c("/connect/c");
+    Setting<int> c("/connect/c", sm);
     c = 0;
 
     {
