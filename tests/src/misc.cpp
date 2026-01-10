@@ -10,7 +10,6 @@
 #include "channel.hpp"
 #include "channelmanager.hpp"
 #include "common.hpp"
-#include "foo.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
