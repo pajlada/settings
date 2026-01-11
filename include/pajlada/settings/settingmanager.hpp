@@ -45,11 +45,6 @@ public:
         Skipped,
     };
 
-    // Print given document json data prettily
-    void pp(const std::string &prefix = std::string());
-    static void gPP(const std::string &prefix = std::string());
-    static std::string stringify(const rapidjson::Value &v);
-
     rapidjson::Value *get(const char *path);
     bool set(const char *path, const rapidjson::Value &value,
              SignalArgs args = SignalArgs());

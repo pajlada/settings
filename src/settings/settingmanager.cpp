@@ -27,34 +27,6 @@ SettingManager::~SettingManager()
     }
 }
 
-void
-SettingManager::pp(const std::string &prefix)
-{
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    this->document.Accept(writer);
-
-    std::cout << prefix << buffer.GetString() << std::endl;
-}
-
-void
-SettingManager::gPP(const std::string &prefix)
-{
-    auto instance = SettingManager::getInstance();
-
-    instance->pp(prefix);
-}
-
-std::string
-SettingManager::stringify(const rapidjson::Value &v)
-{
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    v.Accept(writer);
-
-    return {buffer.GetString()};
-}
-
 rapidjson::Value *
 SettingManager::get(const char *path)
 {
