@@ -10,6 +10,7 @@
 
 #include "channel.hpp"
 #include "channelmanager.hpp"
+#include "common.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
@@ -199,7 +200,7 @@ TEST(Misc, Stringify)
 {
     rapidjson::Value test(5);
 
-    EXPECT_TRUE(SettingManager::stringify(test) == "5");
+    EXPECT_EQ(RJStringify(test), "5");
 }
 
 TEST(Misc, MoveSet)
