@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
     src/misc.cpp
     src/listener.cpp
     src/backup.cpp
+    src/realpath.cpp
 
     src/channel.cpp
 
