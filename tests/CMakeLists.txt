@@ -57,6 +57,7 @@ if(PAJLADA_SETTINGS_COVERAGE)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
         EXECUTABLE ctest
+        DEPENDENCIES PajladaSettingsTest
         BASE_DIRECTORY "../"
         EXCLUDE "external/*" "tests/*" "build*/*"
         )
