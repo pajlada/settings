@@ -49,7 +49,7 @@ FilesMatch(const std::string &fileName1, const std::string &fileName2)
 }
 
 bool
-RemoveFile(const std::string &path)
+RemoveFile(const std::filesystem::path &path)
 {
     std::error_code ec;
     auto res = std::filesystem::remove(path, ec);

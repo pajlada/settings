@@ -4,6 +4,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/rapidjson.h>
 
+#include <filesystem>
 #include <memory>
 #include <pajlada/serialize/common.hpp>
 #include <pajlada/serialize/deserialize.hpp>
@@ -16,7 +17,7 @@ std::string ReadFile(const std::string &path);
 
 bool FilesMatch(const std::string &fileName1, const std::string &fileName2);
 
-bool RemoveFile(const std::string &path);
+bool RemoveFile(const std::filesystem::path &path);
 
 void RJPrettyPrint(const std::shared_ptr<pajlada::Settings::SettingManager> &sm,
                    const std::string &prefix = {});
