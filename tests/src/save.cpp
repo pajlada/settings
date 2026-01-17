@@ -229,3 +229,15 @@ TEST(Save, OnlySaveIfChanged)
     EXPECT_EQ(SaveResult::Skipped,
               sm->saveAs("files/out.save.compare_before_save.json"));
 }
+
+TEST(Save, ParentDirectoryDoesNotExist)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
+
+    Setting<int> s("/a", sm);
+    s.setValue(10);
+
+    EXPECT_EQ(SaveResult::Failed,
+              sm->saveAs("files/non-existent-directory/thiswillfail.json"));
+}
