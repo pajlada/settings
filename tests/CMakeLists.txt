@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
     src/misc.cpp
     src/listener.cpp
     src/backup.cpp
+    src/realpath.cpp
 
     src/channel.cpp
 
@@ -57,6 +58,7 @@ if(PAJLADA_SETTINGS_COVERAGE)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
         EXECUTABLE ctest
+        DEPENDENCIES PajladaSettingsTest
         BASE_DIRECTORY "../"
         EXCLUDE "external/*" "tests/*" "build*/*"
         )

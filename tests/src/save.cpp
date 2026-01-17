@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <pajlada/settings.hpp>
-#include <pajlada/settings/detail/realpath.hpp>
 
 #include "common.hpp"
 
@@ -42,21 +42,6 @@ TEST(Save, DoNotWriteToJSON)
         FilesMatch("out.save.save_int.json", "correct.save.save_int.json"));
 }
 
-TEST(Save, NonSymlink)
-{
-    std::string ps = "files/save.not-a-symlink.json";
-    EXPECT_TRUE(!fs::is_symlink(ps));
-
-    std::error_code ec;
-
-    auto p1 = fs::path(ps);
-    auto p2 = detail::RealPath(p1, ec);
-
-    EXPECT_TRUE(!ec);
-
-    EXPECT_TRUE(p2 == ps);
-}
-
 TEST(Save, Symlink)
 {
     auto sm = std::make_shared<SettingManager>();
@@ -78,33 +63,6 @@ TEST(Save, Symlink)
     EXPECT_TRUE(FilesMatch("save.symlink.json", "correct.save.symlink.json"));
     EXPECT_TRUE(
         FilesMatch("out.after-symlink.json", "correct.save.symlink.json"));
-}
-
-TEST(Save, ErrorOnRecursiveSymlink)
-{
-    std::string ps = "files/save.symlink.recursive1.json";
-    EXPECT_TRUE(fs::is_symlink(ps));
-
-    std::error_code ec;
-
-    auto finalPath = detail::RealPath(ps, ec);
-
-    EXPECT_TRUE(ec);
-
-    EXPECT_TRUE(ec.value() ==
-                static_cast<int>(std::errc::too_many_symbolic_link_levels));
-}
-
-TEST(Save, ErrorOnSymlinkPointingToNonexistantFile)
-{
-    std::string ps = "files/save.symlink.nonexistant.json";
-    EXPECT_TRUE(fs::is_symlink(ps));
-
-    std::error_code ec;
-
-    auto finalPath = detail::RealPath(ps, ec);
-
-    EXPECT_TRUE(!ec);
 }
 
 TEST(Save, Backup)

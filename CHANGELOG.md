@@ -8,6 +8,7 @@
 - Dev: Clean up the SaveSymlink test. (#145)
 - Dev: Add instanced overloads for `arraySize` and `getObjectKeys`. (#148)
 - Dev: Add instanced overloads for `Setting::set` and `Setting::get`. (#150)
+- Dev: Refactored how we resolve paths, relying more on `std::filesystem` instead of rolling our own code. (#154)
 
 ## v0.3.0
 
