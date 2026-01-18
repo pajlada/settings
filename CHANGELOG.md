@@ -7,6 +7,7 @@
 - Minor: Added a load option to `SettingManager` that allows for taking the `.tmp` file into consideration when loading a settings file. (#155)
 - Dev: Fixed code coverage not generating for source files. (#149)
 - Dev: Clean up the SaveSymlink test. (#145)
+- Dev: Refactored loading to use an `std::ostringstream` as its buffer, and to no longer explicitly check the filesize of the file it's loading. (#156)
 - Dev: Add instanced overloads for `arraySize` and `getObjectKeys`. (#148)
 - Dev: Add instanced overloads for `Setting::set` and `Setting::get`. (#150)
 - Dev: Use `std::string` over `const char *` where possible (e.g. in RapidJSON calls or fstreams). (#132)
