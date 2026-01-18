@@ -8,6 +8,7 @@
 #include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
+#include <sstream>
 #include <string>
 
 namespace pajlada::Settings {
@@ -479,35 +480,28 @@ SettingManager::readFrom(const std::filesystem::path &_path)
         return LoadError::FileHandleError;
     }
 
-    // Open file
-    std::ifstream fh(path, std::ios::binary | std::ios::in);
-    if (!fh) {
-        // Unable to open file at `path`
-        return LoadError::CannotOpenFile;
+    // Read file
+    std::ostringstream fileBufferStream;
+
+    {
+        std::ifstream fh(path, std::ios::binary | std::ios::in);
+        if (!fh) {
+            // Unable to open file at `path`
+            return LoadError::CannotOpenFile;
+        }
+        fileBufferStream << fh.rdbuf();
     }
 
-    // Read size of file
-    auto fileSize = std::filesystem::file_size(path, ec);
-    if (ec) {
-        return LoadError::FileHandleError;
-    }
+    const auto fileBuffer = fileBufferStream.str();
 
-    if (fileSize == 0) {
-        // Nothing to load
+    if (fileBuffer.empty()) {
         return LoadError::NoError;
     }
-
-    // Create std::vector of appropriate size
-    std::vector<char> fileBuffer;
-    fileBuffer.resize(fileSize);
-
-    // Read file data into buffer
-    fh.read(&fileBuffer[0], fileSize);
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
+    rapidjson::ParseResult ok = this->document.Parse(fileBuffer);
 
     // Make sure the file parsed okay
     if (!ok) {
