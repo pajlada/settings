@@ -494,7 +494,6 @@ SettingManager::readFrom(const std::filesystem::path &_path)
 
     const auto fileBuffer = fileBufferStream.str();
 
-    // TODO(C++20): use fileBuffer.view()
     if (fileBuffer.empty()) {
         return LoadError::NoError;
     }
