@@ -481,7 +481,7 @@ SettingManager::readFrom(const std::filesystem::path &_path)
     }
 
     // Read file
-    std::ostringstream fileBuffer;
+    std::ostringstream fileBufferStream;
 
     {
         std::ifstream fh(path, std::ios::binary | std::ios::in);
@@ -489,18 +489,20 @@ SettingManager::readFrom(const std::filesystem::path &_path)
             // Unable to open file at `path`
             return LoadError::CannotOpenFile;
         }
-        fileBuffer << fh.rdbuf();
+        fileBufferStream << fh.rdbuf();
     }
 
+    const auto fileBuffer = fileBufferStream.str();
+
     // TODO(C++20): use fileBuffer.view()
-    if (fileBuffer.str().empty()) {
+    if (fileBuffer.empty()) {
         return LoadError::NoError;
     }
 
     // Merge newly parsed config file into our pre-existing document
     // The pre-existing document might be empty, but we don't know that
 
-    rapidjson::ParseResult ok = this->document.Parse(fileBuffer.str());
+    rapidjson::ParseResult ok = this->document.Parse(fileBuffer);
 
     // Make sure the file parsed okay
     if (!ok) {
