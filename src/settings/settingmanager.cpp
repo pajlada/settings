@@ -28,7 +28,7 @@ SettingManager::~SettingManager()
 }
 
 rapidjson::Value *
-SettingManager::get(const char *path)
+SettingManager::get(const std::string &path)
 {
     auto ptr = rapidjson::Pointer(path);
 
@@ -41,7 +41,7 @@ SettingManager::get(const char *path)
 }
 
 bool
-SettingManager::set(const char *path, const rapidjson::Value &value,
+SettingManager::set(const std::string &path, const rapidjson::Value &value,
                     SignalArgs args)
 {
     if (args.compareBeforeSet) {
@@ -89,7 +89,7 @@ SettingManager::notifyLoadedValues()
     this->settingsMutex.unlock();
 
     for (const auto &it : loadedSettings) {
-        auto *v = this->get(it.first.c_str());
+        auto *v = this->get(it.first);
         if (v == nullptr) {
             continue;
         }
@@ -112,8 +112,7 @@ rapidjson::SizeType
 SettingManager::arraySize(const std::string &path,
                           std::shared_ptr<SettingManager> instance)
 {
-    auto *valuePointer =
-        rapidjson::Pointer(path.c_str()).Get(instance->document);
+    auto *valuePointer = rapidjson::Pointer(path).Get(instance->document);
     if (valuePointer == nullptr) {
         return 0;
     }
@@ -140,7 +139,7 @@ SettingManager::isNull(const std::string &path)
 bool
 SettingManager::_isNull(const std::string &path)
 {
-    auto *valuePointer = rapidjson::Pointer(path.c_str()).Get(this->document);
+    auto *valuePointer = rapidjson::Pointer(path).Get(this->document);
     if (valuePointer == nullptr) {
         return true;
     }
@@ -153,8 +152,7 @@ SettingManager::setNull(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
-    rapidjson::Pointer(path.c_str())
-        .Set(instance->document, rapidjson::Value());
+    rapidjson::Pointer(path).Set(instance->document, rapidjson::Value());
 }
 
 bool
@@ -177,8 +175,7 @@ SettingManager::removeArrayValue(const std::string &arrayPath,
         return false;
     }
 
-    auto *valuePointer =
-        rapidjson::Pointer(arrayPath.c_str()).Get(instance->document);
+    auto *valuePointer = rapidjson::Pointer(arrayPath).Get(instance->document);
     if (valuePointer == nullptr) {
         return false;
     }
@@ -234,7 +231,7 @@ SettingManager::getObjectKeys(const std::string &objectPath,
 {
     std::vector<std::string> ret;
 
-    auto *root = instance->get(objectPath.c_str());
+    auto *root = instance->get(objectPath);
 
     if (root == nullptr || !root->IsObject()) {
         return ret;
@@ -279,7 +276,7 @@ SettingManager::removeSetting(const std::string &path)
 bool
 SettingManager::_removeSetting(const std::string &path)
 {
-    auto ptr = rapidjson::Pointer(path.c_str());
+    auto ptr = rapidjson::Pointer(path);
 
     std::lock_guard<std::mutex> lock(this->settingsMutex);
 
@@ -298,7 +295,7 @@ SettingManager::_removeSetting(const std::string &path)
         const auto &p = *iter;
         if (p.first.compare(0, pathWithExtendor.length(), pathWithExtendor) ==
             0) {
-            rapidjson::Pointer(p.first.c_str()).Erase(this->document);
+            rapidjson::Pointer(p.first).Erase(this->document);
             this->settings.erase(iter++);
         } else {
             ++iter;
@@ -456,7 +453,7 @@ SettingManager::saveAs(const std::filesystem::path &path)
 bool
 SettingManager::writeTo(const std::filesystem::path &path)
 {
-    std::ofstream fh(path.c_str(), std::ios::binary | std::ios::out);
+    std::ofstream fh(path, std::ios::binary | std::ios::out);
     if (!fh) {
         // Unable to open file at `path`
         return false;
@@ -483,7 +480,7 @@ SettingManager::readFrom(const std::filesystem::path &_path)
     }
 
     // Open file
-    std::ifstream fh(path.c_str(), std::ios::binary | std::ios::in);
+    std::ifstream fh(path, std::ios::binary | std::ios::in);
     if (!fh) {
         // Unable to open file at `path`
         return LoadError::CannotOpenFile;

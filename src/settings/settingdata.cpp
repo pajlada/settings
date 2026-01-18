@@ -38,7 +38,7 @@ SettingData::get() const
         return nullptr;
     }
 
-    return locked->get(this->path.c_str());
+    return locked->get(this->path);
 }
 
 }  // namespace pajlada::Settings
