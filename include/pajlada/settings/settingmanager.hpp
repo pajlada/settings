@@ -9,10 +9,13 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
+
+#include "pajlada/settings/loadoptions.hpp"
 
 namespace pajlada::Settings {
 
@@ -31,6 +34,9 @@ public:
         FileReadError,
         FileSeekError,
         JSONParseError,
+
+        /// As part of loading the settings from the .tmp file using LoadOptions.attemptLoadFromTemporaryFile, we tried to save the now-loaded settings.json.tmp to settings.json, but it failed
+        SavingFromTemporaryFileFailed,
     };
 
     enum class SaveResult : std::uint8_t {
@@ -122,9 +128,12 @@ public:
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    LoadError load(const std::filesystem::path &path = {});
+    LoadError load(const std::filesystem::path &path = {},
+                   std::optional<LoadOptions> overrideLoadOptions = {});
+
     // Load from given path
-    LoadError loadFrom(const std::filesystem::path &path);
+    LoadError loadFrom(const std::filesystem::path &path,
+                       std::optional<LoadOptions> overrideLoadOptions = {});
 
     static SaveResult gSave(const std::filesystem::path &path = {});
     static SaveResult gSaveAs(const std::filesystem::path &path);
@@ -140,6 +149,8 @@ public:
 
 private:
     bool writeTo(const std::filesystem::path &path);
+
+    LoadError readFrom(const std::filesystem::path &_path);
 
 public:
     // Functions prefixed with g are static functions that work
@@ -160,6 +171,8 @@ public:
         SaveManually = 0,
         SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
     } saveMethod = SaveMethod::SaveOnExit;
+
+    LoadOptions loadOptions;
 
 private:
     /// Set to true by `set` if a value has changed
