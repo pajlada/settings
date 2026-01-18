@@ -1,27 +1,34 @@
-#include "common.hpp"
+#include <gtest/gtest.h>
+
+#include <pajlada/settings.hpp>
 
 using namespace pajlada::Settings;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = pajlada::Settings::SettingManager::LoadError;
 
 TEST(Default, Reset)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     // No custom default value, not available in the settings file
-    Setting<int> noDefault("/noDefault");
+    Setting<int> noDefault("/noDefault", sm);
 
     // Custom default value, not available in the settings file
-    Setting<int> customDefault("/customDefault", 5);
+    Setting<int> customDefault("/customDefault", 5, sm);
 
     // No custom default value, saved in settings file as the same value
-    Setting<int> loadedSameNoDefault("/loadedSameNoDefault");
+    Setting<int> loadedSameNoDefault("/loadedSameNoDefault", sm);
 
     // No custom default value, saved in settings file as a different value
-    Setting<int> loadedDifferentNoDefault("/loadedDifferentNoDefault");
+    Setting<int> loadedDifferentNoDefault("/loadedDifferentNoDefault", sm);
 
     // Custom default value, saved in settings file as the same value
-    Setting<int> loadedSameCustomDefault("/loadedSameCustomDefault", 5);
+    Setting<int> loadedSameCustomDefault("/loadedSameCustomDefault", 5, sm);
 
     // Custom default value, saved in settings file as a different value
     Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault",
-                                              5);
+                                              5, sm);
 
     EXPECT_TRUE(noDefault.getDefaultValue() == 0);
     EXPECT_TRUE(customDefault.getDefaultValue() == 5);
@@ -67,7 +74,7 @@ TEST(Default, Reset)
     EXPECT_TRUE(loadedSameCustomDefault == 5);
     EXPECT_TRUE(loadedDifferentCustomDefault == 5);
 
-    EXPECT_TRUE(LoadFile("in.resettodefault.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.resettodefault.json"));
 
     // value does not exist in json file, so should still be same as default
     EXPECT_TRUE(noDefault.isDefaultValue());
@@ -149,13 +156,14 @@ TEST(Default, Reset)
 
 TEST(Default, UpdateUpdateIteration)
 {
-    SettingManager::clear();
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    Setting<int> setting("/setting", 42);
+    Setting<int> setting("/setting", 42, sm);
 
     EXPECT_EQ(setting.getUpdateIteration(), -1);
 
-    EXPECT_TRUE(LoadFile("empty.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/empty.json"));
     EXPECT_EQ(setting.getUpdateIteration(), -1);
 
     EXPECT_EQ(setting.getValue(), 42);

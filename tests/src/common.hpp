@@ -1,21 +1,27 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include <rapidjson/document.h>
+#include <rapidjson/rapidjson.h>
 
+#include <filesystem>
+#include <memory>
+#include <pajlada/serialize/common.hpp>
+#include <pajlada/serialize/deserialize.hpp>
+#include <pajlada/serialize/serialize.hpp>
 #include <pajlada/settings.hpp>
+#include <pajlada/settings/settingmanager.hpp>
 #include <string>
 
 std::string ReadFile(const std::string &path);
 
 bool FilesMatch(const std::string &fileName1, const std::string &fileName2);
 
-bool LoadFile(const std::string &fileName,
-              pajlada::Settings::SettingManager *sm = nullptr);
-pajlada::Settings::SettingManager::SaveResult SaveFile(
-    const std::string &fileName,
-    pajlada::Settings::SettingManager *sm = nullptr);
+bool RemoveFile(const std::filesystem::path &path);
 
-bool RemoveFile(const std::string &path);
+void RJPrettyPrint(const std::shared_ptr<pajlada::Settings::SettingManager> &sm,
+                   const std::string &prefix = {});
+std::string RJStringify(const rapidjson::Value &v);
 
 #ifdef PAJLADA_SETTINGS_ENABLE_EXCEPTIONS
 #define DD_THROWS(x) REQUIRE_THROWS(x)

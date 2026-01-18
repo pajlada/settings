@@ -1,5 +1,6 @@
+#include <gtest/gtest.h>
+
 #include <cassert>
-#include <iostream>
 #include <memory>
 #include <pajlada/serialize.hpp>
 #include <pajlada/settings/setting.hpp>
@@ -10,17 +11,21 @@
 #include "channel.hpp"
 #include "channelmanager.hpp"
 #include "common.hpp"
-#include "foo.hpp"
 
 using namespace pajlada::Settings;
 using namespace pajlada::test;
-using SaveResult = pajlada::Settings::SettingManager::SaveResult;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 TEST(Misc, StdAny)
 {
-    Setting<std::any> test("/anyTest");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<std::any> test("/anyTest", sm);
     std::unique_ptr<Setting<std::any>> test2(
-        new Setting<std::any>("/anyTest2"));
+        new Setting<std::any>("/anyTest2", sm));
 
     auto v1 = test.getValue();
     auto v2 = test2->getValue();
@@ -28,9 +33,12 @@ TEST(Misc, StdAny)
 
 TEST(Misc, Array)
 {
-    Setting<int> test1("/array/0/int");
-    Setting<int> test2("/array/1/int");
-    Setting<int> test3("/array/2/int");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
+
+    Setting<int> test1("/array/0/int", sm);
+    Setting<int> test2("/array/1/int", sm);
+    Setting<int> test3("/array/2/int", sm);
 
     test1 = 5;
     test2 = 10;
@@ -40,31 +48,37 @@ TEST(Misc, Array)
     // It will only be true if the settings above area created with
     // "SaveInitialValue", or if "SaveOnChange" is enabled and the value has
     // been changed
-    EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/array", sm) == 3);
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.array_test.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.array_test.json"));
 
-    EXPECT_TRUE(SettingManager::arraySize("/array") == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/array", sm) == 3);
 }
 
 TEST(Misc, ArraySize)
 {
-    EXPECT_TRUE(LoadFile("in.array_size.json"));
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SettingManager::SaveMethod::SaveManually;
 
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize1") == 1);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize2") == 2);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize3") == 3);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize4") == 4);
+    EXPECT_EQ(sm->loadFrom("files/in.array_size.json"), LoadError::NoError);
+
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize1", sm) == 1);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize2", sm) == 2);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize3", sm) == 3);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize4", sm) == 4);
 
     // Not an array
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize5") == 0);
+    EXPECT_TRUE(SettingManager::arraySize("/arraySize5", sm) == 0);
 }
 
 TEST(Misc, Vector)
 {
-    Setting<std::vector<int>> test("/vectorTest");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
 
-    EXPECT_TRUE(LoadFile("in.vector.json"));
+    Setting<std::vector<int>> test("/vectorTest", sm);
+
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.vector.json"));
 
     auto vec = test.getValue();
 
@@ -78,12 +92,15 @@ TEST(Misc, Vector)
 
     test = x;
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.vector.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.vector.json"));
 }
 
 TEST(Misc, ChannelManager)
 {
-    ChannelManager manager;
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    ChannelManager manager(sm);
 
     EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 
@@ -92,7 +109,7 @@ TEST(Misc, ChannelManager)
                     "Name not loaded");
     }
 
-    EXPECT_TRUE(LoadFile("channelmanager.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/channelmanager.json"));
 
     EXPECT_TRUE(manager.channels.at(0).name.getValue() == "pajlada");
     EXPECT_TRUE(manager.channels.at(1).name.getValue() == "hemirt");
@@ -108,28 +125,32 @@ TEST(Misc, ChannelManager)
     }
 
     EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.test3.json"));
+    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.test3.json"));
+    // TODO: Confirm out.test3.json looks correct by comparing it to a manually reviewed file
     EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
 }
 
 TEST(Misc, Channel)
 {
-    Channel chHemirt("hemirt");
-    Channel chPajlada("pajlada");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Channel chHemirt("hemirt", sm);
+    Channel chPajlada("pajlada", sm);
 
     // Pre-load
     EXPECT_TRUE(chHemirt.maxMessageLength == 240);
     EXPECT_TRUE(chPajlada.maxMessageLength == 240);
 
     // Load default file
-    EXPECT_TRUE(LoadFile("d.channels.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/d.channels.json"));
 
     // Post defaults load
     EXPECT_TRUE(chHemirt.maxMessageLength.getValue() == 200);
     EXPECT_TRUE(chPajlada.maxMessageLength == 240);
 
     // Load custom file
-    EXPECT_TRUE(LoadFile("channels.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/channels.json"));
 
     // Post channels load
     EXPECT_TRUE(chHemirt.maxMessageLength == 300);
@@ -138,32 +159,38 @@ TEST(Misc, Channel)
 
 TEST(Misc, LoadFilesInvalidFiles)
 {
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-1.json") ==
-                SettingManager::LoadError::JSONParseError);
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-2.json") ==
-                SettingManager::LoadError::JSONParseError);
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/bad-3.json") ==
-                SettingManager::LoadError::JSONParseError);
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/empty.json") ==
-                SettingManager::LoadError::NoError);
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    EXPECT_EQ(LoadError::JSONParseError, sm->loadFrom("files/bad-1.json"));
+    EXPECT_EQ(LoadError::JSONParseError, sm->loadFrom("files/bad-2.json"));
+    EXPECT_EQ(LoadError::JSONParseError, sm->loadFrom("files/bad-3.json"));
+    EXPECT_EQ(LoadError::NoError, sm->loadFrom("files/empty.json"));
 }
 
 TEST(Misc, NonExistantFiles)
 {
-    EXPECT_TRUE(
-        SettingManager::gLoadFrom("files/test-non-existant-file.json") ==
-        SettingManager::LoadError::CannotOpenFile);
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    EXPECT_EQ(LoadError::CannotOpenFile,
+              sm->loadFrom("files/test-non-existant-file.json"));
 }
 
 TEST(Misc, ValidFiles)
 {
-    EXPECT_TRUE(SettingManager::gLoadFrom("files/default.json") ==
-                SettingManager::LoadError::NoError);
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    EXPECT_EQ(LoadError::NoError, sm->loadFrom("files/default.json"));
 }
 
 TEST(Misc, Misc)
 {
-    Setting<int> test1("/test");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> test1("/test", sm);
     EXPECT_TRUE(test1.getPath() == "/test");
     EXPECT_TRUE(test1.getData().lock()->getPath() == "/test");
     EXPECT_TRUE(test1.getData().lock()->getPath() == test1.getPath());
@@ -173,13 +200,16 @@ TEST(Misc, Stringify)
 {
     rapidjson::Value test(5);
 
-    EXPECT_TRUE(SettingManager::stringify(test) == "5");
+    EXPECT_EQ(RJStringify(test), "5");
 }
 
 TEST(Misc, MoveSet)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int v = 69;
-    Setting<int> test1("/test");
+    Setting<int> test1("/test", sm);
     EXPECT_TRUE(test1 == 0);
     test1 = 3;
     EXPECT_TRUE(test1 == 3);
@@ -187,7 +217,7 @@ TEST(Misc, MoveSet)
     EXPECT_TRUE(test1 == 69);
 
     std::string v2("lol");
-    Setting<std::string> test2("/test");
+    Setting<std::string> test2("/test", sm);
     EXPECT_TRUE(test2 == "");
     EXPECT_TRUE(test2.getValue() == "");
     test2 = "hej";

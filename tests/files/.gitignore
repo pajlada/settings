@@ -1,2 +1,6 @@
 save.symlink-backup.json.bkp-1
 in.absolute-symlink-same-folder.json
+
+in.hastemporary2.json.tmp
+in.hastemporary3.json.tmp
+in.hastemporary4.json.tmp

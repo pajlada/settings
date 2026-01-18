@@ -1,5 +1,9 @@
 #include "common.hpp"
 
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -45,31 +49,7 @@ FilesMatch(const std::string &fileName1, const std::string &fileName2)
 }
 
 bool
-LoadFile(const std::string &fileName, SettingManager *sm)
-{
-    if (sm == nullptr) {
-        sm = SettingManager::getInstance().get();
-    }
-
-    std::string path = initialPath + fileName;
-
-    return sm->loadFrom(path.c_str()) == SettingManager::LoadError::NoError;
-}
-
-pajlada::Settings::SettingManager::SaveResult
-SaveFile(const std::string &fileName, SettingManager *sm)
-{
-    if (sm == nullptr) {
-        sm = SettingManager::getInstance().get();
-    }
-
-    std::string path = initialPath + fileName;
-
-    return sm->saveAs(path.c_str());
-}
-
-bool
-RemoveFile(const std::string &path)
+RemoveFile(const std::filesystem::path &path)
 {
     std::error_code ec;
     auto res = std::filesystem::remove(path, ec);
@@ -79,4 +59,25 @@ RemoveFile(const std::string &path)
     }
 
     return res;
+}
+
+void
+RJPrettyPrint(const std::shared_ptr<pajlada::Settings::SettingManager> &sm,
+              const std::string &prefix)
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    sm->document.Accept(writer);
+
+    std::cout << prefix << buffer.GetString() << '\n';
+}
+
+std::string
+RJStringify(const rapidjson::Value &v)
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    v.Accept(writer);
+
+    return {buffer.GetString()};
 }

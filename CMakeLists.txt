@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15..4.1.1)
+set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY On) # For rapidjson
 
 cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
 
@@ -66,14 +67,19 @@ target_include_directories(PajladaSettings PUBLIC include)
 # Dependencies
 FetchContent_Declare(
     RapidJSON
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/rapidjson
     EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS REQUIRED
+    FIND_PACKAGE_ARGS
 )
+set(RAPIDJSON_BUILD_EXAMPLES Off CACHE INTERNAL "")
+set(RAPIDJSON_BUILD_TESTS Off CACHE INTERNAL "")
+
 FetchContent_Declare(
     PajladaSignals
     URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
     EXCLUDE_FROM_ALL
 )
+
 FetchContent_Declare(
     PajladaSerialize
     URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
@@ -91,6 +97,9 @@ target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
 if(TARGET rapidjson)
     message(DEBUG "Linking to rapidjson target")
     target_link_libraries(PajladaSettings PUBLIC rapidjson)
+elseif(DEFINED RapidJSON_SOURCE_DIR)
+    message(DEBUG "RapidJSON_SOURCE_DIR defined, assuming this is a submodule/source build. (${RapidJSON_SOURCE_DIR})")
+    target_include_directories(PajladaSettings SYSTEM PUBLIC ${RapidJSON_SOURCE_DIR}/include)
 else()
     message(DEBUG "No rapidjson target found, this is most likely a system install. Adding include directories (${RAPIDJSON_INCLUDE_DIRS}) instead")
     target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})

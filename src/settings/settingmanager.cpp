@@ -27,34 +27,6 @@ SettingManager::~SettingManager()
     }
 }
 
-void
-SettingManager::pp(const std::string &prefix)
-{
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    this->document.Accept(writer);
-
-    std::cout << prefix << buffer.GetString() << std::endl;
-}
-
-void
-SettingManager::gPP(const std::string &prefix)
-{
-    auto instance = SettingManager::getInstance();
-
-    instance->pp(prefix);
-}
-
-std::string
-SettingManager::stringify(const rapidjson::Value &v)
-{
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    v.Accept(writer);
-
-    return {buffer.GetString()};
-}
-
 rapidjson::Value *
 SettingManager::get(const std::string &path)
 {
@@ -133,8 +105,13 @@ SettingManager::notifyLoadedValues()
 rapidjson::SizeType
 SettingManager::arraySize(const std::string &path)
 {
-    const auto &instance = SettingManager::getInstance();
+    return SettingManager::arraySize(path, SettingManager::getInstance());
+}
 
+rapidjson::SizeType
+SettingManager::arraySize(const std::string &path,
+                          std::shared_ptr<SettingManager> instance)
+{
     auto *valuePointer = rapidjson::Pointer(path).Get(instance->document);
     if (valuePointer == nullptr) {
         return 0;
@@ -244,8 +221,14 @@ SettingManager::cleanArray(const std::string &arrayPath)
 std::vector<std::string>
 SettingManager::getObjectKeys(const std::string &objectPath)
 {
-    auto instance = SettingManager::getInstance();
+    return SettingManager::getObjectKeys(objectPath,
+                                         SettingManager::getInstance());
+}
 
+std::vector<std::string>
+SettingManager::getObjectKeys(const std::string &objectPath,
+                              std::shared_ptr<SettingManager> instance)
+{
     std::vector<std::string> ret;
 
     auto *root = instance->get(objectPath);
@@ -277,11 +260,17 @@ SettingManager::clear()
 }
 
 bool
-SettingManager::removeSetting(const std::string &path)
+SettingManager::gRemoveSetting(const std::string &path)
 {
     const auto &instance = SettingManager::getInstance();
 
     return instance->_removeSetting(path);
+}
+
+bool
+SettingManager::removeSetting(const std::string &path)
+{
+    return this->_removeSetting(path);
 }
 
 bool
@@ -357,72 +346,54 @@ SettingManager::gLoadFrom(const std::filesystem::path &path)
 }
 
 SettingManager::LoadError
-SettingManager::load(const std::filesystem::path &path)
+SettingManager::load(const std::filesystem::path &path,
+                     std::optional<LoadOptions> overrideLoadOptions)
 {
     if (!path.empty()) {
         this->filePath = path;
     }
 
-    return this->loadFrom(this->filePath);
+    return this->loadFrom(this->filePath, overrideLoadOptions);
 }
 
 SettingManager::LoadError
-SettingManager::loadFrom(const std::filesystem::path &_path)
+SettingManager::loadFrom(const std::filesystem::path &path,
+                         std::optional<LoadOptions> overrideLoadOptions)
 {
-    std::error_code ec;
+    auto result = this->readFrom(path);
 
-    auto path = detail::RealPath(_path, ec);
+    auto options = overrideLoadOptions.value_or(this->loadOptions);
 
-    if (ec) {
-        return LoadError::FileHandleError;
+    if (result != LoadError::NoError) {
+        if (options.attemptLoadFromTemporaryFile) {
+            // Loading from initial settings file failed, attempt to load from temporary file
+            auto tmpPath(path);
+            tmpPath += ".tmp";
+
+            auto tmpResult = this->readFrom(tmpPath);
+            if (tmpResult == LoadError::NoError) {
+                if (!this->writeTo(path)) {
+                    return LoadError::SavingFromTemporaryFileFailed;
+                }
+
+                // The "settings.json.tmp" file was successfully read and saved to "settings.json"
+                std::error_code ec;
+                std::filesystem::remove(tmpPath, ec);
+                if (ec) {
+                    // The setting path is in a bad state,
+                    // but we have successfully loaded from the .tmp file, and saved that content to settings.json.
+                    //
+                    // Next time the user saves, they will most likely get a save error because they couldn't save to
+                    // the .tmp file. This is best handled there.
+                    return LoadError::NoError;
+                }
+            }
+
+            return tmpResult;
+        }
     }
 
-    // Open file
-    std::ifstream fh(path, std::ios::binary | std::ios::in);
-    if (!fh) {
-        // Unable to open file at `path`
-        return LoadError::CannotOpenFile;
-    }
-
-    // Read size of file
-    auto fileSize = std::filesystem::file_size(path, ec);
-    if (ec) {
-        return LoadError::FileHandleError;
-    }
-
-    if (fileSize == 0) {
-        // Nothing to load
-        return LoadError::NoError;
-    }
-
-    // Create std::vector of appropriate size
-    std::vector<char> fileBuffer;
-    fileBuffer.resize(fileSize);
-
-    // Read file data into buffer
-    fh.read(&fileBuffer[0], fileSize);
-
-    // Merge newly parsed config file into our pre-existing document
-    // The pre-existing document might be empty, but we don't know that
-
-    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
-
-    // Make sure the file parsed okay
-    if (!ok) {
-        return LoadError::JSONParseError;
-    }
-
-    // This restricts config files a bit. They NEED to have an object root
-    if (!this->document.IsObject()) {
-        return LoadError::JSONParseError;
-    }
-
-    // Perform deep merge of objects
-    // detail::mergeObjects(document, d, document.GetAllocator());
-
-    this->notifyLoadedValues();
-
-    return LoadError::NoError;
+    return result;
 }
 
 SettingManager::SaveResult
@@ -497,6 +468,65 @@ SettingManager::writeTo(const std::filesystem::path &path)
     return true;
 }
 
+SettingManager::LoadError
+SettingManager::readFrom(const std::filesystem::path &_path)
+{
+    std::error_code ec;
+
+    auto path = detail::RealPath(_path, ec);
+
+    if (ec) {
+        return LoadError::FileHandleError;
+    }
+
+    // Open file
+    std::ifstream fh(path, std::ios::binary | std::ios::in);
+    if (!fh) {
+        // Unable to open file at `path`
+        return LoadError::CannotOpenFile;
+    }
+
+    // Read size of file
+    auto fileSize = std::filesystem::file_size(path, ec);
+    if (ec) {
+        return LoadError::FileHandleError;
+    }
+
+    if (fileSize == 0) {
+        // Nothing to load
+        return LoadError::NoError;
+    }
+
+    // Create std::vector of appropriate size
+    std::vector<char> fileBuffer;
+    fileBuffer.resize(fileSize);
+
+    // Read file data into buffer
+    fh.read(&fileBuffer[0], fileSize);
+
+    // Merge newly parsed config file into our pre-existing document
+    // The pre-existing document might be empty, but we don't know that
+
+    rapidjson::ParseResult ok = this->document.Parse(&fileBuffer[0], fileSize);
+
+    // Make sure the file parsed okay
+    if (!ok) {
+        return LoadError::JSONParseError;
+    }
+
+    // This restricts config files a bit. They NEED to have an object root
+    if (!this->document.IsObject()) {
+        return LoadError::JSONParseError;
+    }
+
+    // Perform deep merge of objects
+    // detail::mergeObjects(document, d, document.GetAllocator());
+
+    this->notifyLoadedValues();
+
+    return LoadError::NoError;
+}
+
 void
 SettingManager::setBackupEnabled(bool enabled)
 {
@@ -507,6 +537,14 @@ void
 SettingManager::setBackupSlots(uint8_t numSlots)
 {
     this->backup.numSlots = numSlots;
+}
+
+const std::shared_ptr<SettingManager> &
+SettingManager::getInstance()
+{
+    static auto m = std::make_shared<SettingManager>();
+
+    return m;
 }
 
 std::weak_ptr<SettingData>

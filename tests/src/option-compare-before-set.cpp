@@ -1,10 +1,19 @@
+#include <gtest/gtest.h>
+
+#include <pajlada/settings.hpp>
+
 #include "common.hpp"
-#include "pajlada/settings/common.hpp"
 
 using namespace pajlada::Settings;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 TEST(OptionCompareBeforeSet, Off)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
     auto cb = [&count, &currentValue](const int &newValue, auto) {
@@ -12,7 +21,7 @@ TEST(OptionCompareBeforeSet, Off)
         currentValue = newValue;
     };
 
-    Setting<int> a("/simple_signal/a");
+    Setting<int> a("/simple_signal/a", sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue == 0);
@@ -35,6 +44,9 @@ TEST(OptionCompareBeforeSet, Off)
 
 TEST(OptionCompareBeforeSet, On)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     int currentValue = 0;
     auto cb = [&count, &currentValue](const int &newValue, auto) {
@@ -42,7 +54,7 @@ TEST(OptionCompareBeforeSet, On)
         currentValue = newValue;
     };
 
-    Setting<int> a("/simple_signal/a", SettingOption::CompareBeforeSet);
+    Setting<int> a("/simple_signal/a", SettingOption::CompareBeforeSet, sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue == 0);
@@ -65,6 +77,9 @@ TEST(OptionCompareBeforeSet, On)
 
 TEST(OptionCompareBeforeSet, NonComparableCustomType)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     NonComparableStruct currentValue{
         .a = false,
@@ -75,7 +90,7 @@ TEST(OptionCompareBeforeSet, NonComparableCustomType)
     };
 
     Setting<NonComparableStruct> a("/simple_signal/a",
-                                   SettingOption::CompareBeforeSet);
+                                   SettingOption::CompareBeforeSet, sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue.a == false);
@@ -110,6 +125,9 @@ TEST(OptionCompareBeforeSet, NonComparableCustomType)
 
 TEST(OptionCompareBeforeSet, ComparableCustomType)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     ComparableStruct currentValue{
         .a = false,
@@ -120,7 +138,7 @@ TEST(OptionCompareBeforeSet, ComparableCustomType)
     };
 
     Setting<ComparableStruct> a("/simple_signal/a",
-                                SettingOption::CompareBeforeSet);
+                                SettingOption::CompareBeforeSet, sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue.a == false);
@@ -154,6 +172,9 @@ TEST(OptionCompareBeforeSet, ComparableCustomType)
 
 TEST(OptionCompareBeforeSet, Pair)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     std::pair<int, int> currentValue{0, 0};
     auto cb = [&count, &currentValue](const auto &newValue, auto) {
@@ -162,7 +183,7 @@ TEST(OptionCompareBeforeSet, Pair)
     };
 
     Setting<std::pair<int, int>> a("/simple_signal/a",
-                                   SettingOption::CompareBeforeSet);
+                                   SettingOption::CompareBeforeSet, sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue.first == 0);
@@ -195,6 +216,9 @@ TEST(OptionCompareBeforeSet, Pair)
 
 TEST(OptionCompareBeforeSet, Vector)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     std::vector<int> currentValue{5, 7};
     auto cb = [&count, &currentValue](const auto &newValue, auto) {
@@ -203,7 +227,7 @@ TEST(OptionCompareBeforeSet, Vector)
     };
 
     Setting<std::vector<int>> a("/simple_signal/a",
-                                SettingOption::CompareBeforeSet);
+                                SettingOption::CompareBeforeSet, sm);
 
     EXPECT_TRUE(count == 0);
     EXPECT_TRUE(currentValue.size() == 2);
@@ -226,6 +250,9 @@ TEST(OptionCompareBeforeSet, Vector)
 
 TEST(OptionCompareBeforeSet, VectorComparableType)
 {
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
     int count = 0;
     std::vector<ComparableStruct> currentValue{};
     auto cb = [&count, &currentValue](const auto &newValue, auto) {
@@ -233,8 +260,8 @@ TEST(OptionCompareBeforeSet, VectorComparableType)
         currentValue = newValue;
     };
 
-    Setting<std::vector<ComparableStruct>> a("/simple_signal/a",
-                                             SettingOption::CompareBeforeSet);
+    Setting<std::vector<ComparableStruct>> a(
+        "/simple_signal/a", SettingOption::CompareBeforeSet, sm);
 
     EXPECT_EQ(count, 0);
     EXPECT_EQ(currentValue.size(), 0);

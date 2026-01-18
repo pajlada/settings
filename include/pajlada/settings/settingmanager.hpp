@@ -9,10 +9,13 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
+
+#include "pajlada/settings/loadoptions.hpp"
 
 namespace pajlada::Settings {
 
@@ -31,6 +34,9 @@ public:
         FileReadError,
         FileSeekError,
         JSONParseError,
+
+        /// As part of loading the settings from the .tmp file using LoadOptions.attemptLoadFromTemporaryFile, we tried to save the now-loaded settings.json.tmp to settings.json, but it failed
+        SavingFromTemporaryFileFailed,
     };
 
     enum class SaveResult : std::uint8_t {
@@ -44,11 +50,6 @@ public:
         /// No save was attempted because we deemed it unneccessary
         Skipped,
     };
-
-    // Print given document json data prettily
-    void pp(const std::string &prefix = std::string());
-    static void gPP(const std::string &prefix = std::string());
-    static std::string stringify(const rapidjson::Value &v);
 
     rapidjson::Value *get(const std::string &path);
     bool set(const std::string &path, const rapidjson::Value &value,
@@ -64,7 +65,15 @@ private:
 
 public:
     // Useful array helper methods
+    /// Return the size of the array at the given path.
+    ///
+    /// Prefer to use the version where you pass your explicit SettingManager instance instead.
     static rapidjson::SizeType arraySize(const std::string &path);
+
+    /// Return the size of the array at the given path.
+    static rapidjson::SizeType arraySize(
+        const std::string &path, std::shared_ptr<SettingManager> instance);
+
     static bool isNull(const std::string &path);
     bool _isNull(const std::string &path);
     static void setNull(const std::string &path);
@@ -77,15 +86,31 @@ public:
     static rapidjson::SizeType cleanArray(const std::string &arrayPath);
 
     // Useful object helper methods
+    /// Return a list of keys of the object at the given path
+    ///
+    /// Prefer to use the version where you pass your explicit SettingManager instance instead.
     static std::vector<std::string> getObjectKeys(
         const std::string &objectPath);
+
+    /// Return a list of keys of the object at the given path
+    static std::vector<std::string> getObjectKeys(
+        const std::string &objectPath,
+        std::shared_ptr<SettingManager> instance);
 
     static void clear();
 
     static std::weak_ptr<SettingData> getSetting(
         const std::string &path, std::shared_ptr<SettingManager> instance);
 
-    static bool removeSetting(const std::string &path);
+    /// Invalidate the setting and all other settings that point at the same path
+    /// If the setting is an object or array, any child settings will also be invalidated
+    ///
+    /// Where possible, try to use SettingManager::removeSetting instead
+    static bool gRemoveSetting(const std::string &path);
+
+    /// Invalidate the setting and all other settings that point at the same path
+    /// If the setting is an object or array, any child settings will also be invalidated
+    bool removeSetting(const std::string &path);
 
 private:
     template <typename Type>
@@ -103,9 +128,12 @@ public:
 
     // Load from given path and set given path as the "default path" (or load
     // from default path if nullptr is sent)
-    LoadError load(const std::filesystem::path &path = {});
+    LoadError load(const std::filesystem::path &path = {},
+                   std::optional<LoadOptions> overrideLoadOptions = {});
+
     // Load from given path
-    LoadError loadFrom(const std::filesystem::path &path);
+    LoadError loadFrom(const std::filesystem::path &path,
+                       std::optional<LoadOptions> overrideLoadOptions = {});
 
     static SaveResult gSave(const std::filesystem::path &path = {});
     static SaveResult gSaveAs(const std::filesystem::path &path);
@@ -121,6 +149,8 @@ public:
 
 private:
     bool writeTo(const std::filesystem::path &path);
+
+    LoadError readFrom(const std::filesystem::path &_path);
 
 public:
     // Functions prefixed with g are static functions that work
@@ -142,6 +172,8 @@ public:
         SaveAllTheTime = SaveOnExit | SaveOnSettingChange,
     } saveMethod = SaveMethod::SaveOnExit;
 
+    LoadOptions loadOptions;
+
 private:
     /// Set to true by `set` if a value has changed
     /// Reset to false when a save has succeeded
@@ -161,13 +193,7 @@ public:
     void setBackupEnabled(bool enabled = true);
     void setBackupSlots(uint8_t numSlots);
 
-    static const std::shared_ptr<SettingManager> &
-    getInstance()
-    {
-        static auto m = std::make_shared<SettingManager>();
-
-        return m;
-    }
+    static const std::shared_ptr<SettingManager> &getInstance();
 
 private:
     std::shared_ptr<SettingData> getSetting(const std::string &path);

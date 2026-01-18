@@ -28,8 +28,10 @@ jobs:
             compiler: g++-12
           - os: ubuntu-22.04
             compiler: clang # clang-14
+            skip-coverage: true # skip coverage building on clang compilers for now
           - os: ubuntu-22.04
             compiler: clang-15
+            skip-coverage: true # skip coverage building on clang compilers for now
 
           - os: ubuntu-24.04
             upload-coverage: true
@@ -45,7 +47,7 @@ jobs:
     env:
       SETTINGS_CONFIGURE_PRESET: ${{ matrix.asan && 'debug-asan' || (matrix.skip-coverage && 'debug' || 'debug-coverage')}}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -90,7 +92,7 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         if: matrix.upload-coverage
-        uses: codecov/codecov-action@v5.5.1
+        uses: codecov/codecov-action@v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true

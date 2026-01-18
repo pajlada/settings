@@ -8,7 +8,8 @@ namespace test {
 class IndexedChannel
 {
 public:
-    IndexedChannel(const unsigned _index);
+    IndexedChannel(const unsigned _index,
+                   const std::shared_ptr<Settings::SettingManager> &sm);
 
     unsigned index;
 
@@ -19,7 +20,8 @@ public:
 class Channel
 {
 public:
-    Channel(const std::string &_name);
+    Channel(const std::string &_name,
+            const std::shared_ptr<Settings::SettingManager> &sm);
 
     unsigned index;
     std::string name;

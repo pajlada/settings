@@ -1,31 +1,42 @@
+#include <gtest/gtest.h>
+
+#include <pajlada/settings.hpp>
+
 #include "common.hpp"
 
 using namespace pajlada::Settings;
-using SaveResult = pajlada::Settings::SettingManager::SaveResult;
+using SaveResult = SettingManager::SaveResult;
+using SaveMethod = SettingManager::SaveMethod;
+using LoadError = SettingManager::LoadError;
 
 TEST(Remove, Simple)
 {
-    Setting<int> a("/rs/a");
-    Setting<int> b("/rs/b", 5);
-    Setting<int> c("/rs/c");
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/rs/a", sm);
+    Setting<int> b("/rs/b", 5, sm);
+    Setting<int> c("/rs/c", sm);
 
     // Before loading
     EXPECT_TRUE(a == 0);
     EXPECT_TRUE(b == 5);
     EXPECT_TRUE(c == 0);
 
-    EXPECT_TRUE(LoadFile("in.removesetting.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.removesetting.json"));
 
     // After loading
     EXPECT_TRUE(a == 5);
     EXPECT_TRUE(b == 10);
     EXPECT_TRUE(c == 0);
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.pre.removesetting.json"));
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.pre.removesetting.json"));
 
-    EXPECT_TRUE(a.remove());
+    EXPECT_TRUE(sm->removeSetting(a.getPath()));
 
-    EXPECT_EQ(SaveResult::Success, SaveFile("out.post.removesetting.json"));
+    EXPECT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.post.removesetting.json"));
 
     EXPECT_TRUE(!FilesMatch("out.pre.removesetting.json",
                             "out.post.removesetting.json"));
@@ -33,11 +44,14 @@ TEST(Remove, Simple)
 
 TEST(Remove, Nested)
 {
-    Setting<int> a("/root/nested/a", 5);
-    Setting<int> b("/root/nested/b", 10);
-    Setting<int> c("/root/nested/c", 15);
-    Setting<int> d("/root/d");
-    Setting<int> e("/root/e", 20);
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/root/nested/a", 5, sm);
+    Setting<int> b("/root/nested/b", 10, sm);
+    Setting<int> c("/root/nested/c", 15, sm);
+    Setting<int> d("/root/d", sm);
+    Setting<int> e("/root/e", 20, sm);
 
     // Before loading
     EXPECT_TRUE(a == 5);
@@ -46,7 +60,8 @@ TEST(Remove, Nested)
     EXPECT_TRUE(d == 0);
     EXPECT_TRUE(e == 20);
 
-    EXPECT_TRUE(LoadFile("in.removenestedsetting.json"));
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.removenestedsetting.json"));
 
     // After loading
     EXPECT_TRUE(a == 6);
@@ -62,11 +77,11 @@ TEST(Remove, Nested)
     EXPECT_TRUE(e.isValid());
 
     EXPECT_EQ(SaveResult::Success,
-              SaveFile("out.removenestedsetting.state1.json"));
+              sm->saveAs("files/out.removenestedsetting.state1.json"));
     EXPECT_TRUE(FilesMatch("out.removenestedsetting.state1.json",
                            "in.removenestedsetting.state1.json"));
 
-    EXPECT_TRUE(SettingManager::removeSetting("/root/nested/a"));
+    EXPECT_TRUE(sm->removeSetting("/root/nested/a"));
 
     EXPECT_TRUE(!a.isValid());
     EXPECT_TRUE(b.isValid());
@@ -75,11 +90,11 @@ TEST(Remove, Nested)
     EXPECT_TRUE(e.isValid());
 
     EXPECT_EQ(SaveResult::Success,
-              SaveFile("out.removenestedsetting.state2.json"));
+              sm->saveAs("files/out.removenestedsetting.state2.json"));
     EXPECT_TRUE(FilesMatch("out.removenestedsetting.state2.json",
                            "in.removenestedsetting.state2.json"));
 
-    EXPECT_TRUE(SettingManager::removeSetting("/root/nested"));
+    EXPECT_TRUE(sm->removeSetting("/root/nested"));
 
     EXPECT_TRUE(!a.isValid());
     EXPECT_TRUE(!b.isValid());
@@ -88,7 +103,7 @@ TEST(Remove, Nested)
     EXPECT_TRUE(e.isValid());
 
     EXPECT_EQ(SaveResult::Success,
-              SaveFile("out.removenestedsetting.state3.json"));
+              sm->saveAs("files/out.removenestedsetting.state3.json"));
     EXPECT_TRUE(FilesMatch("out.removenestedsetting.state3.json",
                            "in.removenestedsetting.state3.json"));
 }
