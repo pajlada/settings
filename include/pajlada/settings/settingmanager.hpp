@@ -12,7 +12,6 @@
 #include <optional>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/common.hpp>
-#include <pajlada/settings/export.hpp>
 #include <pajlada/settings/signalargs.hpp>
 #include <vector>
 
@@ -22,7 +21,7 @@ namespace pajlada::Settings {
 
 class SettingData;
 
-class PAJLADASETTINGS_EXPORT SettingManager
+class SettingManager
 {
 public:
     SettingManager();

@@ -2,13 +2,12 @@
 
 #include <any>
 #include <map>
-#include <pajlada/settings/export.hpp>
 #include <vector>
 
 namespace pajlada {
 
 template <typename Type>
-struct PAJLADASETTINGS_EXPORT IsEqual {
+struct IsEqual {
     static bool
     get(const Type &lhs, const Type &rhs)
     {
@@ -17,7 +16,7 @@ struct PAJLADASETTINGS_EXPORT IsEqual {
 };
 
 template <typename Type1, typename Type2>
-struct PAJLADASETTINGS_EXPORT IsEqual<std::pair<Type1, Type2>> {
+struct IsEqual<std::pair<Type1, Type2>> {
     static bool
     get(const std::pair<Type1, Type2> &lhs, const std::pair<Type1, Type2> &rhs)
     {
@@ -27,7 +26,7 @@ struct PAJLADASETTINGS_EXPORT IsEqual<std::pair<Type1, Type2>> {
 };
 
 template <>
-struct PAJLADASETTINGS_EXPORT IsEqual<std::any> {
+struct IsEqual<std::any> {
     static bool
     get(const std::any &lhs, const std::any &rhs)
     {
@@ -37,7 +36,7 @@ struct PAJLADASETTINGS_EXPORT IsEqual<std::any> {
 };
 
 template <typename KeyType, typename ValueType>
-struct PAJLADASETTINGS_EXPORT IsEqual<std::map<KeyType, ValueType>> {
+struct IsEqual<std::map<KeyType, ValueType>> {
     static bool
     get(const std::map<KeyType, ValueType> &lhs,
         const std::map<KeyType, ValueType> &rhs)
@@ -51,7 +50,7 @@ struct PAJLADASETTINGS_EXPORT IsEqual<std::map<KeyType, ValueType>> {
 };
 
 template <typename KeyType>
-struct PAJLADASETTINGS_EXPORT IsEqual<std::map<KeyType, std::any>> {
+struct IsEqual<std::map<KeyType, std::any>> {
     static bool
     get(const std::map<KeyType, std::any> &lhs,
         const std::map<KeyType, std::any> &rhs)
@@ -77,7 +76,7 @@ struct PAJLADASETTINGS_EXPORT IsEqual<std::map<KeyType, std::any>> {
 };
 
 template <typename ValueType>
-struct PAJLADASETTINGS_EXPORT IsEqual<std::vector<ValueType>> {
+struct IsEqual<std::vector<ValueType>> {
     static bool
     get(const std::vector<ValueType> &lhs, const std::vector<ValueType> &rhs)
     {
@@ -90,7 +89,7 @@ struct PAJLADASETTINGS_EXPORT IsEqual<std::vector<ValueType>> {
 };
 
 template <>
-struct PAJLADASETTINGS_EXPORT IsEqual<std::vector<std::any>> {
+struct IsEqual<std::vector<std::any>> {
     static bool
     get(const std::vector<std::any> &lhs, const std::vector<std::any> &rhs)
     {
