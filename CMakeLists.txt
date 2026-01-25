@@ -21,7 +21,15 @@ include(GNUInstallDirs)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
-option(PAJLADA_SETTINGS_SHARED_LIBS "Build pajlada-serialize as a shared library" ${PROJECT_IS_TOP_LEVEL})
+
+# default to static lib on MSVC
+if (MSVC)
+    set(PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT OFF)
+else ()
+    set(PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT ${PROJECT_IS_TOP_LEVEL})
+endif ()
+
+option(PAJLADA_SETTINGS_SHARED_LIBS "Build pajlada-serialize as a shared library" ${PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT})
 option(PAJLADA_SETTINGS_INSTALL "Install pajlada-serialize" ${PROJECT_IS_TOP_LEVEL})
 
 if (PAJLADA_SETTINGS_USE_CONAN)
@@ -29,6 +37,9 @@ if (PAJLADA_SETTINGS_USE_CONAN)
 endif ()
 
 if (PAJLADA_SETTINGS_SHARED_LIBS)
+    if (MSVC)
+        message(FATAL_ERROR "We don't support shared libraries for MSVC, set PAJLADA_SETTINGS_SHARED_LIBS to Off")
+    endif ()
     set(BUILD_SHARED_LIBS OFF)
 endif ()
 
