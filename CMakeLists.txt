@@ -15,27 +15,76 @@ project(PajladaSettings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(CMakePackageConfigHelpers)
 include(FetchContent)
+include(GNUInstallDirs)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
+
+# default to static lib on MSVC
+if (MSVC)
+    set(PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT OFF)
+else ()
+    set(PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT ${PROJECT_IS_TOP_LEVEL})
+endif ()
+
+option(PAJLADA_SETTINGS_SHARED_LIBS "Build pajlada-serialize as a shared library" ${PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT})
+option(PAJLADA_SETTINGS_INSTALL "Install pajlada-serialize" ${PROJECT_IS_TOP_LEVEL})
 
 if (PAJLADA_SETTINGS_USE_CONAN)
     message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
 endif ()
 
-set(PajladaSettings_SOURCES
-    src/settings/backup.cpp
-    src/settings/setting.cpp
-    src/settings/settingdata.cpp
-    src/settings/settingmanager.cpp
+if (PAJLADA_SETTINGS_SHARED_LIBS)
+    if (MSVC)
+        message(FATAL_ERROR "We don't support shared libraries for MSVC, set PAJLADA_SETTINGS_SHARED_LIBS to Off")
+    endif ()
+    set(BUILD_SHARED_LIBS OFF)
+endif ()
 
-    src/settings/detail/rename.cpp
-    src/settings/detail/realpath.cpp
-    )
+# Dependencies
+FetchContent_Declare(
+    RapidJSON
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/rapidjson
+    EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS
+)
+set(RAPIDJSON_BUILD_EXAMPLES Off CACHE INTERNAL "")
+set(RAPIDJSON_BUILD_TESTS Off CACHE INTERNAL "")
 
-add_library(PajladaSettings STATIC ${PajladaSettings_SOURCES})
+FetchContent_Declare(
+    PajladaSignals
+    URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
+    EXCLUDE_FROM_ALL
+)
+
+FetchContent_Declare(
+    PajladaSerialize
+    URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
+    EXCLUDE_FROM_ALL
+)
+
+FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
+
+set(BUILD_SHARED_LIBS ${PAJLADA_SETTINGS_SHARED_LIBS})
+
+add_library(PajladaSettings)
 add_library(Pajlada::Settings ALIAS PajladaSettings)
+
+include_directories(${CMAKE_BINARY_DIR})
+
+set_target_properties(PajladaSettings PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    OUTPUT_NAME "pajlada-settings"
+    EXPORT_NAME Settings
+)
+
+# target_include_directories(PajladaSettings PUBLIC include)
+
+add_subdirectory(src)
+add_subdirectory(include)
 
 # Enable strict compiler settings
 if (MSVC)
@@ -62,31 +111,6 @@ else()
     endif()
 endif()
 
-target_include_directories(PajladaSettings PUBLIC include)
-
-# Dependencies
-FetchContent_Declare(
-    RapidJSON
-    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/rapidjson
-    EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS
-)
-set(RAPIDJSON_BUILD_EXAMPLES Off CACHE INTERNAL "")
-set(RAPIDJSON_BUILD_TESTS Off CACHE INTERNAL "")
-
-FetchContent_Declare(
-    PajladaSignals
-    URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
-    EXCLUDE_FROM_ALL
-)
-
-FetchContent_Declare(
-    PajladaSerialize
-    URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
-    EXCLUDE_FROM_ALL
-)
-
-FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
 
 # Enable std::string overloads - this needs to be public because we use these overloads in headers
 target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
@@ -108,4 +132,42 @@ endif()
 if(PAJLADA_SETTINGS_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+if (PAJLADA_SETTINGS_INSTALL)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSettingsConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMinorVersion
+    )
+
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PajladaSettingsConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSettingsConfig.cmake
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/PajladaSettings"
+        NO_CHECK_REQUIRED_COMPONENTS_MACRO
+    )
+
+    # export(EXPORT SettingsTargets
+    #     FILE PajladaSettingsTargets.cmake
+    #     NAMESPACE "Pajlada::"
+    # )
+
+    install(EXPORT SettingsTargets
+        FILE PajladaSettingsTargets.cmake
+        NAMESPACE "Pajlada::"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+        COMPONENT PajladaSettings_Development
+        EXPORT_LINK_INTERFACE_LIBRARIES
+    )
+endif ()
+
+if(NOT PROJECT_IS_TOP_LEVEL)
+    return(PROPAGATE
+        PajladaSettings_VERSION
+        PajladaSettings_VERSION_MAJOR
+        PajladaSettings_VERSION_MINOR
+        PajladaSettings_VERSION_PATCH
+        PajladaSettings_VERSION_TWEAK
+    )
 endif()
