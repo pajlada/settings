@@ -61,6 +61,20 @@ set(BUILD_SHARED_LIBS ${PAJLADA_SETTINGS_SHARED_LIBS})
 add_library(PajladaSettings)
 add_library(Pajlada::Settings ALIAS PajladaSettings)
 
+include(GenerateExportHeader)
+generate_export_header(PajladaSettings
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/pajlada/settings/export.hpp
+)
+
+target_sources(PajladaSettings PUBLIC
+    FILE_SET generated_headers
+    TYPE HEADERS
+    BASE_DIRS $<TARGET_PROPERTY:PajladaSettings,BINARY_DIR>
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/pajlada/settings/export.hpp
+)
+
+include_directories(${CMAKE_BINARY_DIR})
+
 set_target_properties(PajladaSettings PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}

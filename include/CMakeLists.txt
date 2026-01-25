@@ -26,6 +26,7 @@ if (PAJLADA_SETTINGS_INSTALL)
         LIBRARY COMPONENT PajladaSettings_Runtime NAMELINK_COMPONENT PajladaSettings_Development
         ARCHIVE COMPONENT PajladaSettings_Development
         FILE_SET headers COMPONENT PajladaSettings_Development
+        FILE_SET generated_headers COMPONENT PajladaSettings_Development
         RUNTIME COMPONENT PajladaSettings_Runtime
     )
 endif ()
