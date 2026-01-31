@@ -20,7 +20,7 @@ include(FetchContent)
 include(GNUInstallDirs)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
-option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" OFF)
+option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
 # default to static lib on MSVC
 if (MSVC)
