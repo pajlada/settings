@@ -33,6 +33,24 @@ ReadFile(const std::string &path)
     return contents;
 }
 
+std::string
+ReadFileE(const std::string &path)
+{
+    std::ifstream fh(path, std::ios::in | std::ios::binary);
+    if (!fh) {
+        throw std::runtime_error("file at " + path + " is empty");
+    }
+
+    std::string contents;
+    fh.seekg(0, std::ios::end);
+    contents.resize(fh.tellg());
+    fh.seekg(0, std::ios::beg);
+    fh.read(&contents[0], contents.size());
+    fh.close();
+
+    return contents;
+}
+
 bool
 FilesMatch(const std::string &fileName1, const std::string &fileName2)
 {
@@ -42,8 +60,8 @@ FilesMatch(const std::string &fileName1, const std::string &fileName2)
     auto content1 = ReadFile(path1);
     auto content2 = ReadFile(path2);
 
-    // cout << path1 << ": " << content1 << '\n';
-    // cout << path2 << ": " << content2 << '\n';
+    // std::cout << path1 << ": '" << content1 << "'\n";
+    // std::cout << path2 << ": '" << content2 << "'\n";
 
     return content1 == content2;
 }
