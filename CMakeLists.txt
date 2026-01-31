@@ -123,7 +123,7 @@ if(TARGET rapidjson)
     target_link_libraries(PajladaSettings PUBLIC rapidjson)
 elseif(DEFINED RapidJSON_SOURCE_DIR)
     message(DEBUG "RapidJSON_SOURCE_DIR defined, assuming this is a submodule/source build. (${RapidJSON_SOURCE_DIR})")
-    target_include_directories(PajladaSettings SYSTEM PUBLIC ${RapidJSON_SOURCE_DIR}/include)
+    target_include_directories(PajladaSettings SYSTEM PUBLIC $<BUILD_INTERFACE:${RapidJSON_SOURCE_DIR}/include>)
 else()
     message(DEBUG "No rapidjson target found, this is most likely a system install. Adding include directories (${RAPIDJSON_INCLUDE_DIRS}) instead")
     target_include_directories(PajladaSettings SYSTEM PUBLIC ${RAPIDJSON_INCLUDE_DIRS})
@@ -146,6 +146,12 @@ if (PAJLADA_SETTINGS_INSTALL)
         ${CMAKE_CURRENT_BINARY_DIR}/PajladaSettingsConfig.cmake
         INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/PajladaSettings"
         NO_CHECK_REQUIRED_COMPONENTS_MACRO
+    )
+
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSettingsConfigVersion.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSettingsConfig.cmake
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
 
     # export(EXPORT SettingsTargets

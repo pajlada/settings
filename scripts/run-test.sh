@@ -10,14 +10,12 @@ if [ "$BUILD_TYPE" = "submodule" ]; then
     git submodule update --init --recursive
 fi
 
-mkdir build && cd build
-
 if [ "$BUILD_TYPE" = "conan" ]; then
-    cmake -GNinja --log-level=DEBUG --log-context --debug-output --preset debug-conan ..
+    cmake -GNinja --log-level=DEBUG --log-context --debug-output --preset debug-conan -B build
 else
-    cmake -GNinja --log-level=DEBUG --log-context --debug-output --preset debug ..
+    cmake -GNinja --log-level=DEBUG --log-context --debug-output --preset debug -B build
 fi
 
-cmake --build .
+cmake --build build
 
-ctest
+ctest --test-dir build --output-on-failure

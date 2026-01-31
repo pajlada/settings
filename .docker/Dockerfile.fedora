@@ -1,7 +1,10 @@
 ARG FEDORA_VERSION="41"
 
 FROM fedora:${FEDORA_VERSION}
-WORKDIR /src
+
+RUN useradd -rm -s /bin/bash pajladasettings
+RUN echo "pajladasettings ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/pajladasettings
+RUN chmod 440 /etc/sudoers.d/pajladasettings
 
 ARG BUILD_TYPE="system"
 ENV BUILD_TYPE=${BUILD_TYPE}
@@ -9,8 +12,11 @@ ENV BUILD_TYPE=${BUILD_TYPE}
 RUN dnf update --assumeyes && \
         dnf install --assumeyes cmake g++ ninja git
 
-ADD . /src
+ADD --chown=pajladasettings:pajladasettings . /src
+WORKDIR /src
 
 RUN ./scripts/install-dependencies-fedora.sh
+
+USER pajladasettings
 
 CMD ["./scripts/run-test.sh"]
