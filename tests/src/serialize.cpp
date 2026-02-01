@@ -9,6 +9,14 @@ using SaveResult = SettingManager::SaveResult;
 using SaveMethod = SettingManager::SaveMethod;
 using LoadError = SettingManager::LoadError;
 
+namespace fs = std::filesystem;
+
+namespace {
+
+const fs::path PRE = "files/";
+
+}  // namespace
+
 TEST(Serialize, VectorBeforeLoading)
 {
     auto sm = std::make_shared<SettingManager>();
@@ -51,68 +59,79 @@ TEST(Serialize, VectorAfterLoading)
 
 TEST(Serialize, VectorMisc)
 {
+    auto fOut = PRE / "out.serialize.vector.misc.json";
+    auto fCmp = PRE / "expected.serialize.vector.misc.json";
+
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SaveMethod::SaveManually;
 
-    Setting<std::vector<std::string>> a("/a", sm);
+    Setting<std::vector<std::string>> v("/Serialize.VectorMisc", sm);
     std::vector<std::string> newData{"l", "o", "l", "4HEad"};
 
-    a = newData;
+    v = newData;
 
-    ASSERT_EQ(SaveResult::Success,
-              sm->saveAs("files/out.serialize.vector.str.json"));
+    ASSERT_EQ(SaveResult::Success, sm->saveAs(fOut));
 
-    EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
-                           "out.serialize.vector.str.json"));
+    EXPECT_EQ(ReadFileE(fOut), ReadFileE(fCmp));
 }
 
 TEST(Serialize, StdAnyVectorString)
 {
+    auto fIn = PRE / "in.serialize.any.vector.str.json";
+    auto fOut = PRE / "out.serialize.any.vector.str.json";
+    auto fCmp = PRE / "expected.serialize.any.vector.str.json";
+
+    RemoveFile(fOut);
+
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SaveMethod::SaveManually;
 
     using std::any_cast;
 
-    std::vector<std::string> data{"a", "b", "c"};
+    std::vector<std::string> data{"bing", "bang", "bong"};
 
-    Setting<std::any> a("/a", sm);
+    Setting<std::any> v("/Serialize.StdAnyVectorString", sm);
 
-    auto rawAny = a.getValue();
+    auto rawAny = v.getValue();
     EXPECT_FALSE(rawAny.has_value());
 
-    a = data;
-
-    rawAny = a.getValue();
-
+    v = data;
+    rawAny = v.getValue();
     EXPECT_TRUE(rawAny.has_value());
+    {
+        auto vec = any_cast<std::vector<std::any>>(rawAny);
+        EXPECT_EQ(vec.size(), data.size());
+        EXPECT_EQ(any_cast<std::string>(vec[0]), data[0]);
+        EXPECT_EQ(any_cast<std::string>(vec[1]), data[1]);
+        EXPECT_EQ(any_cast<std::string>(vec[2]), data[2]);
+    }
 
-    auto vec = any_cast<std::vector<std::any>>(rawAny);
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom(fIn));
 
-    EXPECT_TRUE(vec.size() == data.size());
+    rawAny = v.getValue();
+    EXPECT_TRUE(rawAny.has_value());
+    {
+        auto vec = any_cast<std::vector<std::any>>(rawAny);
+        EXPECT_EQ(vec.size(), 2);
+        EXPECT_EQ(any_cast<std::string>(vec[0]), "x");
+        EXPECT_EQ(any_cast<std::string>(vec[1]), "D");
+    }
 
-    ASSERT_EQ(LoadError::NoError,
-              sm->loadFrom("files/in.serialize.any.vector.str.json"));
+    std::vector<std::string> newData{"bing", "bang", "bong"};
 
-    rawAny = a.getValue();
-    vec = any_cast<std::vector<std::any>>(rawAny);
+    v = newData;
 
-    EXPECT_TRUE(vec.size() == 2);
-    EXPECT_TRUE(any_cast<std::string>(vec[0]) == "x");
-    EXPECT_TRUE(any_cast<std::string>(vec[1]) == "D");
+    EXPECT_EQ(SaveResult::Success, sm->saveAs(fOut));
 
-    std::vector<std::string> newData{"l", "o", "l", "4HEad"};
-
-    a = newData;
-
-    EXPECT_EQ(SaveResult::Success,
-              sm->saveAs("files/out.serialize.any.vector.str.json"));
-
-    EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
-                           "out.serialize.any.vector.str.json"));
+    EXPECT_EQ(ReadFileE(fOut), ReadFileE(fCmp));
 }
 
 TEST(Serialize, StdAnyVectorAny)
 {
+    auto fIn = PRE / "in.serialize.any.vector.any.json";
+    auto fOut = PRE / "out.serialize.any.vector.any.json";
+    auto fCmp = PRE / "expected.serialize.any.vector.any.json";
+
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SaveMethod::SaveManually;
 
@@ -120,42 +139,43 @@ TEST(Serialize, StdAnyVectorAny)
 
     std::vector<std::any> data{"test", 5, 13.37};
 
-    Setting<std::any> a("/a", sm);
+    Setting<std::any> v("/Serialize.StdAnyVectorAny", sm);
 
-    auto rawAny = a.getValue();
-    EXPECT_FALSE(rawAny.has_value());
+    auto rawAny = v.getValue();
+    ASSERT_FALSE(rawAny.has_value());
 
-    a = data;
+    v = data;
 
-    rawAny = a.getValue();
-    auto vec = any_cast<std::vector<std::any>>(rawAny);
+    rawAny = v.getValue();
+    {
+        auto vec = any_cast<std::vector<std::any>>(rawAny);
 
-    EXPECT_TRUE(vec.size() == data.size());
+        ASSERT_EQ(vec.size(), data.size());
 
-    EXPECT_TRUE(vec[0].type().name() == typeid(std::string).name());
-    EXPECT_TRUE(any_cast<std::string>(vec[0]) == "test");
-    EXPECT_TRUE(any_cast<int>(vec[1]) == 5);
-    EXPECT_DOUBLE_EQ(any_cast<double>(vec[2]), 13.37);
+        ASSERT_EQ(vec[0].type().name(), typeid(std::string).name());
+        ASSERT_EQ(any_cast<std::string>(vec[0]), "test");
+        ASSERT_EQ(any_cast<int>(vec[1]), 5);
+        ASSERT_DOUBLE_EQ(any_cast<double>(vec[2]), 13.37);
+    }
 
-    ASSERT_EQ(LoadError::NoError,
-              sm->loadFrom("files/in.serialize.any.vector.str.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom(fIn));
 
-    rawAny = a.getValue();
-    vec = any_cast<std::vector<std::any>>(rawAny);
+    rawAny = v.getValue();
+    {
+        auto vec = any_cast<std::vector<std::any>>(rawAny);
 
-    EXPECT_TRUE(vec.size() == 2);
-    EXPECT_TRUE(any_cast<std::string>(vec[0]) == "x");
-    EXPECT_TRUE(any_cast<std::string>(vec[1]) == "D");
+        ASSERT_EQ(vec.size(), 2);
+        ASSERT_EQ(any_cast<std::string>(vec[0]), "foo");
+        ASSERT_DOUBLE_EQ(any_cast<double>(vec[1]), 4.20);
+    }
 
-    std::vector<std::string> newData{"l", "o", "l", "4HEad"};
+    std::vector<std::any> newData{"forsen", 5};
 
-    a = newData;
+    v = newData;
 
-    EXPECT_EQ(SaveResult::Success,
-              sm->saveAs("files/out.serialize.any.vector.str.json"));
+    ASSERT_EQ(SaveResult::Success, sm->saveAs(fOut));
 
-    EXPECT_TRUE(FilesMatch("in.serialize.vector.str.state1.json",
-                           "out.serialize.any.vector.str.json"));
+    ASSERT_EQ(ReadFileE(fOut), ReadFileE(fCmp));
 }
 
 TEST(Serialize, Int1)
@@ -187,27 +207,43 @@ TEST(Serialize, Int2)
 
 TEST(Serialize, Int3)
 {
+    auto fIn = PRE / "in.serialize.int.json";
+
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SaveMethod::SaveManually;
 
     Setting<int> a("/a", sm);
-    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.serialize.int.json"));
-    EXPECT_TRUE(a == 10);
-    EXPECT_TRUE(a.getValue() == 10);
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom(fIn));
+    ASSERT_EQ(a, 10);
+    ASSERT_EQ(a.getValue(), 10);
     int val = a;
-    EXPECT_TRUE(val == 10);
+    ASSERT_EQ(val, 10);
 }
 
 TEST(Serialize, Int4)
 {
+    auto fIn = PRE / "in.serialize.int4.json";
+    auto fOut = PRE / "out.serialize.int4.json";
+    auto fCmp = PRE / "expected.serialize.int4.json";
+
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SaveMethod::SaveManually;
 
-    Setting<int> a("/a", sm);
-    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.serialize.int.json"));
-    EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.serialize.int.json"));
+    Setting<int> a("/Serialize.Int4", sm);
 
-    EXPECT_TRUE(FilesMatch("in.serialize.int.json", "out.serialize.int.json"));
+    ASSERT_EQ(a, 0);
+
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom(fIn));
+
+    ASSERT_EQ(a, 10);
+
+    a = 25;
+
+    ASSERT_EQ(a, 25);
+
+    EXPECT_EQ(SaveResult::Success, sm->saveAs(fOut));
+
+    EXPECT_EQ(ReadFileE(fOut), ReadFileE(fCmp));
 }
 
 TEST(Serialize, Bool)
