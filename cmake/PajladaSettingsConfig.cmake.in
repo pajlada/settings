@@ -1,5 +1,10 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+find_dependency(PajladaSerialize REQUIRED)
+find_dependency(PajladaSignals REQUIRED)
+
 include(${CMAKE_CURRENT_LIST_DIR}/PajladaSettingsTargets.cmake)
 
-add_library(PajladaSettings ALIAS Pajlada::Settings)
+add_library(Pajlada::Settings ALIAS PajladaSettings)

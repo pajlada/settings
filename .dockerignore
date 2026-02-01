@@ -1,7 +1,5 @@
 /build*
 /examples/*/build*
 
-/external/rapidjson
-
 /logs
 /.cache/

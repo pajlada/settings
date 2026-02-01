@@ -55,14 +55,16 @@ set(RAPIDJSON_BUILD_TESTS Off CACHE INTERNAL "")
 
 FetchContent_Declare(
     PajladaSignals
-    URL ${CMAKE_CURRENT_LIST_DIR}/external/signals
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/signals
     EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS CONFIG
 )
 
 FetchContent_Declare(
     PajladaSerialize
-    URL ${CMAKE_CURRENT_LIST_DIR}/external/serialize
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/serialize
     EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS CONFIG
 )
 
 FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
@@ -78,7 +80,7 @@ set_target_properties(PajladaSettings PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     OUTPUT_NAME "pajlada-settings"
-    EXPORT_NAME Settings
+    EXPORT_NAME PajladaSettings
 )
 
 # target_include_directories(PajladaSettings PUBLIC include)
@@ -92,12 +94,12 @@ if (MSVC)
     # This makes sure, only /W4 is specified.
     string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-    target_compile_options(${PROJECT_NAME} PRIVATE
+    target_compile_options(PajladaSettings PRIVATE
         /W4
         /WX # treat warnings as errors
         )
 else()
-    target_compile_options(${PROJECT_NAME} PRIVATE
+    target_compile_options(PajladaSettings PRIVATE
         -Wall
         -Wpedantic
         -Wextra
@@ -105,7 +107,7 @@ else()
         )
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(${PROJECT_NAME} PRIVATE
+        target_compile_options(PajladaSettings PRIVATE
             -Wno-restrict
             )
     endif()
@@ -115,8 +117,8 @@ endif()
 # Enable std::string overloads - this needs to be public because we use these overloads in headers
 target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
 
-target_link_libraries(PajladaSettings PUBLIC Pajlada::Signals)
-target_link_libraries(PajladaSettings PUBLIC Pajlada::Serialize)
+target_link_libraries(PajladaSettings PRIVATE PajladaSignals)
+target_link_libraries(PajladaSettings PRIVATE PajladaSerialize)
 
 if(TARGET rapidjson)
     message(DEBUG "Linking to rapidjson target")
@@ -154,17 +156,9 @@ if (PAJLADA_SETTINGS_INSTALL)
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
 
-    # export(EXPORT SettingsTargets
-    #     FILE PajladaSettingsTargets.cmake
-    #     NAMESPACE "Pajlada::"
-    # )
-
-    install(EXPORT SettingsTargets
-        FILE PajladaSettingsTargets.cmake
-        NAMESPACE "Pajlada::"
+    install(EXPORT PajladaSettingsTargets
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
         COMPONENT PajladaSettings_Development
-        EXPORT_LINK_INTERFACE_LIBRARIES
     )
 endif ()
 

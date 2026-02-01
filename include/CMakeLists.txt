@@ -21,8 +21,8 @@ target_include_directories(PajladaSettings PUBLIC
 )
 
 if (PAJLADA_SETTINGS_INSTALL)
-    install(TARGETS PajladaSettings PajladaSerialize PajladaSignals
-        EXPORT SettingsTargets
+    install(TARGETS PajladaSettings
+        EXPORT PajladaSettingsTargets
         LIBRARY COMPONENT PajladaSettings_Runtime NAMELINK_COMPONENT PajladaSettings_Development
         ARCHIVE COMPONENT PajladaSettings_Development
         FILE_SET headers COMPONENT PajladaSettings_Development

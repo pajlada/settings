@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# TODO: Investigate `docker bake`
+
 _fedora_versions=("41" "42" "43" "44")
 _build_types=("system" "conan" "submodule")
 
