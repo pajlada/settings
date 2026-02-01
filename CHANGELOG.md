@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Dev: Don't export target under `Pajlada::` namespace. (#164)
+
 ## v0.4.0
 
 - Breaking: Removed `SettingManager`s `pp`, `gPP`, and `stringify` functions. (#153)
