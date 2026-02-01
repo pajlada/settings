@@ -34,11 +34,11 @@ ReadFile(const std::string &path)
 }
 
 std::string
-ReadFileE(const std::string &path)
+ReadFileE(const std::filesystem::path &path)
 {
     std::ifstream fh(path, std::ios::in | std::ios::binary);
     if (!fh) {
-        throw std::runtime_error("file at " + path + " is empty");
+        throw std::runtime_error("file at " + path.string() + " is empty");
     }
 
     std::string contents;

@@ -16,7 +16,7 @@
 std::string ReadFile(const std::string &path);
 
 /// Read the file and throw an exception if the file is empty
-std::string ReadFileE(const std::string &path);
+std::string ReadFileE(const std::filesystem::path &path);
 
 bool FilesMatch(const std::string &fileName1, const std::string &fileName2);
 
