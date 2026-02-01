@@ -96,3 +96,26 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+
+      - name: Build example (source dir)
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
+        run: |
+          cmake -DEXAMPLE_IMPORT_METHOD=SOURCE_DIR -B build-example-source-dir -S examples/simple
+          cmake --build build-example-source-dir --config Debug --parallel
+
+      - name: Install PajladaSettings
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
+        run: |
+          sudo cmake --install build
+
+      - name: Build example (find package)
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
+        run: |
+          cmake -DEXAMPLE_IMPORT_METHOD=FIND_PACKAGE -B build-example-find-package -S examples/simple
+          cmake --build build-example-find-package --config Debug --parallel

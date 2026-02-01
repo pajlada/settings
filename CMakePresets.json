@@ -50,6 +50,22 @@
       "name": "debug-tsan",
       "displayName": "Debug + TSAN",
       "inherits": ["debug", "tsan-base"]
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PAJLADA_SETTINGS_BUILD_TESTS": false
+      }
+    },
+    {
+      "name": "release-conan",
+      "displayName": "Release (conan)",
+      "inherits": "release",
+      "cacheVariables": {
+        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan_provider.cmake"
+      }
     }
   ]
 }
