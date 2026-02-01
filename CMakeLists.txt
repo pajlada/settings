@@ -29,8 +29,15 @@ else ()
     set(PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT ${PROJECT_IS_TOP_LEVEL})
 endif ()
 
+# default to not do install on MSVC
+if (MSVC)
+    set(PAJLADA_SETTINGS_INSTALL_DEFAULT OFF)
+else ()
+    set(PAJLADA_SETTINGS_INSTALL_DEFAULT ${PROJECT_IS_TOP_LEVEL})
+endif ()
+
 option(PAJLADA_SETTINGS_SHARED_LIBS "Build pajlada-serialize as a shared library" ${PAJLADA_SETTINGS_SHARED_LIBS_DEFAULT})
-option(PAJLADA_SETTINGS_INSTALL "Install pajlada-serialize" ${PROJECT_IS_TOP_LEVEL})
+option(PAJLADA_SETTINGS_INSTALL "Install pajlada-serialize" ${PAJLADA_SETTINGS_INSTALL_DEFAULT})
 
 if (PAJLADA_SETTINGS_USE_CONAN)
     message(WARNING "The use of PAJLADA_SETTINGS_USE_CONAN is no longer supported, use conan by specifying the CMAKE_TOOLCHAIN_FILE parameter instead (e.g. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake)")
