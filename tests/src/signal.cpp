@@ -23,18 +23,18 @@ TEST(Signal, Simple)
 
     Setting<int> a("/simple_signal/a", sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a = 5;
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue == 5);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue, 5);
 }
 
 TEST(Signal, LoadFromFile)
@@ -52,26 +52,26 @@ TEST(Signal, LoadFromFile)
     Setting<int> a("/signal/a", sm);
     Setting<int> b("/signal/b", sm);
 
-    EXPECT_TRUE(a.getValue() == 0);
+    EXPECT_EQ(a.getValue(), 0);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a.connect(cb, false);
     b.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a = 5;
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue == 5);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue, 5);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.signal.json"));
 
-    EXPECT_TRUE(count == 2);
-    EXPECT_TRUE(currentValue == 3);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(currentValue, 3);
 }
 
 TEST(Signal, ScopedConnection)
@@ -92,32 +92,32 @@ TEST(Signal, ScopedConnection)
     {
         Setting<int> c("/advancedSignals/c", sm);
 
-        EXPECT_TRUE(count == 0);
+        EXPECT_EQ(count, 0);
 
         c.connect(cb, connections, false);
         c.connect(cb, connections, false);
         c.connect(cb, connections, false);
 
-        EXPECT_TRUE(count == 0);
+        EXPECT_EQ(count, 0);
 
         // c1, c2, and c3 are active
         c = 1;
 
-        EXPECT_TRUE(count == 3);
+        EXPECT_EQ(count, 3);
 
         connections.pop_back();
 
         // c1 and c2 are active
         c = 2;
 
-        EXPECT_TRUE(count == 5);
+        EXPECT_EQ(count, 5);
 
         connections.clear();
 
         // No connection is active
         c = 3;
 
-        EXPECT_TRUE(count == 5);
+        EXPECT_EQ(count, 5);
     }
 }
 
@@ -139,18 +139,18 @@ TEST(Signal, ScopedConnection2)
     {
         Setting<int> c("/advancedSignals/c", sm);
 
-        EXPECT_TRUE(count == 0);
+        EXPECT_EQ(count, 0);
 
         c.connect(cb, connections, false);
         c.connect(cb, connections, false);
         c.connect(cb, connections, false);
 
-        EXPECT_TRUE(count == 0);
+        EXPECT_EQ(count, 0);
 
         // c1, c2, and c3 are active
         c = 1;
 
-        EXPECT_TRUE(count == 3);
+        EXPECT_EQ(count, 3);
 
         connections.pop_back();
 
@@ -161,14 +161,14 @@ TEST(Signal, ScopedConnection2)
         // c1 and c2 are active
         c = 2;
 
-        EXPECT_TRUE(count == 5);
+        EXPECT_EQ(count, 5);
 
         connections.clear();
 
         // No connection is active
         c = 3;
 
-        EXPECT_TRUE(count == 5);
+        EXPECT_EQ(count, 5);
     }
 }
 

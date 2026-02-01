@@ -27,13 +27,13 @@ TEST(Load, Unicode)
 
     Setting<int> a("/a", 1, sm);
 
-    EXPECT_TRUE(a == 1);
+    EXPECT_EQ(a, 1);
 
     for (const auto &p : fs::directory_iterator("files/unicode/a")) {
         EXPECT_EQ(LoadError::NoError, sm->loadFrom(p));
     }
 
-    EXPECT_TRUE(a == 5);
+    EXPECT_EQ(a, 5);
 }
 
 TEST(Load, Space)
@@ -43,11 +43,11 @@ TEST(Load, Space)
 
     Setting<int> a("/a", 1, sm);
 
-    EXPECT_TRUE(a == 1);
+    EXPECT_EQ(a, 1);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/load. .json"));
 
-    EXPECT_TRUE(a == 5);
+    EXPECT_EQ(a, 5);
 }
 
 TEST(Load, Symlink)
@@ -57,11 +57,11 @@ TEST(Load, Symlink)
 
     Setting<int> lol("/lol", 1, sm);
 
-    EXPECT_TRUE(lol == 1);
+    EXPECT_EQ(lol, 1);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.symlink.json"));
 
-    EXPECT_TRUE(lol == 10);
+    EXPECT_EQ(lol, 10);
 }
 
 TEST(Load, RelativeSymlink)
@@ -71,12 +71,12 @@ TEST(Load, RelativeSymlink)
 
     Setting<int> lol("/lol", 1, sm);
 
-    EXPECT_TRUE(lol == 1);
+    EXPECT_EQ(lol, 1);
 
     ASSERT_EQ(LoadError::NoError,
               sm->loadFrom("files/in.relative-symlink.json"));
 
-    EXPECT_TRUE(lol == 10);
+    EXPECT_EQ(lol, 10);
 }
 
 TEST(Load, AbsoluteSymlinkSameFolder)
@@ -94,11 +94,11 @@ TEST(Load, AbsoluteSymlinkSameFolder)
 
     Setting<int> lol("/lol", 1, sm);
 
-    EXPECT_TRUE(lol == 1);
+    EXPECT_EQ(lol, 1);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom(bp));
 
-    EXPECT_TRUE(lol == 10);
+    EXPECT_EQ(lol, 10);
 }
 
 TEST(Load, Load)
@@ -110,19 +110,19 @@ TEST(Load, Load)
 
     Setting<int> a("/a", 1, sm);
 
-    EXPECT_TRUE(a == 1);
+    EXPECT_EQ(a, 1);
 
     EXPECT_EQ(sm->load("files/in.normal.json"), LoadError::NoError);
 
-    EXPECT_TRUE(a == 3);
+    EXPECT_EQ(a, 3);
 
     a = 2;
 
-    EXPECT_TRUE(a == 2);
+    EXPECT_EQ(a, 2);
 
     EXPECT_EQ(sm->load(), LoadError::NoError);
 
-    EXPECT_TRUE(a == 3);
+    EXPECT_EQ(a, 3);
 }
 
 TEST(Load, LoadFrom)
@@ -134,15 +134,15 @@ TEST(Load, LoadFrom)
 
     Setting<int> a("/a", 1, sm);
 
-    EXPECT_TRUE(a == 1);
+    EXPECT_EQ(a, 1);
 
     EXPECT_EQ(sm->loadFrom("files/in.hastemporary.json"), LoadError::NoError);
 
-    EXPECT_TRUE(a == 4);
+    EXPECT_EQ(a, 4);
 
     a = 2;
 
-    EXPECT_TRUE(a == 2);
+    EXPECT_EQ(a, 2);
 
     // Since we used loadFrom, we haven't set the file path to load from so it will try to load from settings.json which shouldn't exist
     EXPECT_EQ(sm->load(), LoadError::CannotOpenFile);
@@ -180,7 +180,7 @@ TEST(Load, LoadFromWithTemporary)
 
     Setting<int> a("/a", 1, sm);
 
-    EXPECT_TRUE(a == 1);
+    EXPECT_EQ(a, 1);
 
     ASSERT_FALSE(RemoveFile(f1));
 
@@ -191,11 +191,11 @@ TEST(Load, LoadFromWithTemporary)
     // And we removed the successfully-loaded .tmp file
     ASSERT_FALSE(fs::exists(f1tmp));
 
-    EXPECT_TRUE(a == 10);
+    EXPECT_EQ(a, 10);
 
     a = 2;
 
-    EXPECT_TRUE(a == 2);
+    EXPECT_EQ(a, 2);
 
     // Since we used loadFrom, we haven't set the file path to load from so it will try to load from settings.json which shouldn't exist
     EXPECT_EQ(sm->load(), LoadError::CannotOpenFile);
@@ -226,7 +226,7 @@ TEST(Load, LoadFromWithTemporaryButSaveFails)
 
     Setting<int> a("/a", 1, sm);
 
-    EXPECT_TRUE(a == 1);
+    EXPECT_EQ(a, 1);
 
     // The main settings.json file exists, but it cannot be read.
     EXPECT_EQ(sm->loadFrom(f1), LoadError::SavingFromTemporaryFileFailed);
@@ -234,11 +234,11 @@ TEST(Load, LoadFromWithTemporaryButSaveFails)
     // leave the .tmp file as is
     EXPECT_TRUE(fs::exists(f1tmp));
 
-    EXPECT_TRUE(a == 10);
+    EXPECT_EQ(a, 10);
 
     a = 2;
 
-    EXPECT_TRUE(a == 2);
+    EXPECT_EQ(a, 2);
 
     fs::permissions(f1, fs::perms::owner_read | fs::perms::owner_write |
                             fs::perms::group_read | fs::perms::others_read);

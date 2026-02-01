@@ -13,11 +13,11 @@ TEST(BadInstance, MultipleFiles)
 
     Setting<int> a("/multi/a", sm1);
 
-    EXPECT_TRUE(a == 0);
+    EXPECT_EQ(a, 0);
 
     a = 3;
 
-    EXPECT_TRUE(a == 3);
+    EXPECT_EQ(a, 3);
 
     sm1.reset();
 
@@ -30,11 +30,11 @@ TEST(BadInstance, Two)
 
     Setting<int> a("/multi/a", sm1);
 
-    EXPECT_TRUE(a == 0);
+    EXPECT_EQ(a, 0);
 
     a = 3;
 
-    EXPECT_TRUE(a == 3);
+    EXPECT_EQ(a, 3);
 
     auto lockedData = a.getData().lock();
 
@@ -42,10 +42,10 @@ TEST(BadInstance, Two)
 
     rapidjson::Value val;
 
-    EXPECT_TRUE(lockedData->marshal<int>(53) == false);
-    EXPECT_TRUE(lockedData->unmarshalJSON() == nullptr);
-    EXPECT_TRUE(lockedData->getPath() == "/multi/a");
-    EXPECT_TRUE(lockedData->unmarshal<int>() == std::nullopt);
+    EXPECT_EQ(lockedData->marshal<int>(53), false);
+    EXPECT_EQ(lockedData->unmarshalJSON(), nullptr);
+    EXPECT_EQ(lockedData->getPath(), "/multi/a");
+    EXPECT_EQ(lockedData->unmarshal<int>(), std::nullopt);
 
     a.getValue();
 }
@@ -54,8 +54,8 @@ TEST(MultiInstance, Good1)
 {
     auto sm = std::make_shared<SettingManager>();
 
-    EXPECT_TRUE(sm->loadFrom("files/in.multi.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_EQ(sm->loadFrom("files/in.multi.json"),
+              SettingManager::LoadError::NoError);
 
     Setting<int> a("/multi/a", sm);
 
@@ -69,7 +69,7 @@ TEST(MultiInstance, Good1)
 
         a.connect(
             [&](int value, const SignalArgs &) {
-                EXPECT_TRUE(value == 50);
+                EXPECT_EQ(value, 50);
                 called = true;
             },
             managedConnections, autoInvoke);
@@ -80,21 +80,21 @@ TEST(MultiInstance, Good1)
 
     called = false;
     a.connect([&](int /*value*/) {
-        //EXPECT_TRUE(value == 50);  //
+        //EXPECT_TRUE(value, 50);  //
         called = true;
     });
 
     EXPECT_TRUE(called);
 
-    // EXPECT_TRUE(a == 50);
+    // EXPECT_TRUE(a, 50);
 }
 
 TEST(MultiInstance, Good2)
 {
     auto sm = std::make_shared<SettingManager>();
 
-    EXPECT_TRUE(sm->loadFrom("files/in.multi.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_EQ(sm->loadFrom("files/in.multi.json"),
+              SettingManager::LoadError::NoError);
 
     Setting<int> a("/multi/a", sm);
 
@@ -118,11 +118,11 @@ TEST(MultiInstance, Good2)
 
     called = false;
     a.connect([&](int value) {
-        EXPECT_TRUE(value == 50);  //
+        EXPECT_EQ(value, 50);  //
         called = true;
     });
 
     EXPECT_TRUE(called);
 
-    // EXPECT_TRUE(a == 50);
+    // EXPECT_TRUE(a, 50);
 }

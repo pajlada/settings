@@ -26,11 +26,11 @@ TEST(AdvancedArray, SingleWindow)
 
     Setting<MyWindow> myWindow("/a", sm);
 
-    // EXPECT_TRUE(myWindow->x == 0);
+    // EXPECT_EQ(myWindow->x, 0);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/advanced-window.json"));
 
-    // EXPECT_TRUE(myWindow->x == 5);
+    // EXPECT_EQ(myWindow->x, 5);
 }
 
 TEST(AdvancedArray, MultiWindow)
@@ -40,29 +40,29 @@ TEST(AdvancedArray, MultiWindow)
 
     Setting<std::vector<MyWindow>> myWindows("/a", sm);
 
-    // EXPECT_TRUE(myWindows->size() == 0);
+    // EXPECT_EQ(myWindows->size(), 0);
 
     ASSERT_EQ(LoadError::NoError,
               sm->loadFrom("files/advanced-window-multi.json"));
 
-    // EXPECT_TRUE(myWindows->size() == 3);
+    // EXPECT_EQ(myWindows->size(), 3);
 
     std::deque<int> values{5, 10, 15};
 
     /*
     for (const auto &window : myWindows.getArray()) {
-        EXPECT_TRUE(window.x == values.front());
+        EXPECT_EQ(window.x, values.front());
         values.pop_front();
     }
     */
 
     // myWindows.push_back(MyWindow{});
 
-    // EXPECT_TRUE(myWindows->size() == 4);
+    // EXPECT_EQ(myWindows->size(), 4);
 
     // myWindows.push_back(MyWindow{});
 
-    // EXPECT_TRUE(myWindows->size() == 5);
+    // EXPECT_EQ(myWindows->size(), 5);
 }
 
 TEST(AdvancedArray, MultiFiles)
@@ -71,31 +71,31 @@ TEST(AdvancedArray, MultiFiles)
     auto sm2 = std::make_shared<SettingManager>();
     Setting<std::vector<MyWindow>> myWindows("/a", SettingOption::Default, sm1);
 
-    // EXPECT_TRUE(myWindows->size() == 0);
+    // EXPECT_EQ(myWindows->size(), 0);
 
-    EXPECT_TRUE(sm1->load("files/advanced-window-multi.json") ==
-                SettingManager::LoadError::NoError);
-    EXPECT_TRUE(sm2->load("files/advanced-window-multi.json") ==
-                SettingManager::LoadError::NoError);
+    EXPECT_EQ(sm1->load("files/advanced-window-multi.json"),
+              SettingManager::LoadError::NoError);
+    EXPECT_EQ(sm2->load("files/advanced-window-multi.json"),
+              SettingManager::LoadError::NoError);
 
-    // EXPECT_TRUE(myWindows->size() == 3);
+    // EXPECT_EQ(myWindows->size(), 3);
 
     std::deque<int> values{5, 10, 15};
 
     /*
     for (const auto &window : myWindows.getArray()) {
-        EXPECT_TRUE(window.x == values.front());
+        EXPECT_EQ(window.x, values.front());
         values.pop_front();
     }
     */
 
     // myWindows.push_back(MyWindow{});
 
-    // EXPECT_TRUE(myWindows->size() == 4);
+    // EXPECT_EQ(myWindows->size(), 4);
 
     // myWindows.push_back(MyWindow{});
 
-    // EXPECT_TRUE(myWindows->size() == 5);
+    // EXPECT_EQ(myWindows->size(), 5);
 
     Setting<std::vector<MyWindow>> myWindows2("/a", SettingOption::Default,
                                               sm2);

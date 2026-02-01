@@ -40,63 +40,63 @@ TEST(Static, Static)
     Setting<bool> b7("/bool7", true, ssm);
 
     ssm->setBackupEnabled(true);
-    EXPECT_TRUE(iNoDefault.getValue() == 0);
-    EXPECT_TRUE(iDefault.getValue() == 5);
+    EXPECT_EQ(iNoDefault.getValue(), 0);
+    EXPECT_EQ(iDefault.getValue(), 5);
 
-    EXPECT_TRUE(f1.getValue() == 1.0101f);
-    EXPECT_TRUE(f2.getValue() == 1.0101010101f);
-    EXPECT_TRUE(f3.getValue() == 1.123456789f);
-    EXPECT_TRUE(f4.getValue() == 1.f);
-    EXPECT_TRUE(f5.getValue() == 0.f);
-    EXPECT_TRUE(f6.getValue() == -.1f);
-    EXPECT_TRUE(f7.getValue() == 1.f);
+    EXPECT_EQ(f1.getValue(), 1.0101f);
+    EXPECT_EQ(f2.getValue(), 1.0101010101f);
+    EXPECT_EQ(f3.getValue(), 1.123456789f);
+    EXPECT_EQ(f4.getValue(), 1.f);
+    EXPECT_EQ(f5.getValue(), 0.f);
+    EXPECT_EQ(f6.getValue(), -.1f);
+    EXPECT_EQ(f7.getValue(), 1.f);
 
-    EXPECT_TRUE(d1.getValue() == 1.0101);
-    EXPECT_TRUE(d2.getValue() == 1.0101010101);
-    EXPECT_TRUE(d3.getValue() == 1.123456789);
-    EXPECT_TRUE(d4.getValue() == 1.);
-    EXPECT_TRUE(d5.getValue() == 0.);
-    EXPECT_TRUE(d6.getValue() == -.1);
-    EXPECT_TRUE(d7.getValue() == 123.456);
+    EXPECT_EQ(d1.getValue(), 1.0101);
+    EXPECT_EQ(d2.getValue(), 1.0101010101);
+    EXPECT_EQ(d3.getValue(), 1.123456789);
+    EXPECT_EQ(d4.getValue(), 1.);
+    EXPECT_EQ(d5.getValue(), 0.);
+    EXPECT_EQ(d6.getValue(), -.1);
+    EXPECT_EQ(d7.getValue(), 123.456);
 
-    EXPECT_TRUE(b1.getValue() == true);
-    EXPECT_TRUE(b2.getValue() == false);
-    EXPECT_TRUE(b3.getValue() == true);
-    EXPECT_TRUE(b4.getValue() == false);
-    EXPECT_TRUE(b5.getValue() == true);
-    EXPECT_TRUE(b6.getValue() == false);
-    EXPECT_TRUE(b7.getValue() == true);
+    EXPECT_EQ(b1.getValue(), true);
+    EXPECT_EQ(b2.getValue(), false);
+    EXPECT_EQ(b3.getValue(), true);
+    EXPECT_EQ(b4.getValue(), false);
+    EXPECT_EQ(b5.getValue(), true);
+    EXPECT_EQ(b6.getValue(), false);
+    EXPECT_EQ(b7.getValue(), true);
 
     ASSERT_EQ(LoadError::NoError, ssm->loadFrom("files/test.json"));
 
     // Floats post-load
-    EXPECT_TRUE(f1.getValue() == 1.f);
-    EXPECT_TRUE(f2.getValue() == -1.f);
-    EXPECT_TRUE(f3.getValue() == 500.987654321f);
-    EXPECT_TRUE(f4.getValue() == 5.1f);
-    EXPECT_TRUE(f5.getValue() == 5.321f);
-    EXPECT_TRUE(f6.getValue() == 500000.1f);
+    EXPECT_EQ(f1.getValue(), 1.f);
+    EXPECT_EQ(f2.getValue(), -1.f);
+    EXPECT_EQ(f3.getValue(), 500.987654321f);
+    EXPECT_EQ(f4.getValue(), 5.1f);
+    EXPECT_EQ(f5.getValue(), 5.321f);
+    EXPECT_EQ(f6.getValue(), 500000.1f);
 
     // Doubles post-load
-    EXPECT_TRUE(d1.getValue() == 1.);
-    EXPECT_TRUE(d2.getValue() == -1.);
-    EXPECT_TRUE(d3.getValue() == 500.987654321);
-    EXPECT_TRUE(d4.getValue() == 5.1);
-    EXPECT_TRUE(d5.getValue() == 5.321);
-    EXPECT_TRUE(d6.getValue() == 500000.1);
-    EXPECT_TRUE(d7.getValue() == 123.456);
+    EXPECT_EQ(d1.getValue(), 1.);
+    EXPECT_EQ(d2.getValue(), -1.);
+    EXPECT_EQ(d3.getValue(), 500.987654321);
+    EXPECT_EQ(d4.getValue(), 5.1);
+    EXPECT_EQ(d5.getValue(), 5.321);
+    EXPECT_EQ(d6.getValue(), 500000.1);
+    EXPECT_EQ(d7.getValue(), 123.456);
 
     // Booleans post-load
-    EXPECT_TRUE(b1.getValue() == false);  // false
-    EXPECT_TRUE(b2.getValue() == true);   // true
-    EXPECT_TRUE(b3.getValue() == false);  // 0
-    EXPECT_TRUE(b4.getValue() == true);   // 1
-    EXPECT_TRUE(b5.getValue() == false);  // 50291 (anything but 1)
-    EXPECT_TRUE(b6.getValue() == false);  // nothing loaded
-    EXPECT_TRUE(b7.getValue() == true);   // nothing loaded
+    EXPECT_EQ(b1.getValue(), false);  // false
+    EXPECT_EQ(b2.getValue(), true);   // true
+    EXPECT_EQ(b3.getValue(), false);  // 0
+    EXPECT_EQ(b4.getValue(), true);   // 1
+    EXPECT_EQ(b5.getValue(), false);  // 50291 (anything but 1)
+    EXPECT_EQ(b6.getValue(), false);  // nothing loaded
+    EXPECT_EQ(b7.getValue(), true);   // nothing loaded
 
-    EXPECT_TRUE(iNoDefault.getValue() == 2);
-    EXPECT_TRUE(iDefault.getValue() == 3);
+    EXPECT_EQ(iNoDefault.getValue(), 2);
+    EXPECT_EQ(iDefault.getValue(), 3);
 
     // Class2::i1.signalValueChanged.connect([](const int &newValue) {
     //     std::cout << "new value for i1: " << newValue << std::endl;
@@ -104,11 +104,11 @@ TEST(Static, Static)
 
     iNoDefault.setValue(3);
 
-    EXPECT_TRUE(iNoDefault.getValue() == 3);
+    EXPECT_EQ(iNoDefault.getValue(), 3);
 
     iNoDefault = 4;
 
-    EXPECT_TRUE(iNoDefault.getValue() == 4);
+    EXPECT_EQ(iNoDefault.getValue(), 4);
 
     f7 = 0.f;
 
