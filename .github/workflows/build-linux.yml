@@ -103,7 +103,7 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cmake -DEXAMPLE_IMPORT_METHOD=SOURCE_DIR -B build-example-source-dir -S examples/simple
-          cmake --build build-example-source-dir-source-dir --config Debug --parallel
+          cmake --build build-example-source-dir --config Debug --parallel
 
       - name: Install PajladaSettings
         env:
@@ -118,4 +118,4 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cmake -DEXAMPLE_IMPORT_METHOD=FIND_PACKAGE -B build-example-find-package -S examples/simple
-          cmake --build build-example-find-package-source-dir --config Debug --parallel
+          cmake --build build-example-find-package --config Debug --parallel
