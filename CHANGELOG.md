@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Breaking: PajladaSerialize and PajladaSignals are now private, so you need to include them yourself. (#164)
 - Dev: Don't export target under `Pajlada::` namespace. (#164)
 
 ## v0.4.0
