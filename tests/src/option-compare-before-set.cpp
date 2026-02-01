@@ -23,23 +23,23 @@ TEST(OptionCompareBeforeSet, Off)
 
     Setting<int> a("/simple_signal/a", sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a = 5;
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue == 5);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue, 5);
 
     a = 5;
 
-    EXPECT_TRUE(count == 2);
-    EXPECT_TRUE(currentValue == 5);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(currentValue, 5);
 }
 
 TEST(OptionCompareBeforeSet, On)
@@ -56,23 +56,23 @@ TEST(OptionCompareBeforeSet, On)
 
     Setting<int> a("/simple_signal/a", SettingOption::CompareBeforeSet, sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue, 0);
 
     a = 5;
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue == 5);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue, 5);
 
     a = 5;
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue == 5);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue, 5);
 }
 
 TEST(OptionCompareBeforeSet, NonComparableCustomType)
@@ -92,35 +92,35 @@ TEST(OptionCompareBeforeSet, NonComparableCustomType)
     Setting<NonComparableStruct> a("/simple_signal/a",
                                    SettingOption::CompareBeforeSet, sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.a == false);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.a, false);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.a == false);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.a, false);
 
     a = NonComparableStruct{
         .a = true,
     };
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.a == true);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.a, true);
 
     a = NonComparableStruct{
         .a = true,
     };
 
     // Even though the struct is non-comparable, we use compare the marshalled JSON value - not the C++ type
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.a == true);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.a, true);
 
     a = NonComparableStruct{
         .a = false,
     };
 
-    EXPECT_TRUE(count == 2);
-    EXPECT_TRUE(currentValue.a == false);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(currentValue.a, false);
 }
 
 TEST(OptionCompareBeforeSet, ComparableCustomType)
@@ -140,34 +140,34 @@ TEST(OptionCompareBeforeSet, ComparableCustomType)
     Setting<ComparableStruct> a("/simple_signal/a",
                                 SettingOption::CompareBeforeSet, sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.a == false);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.a, false);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.a == false);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.a, false);
 
     a = ComparableStruct{
         .a = true,
     };
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.a == true);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.a, true);
 
     a = ComparableStruct{
         .a = true,
     };
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.a == true);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.a, true);
 
     a = ComparableStruct{
         .a = false,
     };
 
-    EXPECT_TRUE(count == 2);
-    EXPECT_TRUE(currentValue.a == false);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(currentValue.a, false);
 }
 
 TEST(OptionCompareBeforeSet, Pair)
@@ -185,33 +185,33 @@ TEST(OptionCompareBeforeSet, Pair)
     Setting<std::pair<int, int>> a("/simple_signal/a",
                                    SettingOption::CompareBeforeSet, sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.first == 0);
-    EXPECT_TRUE(currentValue.second == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.first, 0);
+    EXPECT_EQ(currentValue.second, 0);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.first == 0);
-    EXPECT_TRUE(currentValue.second == 0);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.first, 0);
+    EXPECT_EQ(currentValue.second, 0);
 
     a = {1, 2};
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.first == 1);
-    EXPECT_TRUE(currentValue.second == 2);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.first, 1);
+    EXPECT_EQ(currentValue.second, 2);
 
     a = {1, 2};
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.first == 1);
-    EXPECT_TRUE(currentValue.second == 2);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.first, 1);
+    EXPECT_EQ(currentValue.second, 2);
 
     a = {2, 3};
 
-    EXPECT_TRUE(count == 2);
-    EXPECT_TRUE(currentValue.first == 2);
-    EXPECT_TRUE(currentValue.second == 3);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(currentValue.first, 2);
+    EXPECT_EQ(currentValue.second, 3);
 }
 
 TEST(OptionCompareBeforeSet, Vector)
@@ -229,23 +229,23 @@ TEST(OptionCompareBeforeSet, Vector)
     Setting<std::vector<int>> a("/simple_signal/a",
                                 SettingOption::CompareBeforeSet, sm);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.size() == 2);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.size(), 2);
 
     a.connect(cb, false);
 
-    EXPECT_TRUE(count == 0);
-    EXPECT_TRUE(currentValue.size() == 2);
+    EXPECT_EQ(count, 0);
+    EXPECT_EQ(currentValue.size(), 2);
 
     a = {5, 7, 3};
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.size() == 3);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.size(), 3);
 
     a = {5, 7, 3};
 
-    EXPECT_TRUE(count == 1);
-    EXPECT_TRUE(currentValue.size() == 3);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(currentValue.size(), 3);
 }
 
 TEST(OptionCompareBeforeSet, VectorComparableType)

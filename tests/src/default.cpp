@@ -30,12 +30,12 @@ TEST(Default, Reset)
     Setting<int> loadedDifferentCustomDefault("/loadedDifferentCustomDefault",
                                               5, sm);
 
-    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_EQ(noDefault.getDefaultValue(), 0);
+    EXPECT_EQ(customDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedSameNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedDifferentNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
 
     EXPECT_TRUE(noDefault.isDefaultValue());
     EXPECT_TRUE(customDefault.isDefaultValue());
@@ -45,12 +45,12 @@ TEST(Default, Reset)
     EXPECT_TRUE(loadedDifferentCustomDefault.isDefaultValue());
 
     // Before loading
-    EXPECT_TRUE(noDefault == 0);
-    EXPECT_TRUE(customDefault == 5);
-    EXPECT_TRUE(loadedSameNoDefault == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault == 0);
-    EXPECT_TRUE(loadedSameCustomDefault == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault == 5);
+    EXPECT_EQ(noDefault, 0);
+    EXPECT_EQ(customDefault, 5);
+    EXPECT_EQ(loadedSameNoDefault, 0);
+    EXPECT_EQ(loadedDifferentNoDefault, 0);
+    EXPECT_EQ(loadedSameCustomDefault, 5);
+    EXPECT_EQ(loadedDifferentCustomDefault, 5);
 
     // Before loading, after resetting all values to their default value
     noDefault.resetToDefaultValue();
@@ -60,19 +60,19 @@ TEST(Default, Reset)
     loadedSameCustomDefault.resetToDefaultValue();
     loadedDifferentCustomDefault.resetToDefaultValue();
 
-    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_EQ(noDefault.getDefaultValue(), 0);
+    EXPECT_EQ(customDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedSameNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedDifferentNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
 
-    EXPECT_TRUE(noDefault == 0);
-    EXPECT_TRUE(customDefault == 5);
-    EXPECT_TRUE(loadedSameNoDefault == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault == 0);
-    EXPECT_TRUE(loadedSameCustomDefault == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault == 5);
+    EXPECT_EQ(noDefault, 0);
+    EXPECT_EQ(customDefault, 5);
+    EXPECT_EQ(loadedSameNoDefault, 0);
+    EXPECT_EQ(loadedDifferentNoDefault, 0);
+    EXPECT_EQ(loadedSameCustomDefault, 5);
+    EXPECT_EQ(loadedDifferentCustomDefault, 5);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.resettodefault.json"));
 
@@ -90,19 +90,19 @@ TEST(Default, Reset)
     EXPECT_TRUE(!loadedDifferentCustomDefault.isDefaultValue());
 
     // After loading
-    EXPECT_TRUE(noDefault == 0);
-    EXPECT_TRUE(customDefault == 5);
-    EXPECT_TRUE(loadedSameNoDefault == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault == 1);
-    EXPECT_TRUE(loadedSameCustomDefault == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault == 6);
+    EXPECT_EQ(noDefault, 0);
+    EXPECT_EQ(customDefault, 5);
+    EXPECT_EQ(loadedSameNoDefault, 0);
+    EXPECT_EQ(loadedDifferentNoDefault, 1);
+    EXPECT_EQ(loadedSameCustomDefault, 5);
+    EXPECT_EQ(loadedDifferentCustomDefault, 6);
 
-    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_EQ(noDefault.getDefaultValue(), 0);
+    EXPECT_EQ(customDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedSameNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedDifferentNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
 
     // Reset all values to their default values
     noDefault.resetToDefaultValue();
@@ -119,39 +119,39 @@ TEST(Default, Reset)
     EXPECT_TRUE(loadedSameCustomDefault.isDefaultValue());
     EXPECT_TRUE(loadedDifferentCustomDefault.isDefaultValue());
 
-    EXPECT_TRUE(noDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_EQ(noDefault.getDefaultValue(), 0);
+    EXPECT_EQ(customDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedSameNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedDifferentNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
 
     // After loading, after resetting all values to their default value
-    EXPECT_TRUE(noDefault == 0);
-    EXPECT_TRUE(customDefault == 5);
-    EXPECT_TRUE(loadedSameNoDefault == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault == 0);
-    EXPECT_TRUE(loadedSameCustomDefault == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault == 5);
+    EXPECT_EQ(noDefault, 0);
+    EXPECT_EQ(customDefault, 5);
+    EXPECT_EQ(loadedSameNoDefault, 0);
+    EXPECT_EQ(loadedDifferentNoDefault, 0);
+    EXPECT_EQ(loadedSameCustomDefault, 5);
+    EXPECT_EQ(loadedDifferentCustomDefault, 5);
 
     noDefault.setDefaultValue(1);
 
-    EXPECT_TRUE(noDefault == 0);
+    EXPECT_EQ(noDefault, 0);
 
-    EXPECT_TRUE(!noDefault.isDefaultValue());
+    EXPECT_FALSE(noDefault.isDefaultValue());
 
     noDefault.resetToDefaultValue();
 
     EXPECT_TRUE(noDefault.isDefaultValue());
 
-    EXPECT_TRUE(noDefault == 1);
+    EXPECT_EQ(noDefault, 1);
 
-    EXPECT_TRUE(noDefault.getDefaultValue() == 1);
-    EXPECT_TRUE(customDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedSameNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedDifferentNoDefault.getDefaultValue() == 0);
-    EXPECT_TRUE(loadedSameCustomDefault.getDefaultValue() == 5);
-    EXPECT_TRUE(loadedDifferentCustomDefault.getDefaultValue() == 5);
+    EXPECT_EQ(noDefault.getDefaultValue(), 1);
+    EXPECT_EQ(customDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedSameNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedDifferentNoDefault.getDefaultValue(), 0);
+    EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
+    EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
 }
 
 TEST(Default, UpdateUpdateIteration)

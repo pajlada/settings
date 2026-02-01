@@ -48,11 +48,11 @@ TEST(Misc, Array)
     // It will only be true if the settings above area created with
     // "SaveInitialValue", or if "SaveOnChange" is enabled and the value has
     // been changed
-    EXPECT_TRUE(SettingManager::arraySize("/array", sm) == 3);
+    EXPECT_EQ(SettingManager::arraySize("/array", sm), 3);
 
     EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.array_test.json"));
 
-    EXPECT_TRUE(SettingManager::arraySize("/array", sm) == 3);
+    EXPECT_EQ(SettingManager::arraySize("/array", sm), 3);
 }
 
 TEST(Misc, ArraySize)
@@ -62,13 +62,13 @@ TEST(Misc, ArraySize)
 
     EXPECT_EQ(sm->loadFrom("files/in.array_size.json"), LoadError::NoError);
 
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize1", sm) == 1);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize2", sm) == 2);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize3", sm) == 3);
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize4", sm) == 4);
+    EXPECT_EQ(SettingManager::arraySize("/arraySize1", sm), 1);
+    EXPECT_EQ(SettingManager::arraySize("/arraySize2", sm), 2);
+    EXPECT_EQ(SettingManager::arraySize("/arraySize3", sm), 3);
+    EXPECT_EQ(SettingManager::arraySize("/arraySize4", sm), 4);
 
     // Not an array
-    EXPECT_TRUE(SettingManager::arraySize("/arraySize5", sm) == 0);
+    EXPECT_EQ(SettingManager::arraySize("/arraySize5", sm), 0);
 }
 
 TEST(Misc, Vector)
@@ -82,11 +82,11 @@ TEST(Misc, Vector)
 
     auto vec = test.getValue();
 
-    EXPECT_TRUE(vec.size() == 3);
+    EXPECT_EQ(vec.size(), 3);
 
-    EXPECT_TRUE(vec.at(0) == 5);
-    EXPECT_TRUE(vec.at(1) == 10);
-    EXPECT_TRUE(vec.at(2) == 15);
+    EXPECT_EQ(vec.at(0), 5);
+    EXPECT_EQ(vec.at(1), 10);
+    EXPECT_EQ(vec.at(2), 15);
 
     std::vector<int> x = {1, 2, 3};
 
@@ -102,32 +102,31 @@ TEST(Misc, ChannelManager)
 
     ChannelManager manager(sm);
 
-    EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    EXPECT_EQ(manager.channels.size(), pajlada::test::NUM_CHANNELS);
 
     for (size_t i = 0; i < manager.channels.size(); ++i) {
-        EXPECT_TRUE(manager.channels.at(i).name.getValue() ==
-                    "Name not loaded");
+        EXPECT_EQ(manager.channels.at(i).name.getValue(), "Name not loaded");
     }
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/channelmanager.json"));
 
-    EXPECT_TRUE(manager.channels.at(0).name.getValue() == "pajlada");
-    EXPECT_TRUE(manager.channels.at(1).name.getValue() == "hemirt");
-    EXPECT_TRUE(manager.channels.at(2).name.getValue() == "gempir");
+    EXPECT_EQ(manager.channels.at(0).name.getValue(), "pajlada");
+    EXPECT_EQ(manager.channels.at(1).name.getValue(), "hemirt");
+    EXPECT_EQ(manager.channels.at(2).name.getValue(), "gempir");
 
     // Last channel should always be unset
-    EXPECT_TRUE(
-        manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue() ==
+    EXPECT_EQ(
+        manager.channels.at(pajlada::test::NUM_CHANNELS - 1).name.getValue(),
         "Name not loaded");
 
     for (auto i = 4; i < pajlada::test::NUM_CHANNELS; ++i) {
         manager.channels.at(i).name = "From file FeelsGoodMan";
     }
 
-    EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    EXPECT_EQ(manager.channels.size(), pajlada::test::NUM_CHANNELS);
     EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.test3.json"));
     // TODO: Confirm out.test3.json looks correct by comparing it to a manually reviewed file
-    EXPECT_TRUE(manager.channels.size() == pajlada::test::NUM_CHANNELS);
+    EXPECT_EQ(manager.channels.size(), pajlada::test::NUM_CHANNELS);
 }
 
 TEST(Misc, Channel)
@@ -139,22 +138,22 @@ TEST(Misc, Channel)
     Channel chPajlada("pajlada", sm);
 
     // Pre-load
-    EXPECT_TRUE(chHemirt.maxMessageLength == 240);
-    EXPECT_TRUE(chPajlada.maxMessageLength == 240);
+    EXPECT_EQ(chHemirt.maxMessageLength, 240);
+    EXPECT_EQ(chPajlada.maxMessageLength, 240);
 
     // Load default file
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/d.channels.json"));
 
     // Post defaults load
-    EXPECT_TRUE(chHemirt.maxMessageLength.getValue() == 200);
-    EXPECT_TRUE(chPajlada.maxMessageLength == 240);
+    EXPECT_EQ(chHemirt.maxMessageLength.getValue(), 200);
+    EXPECT_EQ(chPajlada.maxMessageLength, 240);
 
     // Load custom file
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/channels.json"));
 
     // Post channels load
-    EXPECT_TRUE(chHemirt.maxMessageLength == 300);
-    EXPECT_TRUE(chPajlada.maxMessageLength == 500);
+    EXPECT_EQ(chHemirt.maxMessageLength, 300);
+    EXPECT_EQ(chPajlada.maxMessageLength, 500);
 }
 
 TEST(Misc, LoadFilesInvalidFiles)
@@ -191,9 +190,9 @@ TEST(Misc, Misc)
     sm->saveMethod = SaveMethod::SaveManually;
 
     Setting<int> test1("/test", sm);
-    EXPECT_TRUE(test1.getPath() == "/test");
-    EXPECT_TRUE(test1.getData().lock()->getPath() == "/test");
-    EXPECT_TRUE(test1.getData().lock()->getPath() == test1.getPath());
+    EXPECT_EQ(test1.getPath(), "/test");
+    EXPECT_EQ(test1.getData().lock()->getPath(), "/test");
+    EXPECT_EQ(test1.getData().lock()->getPath(), test1.getPath());
 }
 
 TEST(Misc, Stringify)
@@ -210,28 +209,28 @@ TEST(Misc, MoveSet)
 
     int v = 69;
     Setting<int> test1("/test", sm);
-    EXPECT_TRUE(test1 == 0);
+    EXPECT_EQ(test1, 0);
     test1 = 3;
-    EXPECT_TRUE(test1 == 3);
+    EXPECT_EQ(test1, 3);
     test1 = std::move(v);
-    EXPECT_TRUE(test1 == 69);
+    EXPECT_EQ(test1, 69);
 
     std::string v2("lol");
     Setting<std::string> test2("/test", sm);
-    EXPECT_TRUE(test2 == "");
-    EXPECT_TRUE(test2.getValue() == "");
+    EXPECT_EQ(test2, "");
+    EXPECT_EQ(test2.getValue(), "");
     test2 = "hej";
-    EXPECT_TRUE(test2 == "hej");
-    EXPECT_TRUE(test2.getValue() == "hej");
+    EXPECT_EQ(test2, "hej");
+    EXPECT_EQ(test2.getValue(), "hej");
     test2 = std::move(v2);
-    EXPECT_TRUE(test2 == "lol");
-    EXPECT_TRUE(test2.getValue() == "lol");
+    EXPECT_EQ(test2, "lol");
+    EXPECT_EQ(test2.getValue(), "lol");
 
     const auto &lol = test2;
 
     const auto &hehe = lol.getValue();
-    EXPECT_TRUE(hehe == "lol");
-    EXPECT_TRUE(lol.getValue() == "lol");
-    EXPECT_TRUE(lol.getValue() == "lol");
-    EXPECT_TRUE(lol.getValue() == "lol");
+    EXPECT_EQ(hehe, "lol");
+    EXPECT_EQ(lol.getValue(), "lol");
+    EXPECT_EQ(lol.getValue(), "lol");
+    EXPECT_EQ(lol.getValue(), "lol");
 }

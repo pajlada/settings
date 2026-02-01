@@ -25,7 +25,7 @@ TEST(Serialize, VectorBeforeLoading)
     Setting<std::vector<std::string>> a("/a", sm);
     auto vec = a.getValue();
 
-    EXPECT_TRUE(vec.size() == 0);
+    EXPECT_EQ(vec.size(), 0);
 }
 
 TEST(Serialize, VectorAfterSetting)
@@ -37,7 +37,7 @@ TEST(Serialize, VectorAfterSetting)
     Setting<std::vector<std::string>> a("/a", sm);
     a = data;
 
-    EXPECT_TRUE(a.getValue().size() == data.size());
+    EXPECT_EQ(a.getValue().size(), data.size());
     EXPECT_EQ(a.getValue(), data);
 }
 
@@ -184,10 +184,10 @@ TEST(Serialize, Int1)
     sm->saveMethod = SaveMethod::SaveManually;
 
     Setting<int> a("/a", sm);
-    EXPECT_TRUE(a == 0);
-    EXPECT_TRUE(a.getValue() == 0);
+    EXPECT_EQ(a, 0);
+    EXPECT_EQ(a.getValue(), 0);
     int val = a;
-    EXPECT_TRUE(val == 0);
+    EXPECT_EQ(val, 0);
 }
 
 TEST(Serialize, Int2)
@@ -199,10 +199,10 @@ TEST(Serialize, Int2)
     Setting<int> a("/a", sm);
     a = data;
 
-    EXPECT_TRUE(a == data);
-    EXPECT_TRUE(a.getValue() == data);
+    EXPECT_EQ(a, data);
+    EXPECT_EQ(a.getValue(), data);
     int val = a;
-    EXPECT_TRUE(val == data);
+    EXPECT_EQ(val, data);
 }
 
 TEST(Serialize, Int3)
@@ -256,66 +256,66 @@ TEST(Serialize, Bool)
 
     Setting<bool> a("/a", sm);
 
-    EXPECT_TRUE(a == false);
-    EXPECT_TRUE(a.getValue() == false);
+    EXPECT_EQ(a, false);
+    EXPECT_EQ(a.getValue(), false);
     val = a;
-    EXPECT_TRUE(val == false);
+    EXPECT_EQ(val, false);
 
     a = data;
 
-    EXPECT_TRUE(a == data);
-    EXPECT_TRUE(a.getValue() == data);
+    EXPECT_EQ(a, data);
+    EXPECT_EQ(a.getValue(), data);
     val = a;
-    EXPECT_TRUE(val == data);
+    EXPECT_EQ(val, data);
 
     a = false;
 
-    EXPECT_TRUE(a == false);
-    EXPECT_TRUE(a.getValue() == false);
+    EXPECT_EQ(a, false);
+    EXPECT_EQ(a.getValue(), false);
     val = a;
-    EXPECT_TRUE(val == false);
+    EXPECT_EQ(val, false);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.serialize.bool.json"));
-    EXPECT_TRUE(a == true);
-    EXPECT_TRUE(a.getValue() == true);
+    EXPECT_EQ(a, true);
+    EXPECT_EQ(a.getValue(), true);
     val = a;
-    EXPECT_TRUE(val == true);
+    EXPECT_EQ(val, true);
 
     ASSERT_EQ(LoadError::NoError,
               sm->loadFrom("files/in.serialize.bool2.json"));
-    EXPECT_TRUE(a == false);
-    EXPECT_TRUE(a.getValue() == false);
+    EXPECT_EQ(a, false);
+    EXPECT_EQ(a.getValue(), false);
     val = a;
-    EXPECT_TRUE(val == false);
+    EXPECT_EQ(val, false);
 
     ASSERT_EQ(LoadError::NoError,
               sm->loadFrom("files/in.serialize.bool3.json"));
-    EXPECT_TRUE(a == true);
-    EXPECT_TRUE(a.getValue() == true);
+    EXPECT_EQ(a, true);
+    EXPECT_EQ(a.getValue(), true);
     val = a;
-    EXPECT_TRUE(val == true);
+    EXPECT_EQ(val, true);
 
     ASSERT_EQ(LoadError::NoError,
               sm->loadFrom("files/in.serialize.bool4.json"));
-    EXPECT_TRUE(a == false);
-    EXPECT_TRUE(a.getValue() == false);
+    EXPECT_EQ(a, false);
+    EXPECT_EQ(a.getValue(), false);
     val = a;
-    EXPECT_TRUE(val == false);
+    EXPECT_EQ(val, false);
 
     a = true;
-    EXPECT_TRUE(a == true);
-    EXPECT_TRUE(a.getValue() == true);
+    EXPECT_EQ(a, true);
+    EXPECT_EQ(a.getValue(), true);
     val = a;
-    EXPECT_TRUE(val == true);
+    EXPECT_EQ(val, true);
     EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.serialize.bool.json"));
     EXPECT_TRUE(
         FilesMatch("in.serialize.bool.json", "out.serialize.bool.json"));
 
     a = false;
-    EXPECT_TRUE(a == false);
-    EXPECT_TRUE(a.getValue() == false);
+    EXPECT_EQ(a, false);
+    EXPECT_EQ(a.getValue(), false);
     val = a;
-    EXPECT_TRUE(val == false);
+    EXPECT_EQ(val, false);
     EXPECT_EQ(SaveResult::Success, sm->saveAs("files/out.serialize.bool.json"));
     EXPECT_TRUE(
         FilesMatch("in.serialize.bool.false.json", "out.serialize.bool.json"));

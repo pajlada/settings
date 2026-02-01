@@ -19,16 +19,16 @@ TEST(Remove, Simple)
     Setting<int> c("/rs/c", sm);
 
     // Before loading
-    EXPECT_TRUE(a == 0);
-    EXPECT_TRUE(b == 5);
-    EXPECT_TRUE(c == 0);
+    EXPECT_EQ(a, 0);
+    EXPECT_EQ(b, 5);
+    EXPECT_EQ(c, 0);
 
     ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.removesetting.json"));
 
     // After loading
-    EXPECT_TRUE(a == 5);
-    EXPECT_TRUE(b == 10);
-    EXPECT_TRUE(c == 0);
+    EXPECT_EQ(a, 5);
+    EXPECT_EQ(b, 10);
+    EXPECT_EQ(c, 0);
 
     ASSERT_EQ(SaveResult::Success,
               sm->saveAs("files/out.pre.removesetting.json"));
@@ -54,21 +54,21 @@ TEST(Remove, Nested)
     Setting<int> e("/root/e", 20, sm);
 
     // Before loading
-    EXPECT_TRUE(a == 5);
-    EXPECT_TRUE(b == 10);
-    EXPECT_TRUE(c == 15);
-    EXPECT_TRUE(d == 0);
-    EXPECT_TRUE(e == 20);
+    EXPECT_EQ(a, 5);
+    EXPECT_EQ(b, 10);
+    EXPECT_EQ(c, 15);
+    EXPECT_EQ(d, 0);
+    EXPECT_EQ(e, 20);
 
     ASSERT_EQ(LoadError::NoError,
               sm->loadFrom("files/in.removenestedsetting.json"));
 
     // After loading
-    EXPECT_TRUE(a == 6);
-    EXPECT_TRUE(b == 11);
-    EXPECT_TRUE(c == 15);
-    EXPECT_TRUE(d == 0);
-    EXPECT_TRUE(e == 21);
+    EXPECT_EQ(a, 6);
+    EXPECT_EQ(b, 11);
+    EXPECT_EQ(c, 15);
+    EXPECT_EQ(d, 0);
+    EXPECT_EQ(e, 21);
 
     EXPECT_TRUE(a.isValid());
     EXPECT_TRUE(b.isValid());
