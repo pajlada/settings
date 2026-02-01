@@ -64,7 +64,7 @@ if(PAJLADA_SETTINGS_COVERAGE)
         )
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Pajlada::Settings)
+target_link_libraries(${PROJECT_NAME} PRIVATE PajladaSettings PajladaSignals PajladaSerialize)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
 gtest_discover_tests(${PROJECT_NAME})
 
