@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.4.0
+
 - Breaking: Removed `SettingManager`s `pp`, `gPP`, and `stringify` functions. (#153)
 - Breaking: `SettingManager::removeSetting` is no longer static. A static replacement is available as `SettingManager::gRemoveSetting`. Avoid using `Setting::remove()` if possible. (#151)
 - Minor: Added a load option to `SettingManager` that allows for taking the `.tmp` file into consideration when loading a settings file. (#155)
