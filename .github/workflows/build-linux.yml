@@ -97,6 +97,17 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
 
+      - name: Install dependencies
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
+        run: |
+          cmake -B build-pajlada-serialize external/serialize
+          sudo cmake --install build-pajlada-serialize
+
+          cmake -B build-pajlada-signals external/signals
+          sudo cmake --install build-pajlada-signals
+
       - name: Build example (source dir)
         env:
           CC: ${{ steps.install_cc.outputs.cc }}
