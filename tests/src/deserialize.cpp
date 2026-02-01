@@ -140,22 +140,22 @@ TEST_F(FDeserialize2, Int)
 
     error = false;
     DD_THROWS(v = Deserialize<int>::get(jString, &error));
-    EXPECT_EQ(error, true);
+    EXPECT_TRUE(error);
     REQUIRE_IF_NOEXCEPT2(v, 0);
 
     error = false;
     v = Deserialize<int>::get(jInt, &error);
-    EXPECT_EQ(error, false);
+    EXPECT_FALSE(error);
     EXPECT_EQ(v, 5);
 
     error = false;
     DD_THROWS(v = Deserialize<int>::get(jBool, &error));
-    EXPECT_EQ(error, true);
+    EXPECT_TRUE(error);
     REQUIRE_IF_NOEXCEPT2(v, 0);
 
     error = false;
     v = Deserialize<int>::get(jDouble, &error);
-    EXPECT_EQ(error, false);
+    EXPECT_FALSE(error);
     EXPECT_EQ(v, 6);
 }
 
@@ -165,21 +165,21 @@ TEST_F(FDeserialize2, String)
 
     error = false;
     v = Deserialize<std::string>::get(this->jString, &error);
-    EXPECT_EQ(error, false);
+    EXPECT_FALSE(error);
     EXPECT_EQ(v, "asd");
 
     error = false;
     DD_THROWS(v = Deserialize<std::string>::get(jInt, &error));
-    EXPECT_EQ(error, true);
+    EXPECT_TRUE(error);
     REQUIRE_IF_NOEXCEPT2(v, "");
 
     error = false;
     DD_THROWS(v = Deserialize<std::string>::get(jBool, &error));
-    EXPECT_EQ(error, true);
+    EXPECT_TRUE(error);
     REQUIRE_IF_NOEXCEPT2(v, "");
 
     error = false;
     DD_THROWS(v = Deserialize<std::string>::get(this->jDouble, &error));
-    EXPECT_EQ(error, true);
+    EXPECT_TRUE(error);
     REQUIRE_IF_NOEXCEPT2(v, "");
 }
