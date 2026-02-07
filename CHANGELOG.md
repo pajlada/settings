@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.5.0
+
 - Breaking: In CMake, PajladaSerialize and PajladaSignals are now private so you need to include them yourself. (#164)
 - Dev: Don't export target under `Pajlada::` namespace. (#164)
 
