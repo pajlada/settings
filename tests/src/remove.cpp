@@ -157,4 +157,6 @@ TEST(Remove, Invalidated)
 
     // After the setting is removed, it can no longer be used
     ASSERT_FALSE(a.isValid());
+
+    EXPECT_DEATH({ a = 7; }, "Assertion `this->isValid\\(\\)' failed");
 }
