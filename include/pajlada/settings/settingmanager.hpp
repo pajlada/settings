@@ -114,6 +114,12 @@ public:
     /// Returns true if a setting was removed
     bool removeSetting(const std::string &path);
 
+    /// Removes the setting from the JSON document, but leaving the internal settings intact.
+    /// If the setting is an object or array, any child settings will also be removed.
+    ///
+    /// Returns true if a setting was removed
+    bool removeSettingSoft(const std::string &path);
+
 private:
     template <typename Type>
     friend class Setting;

@@ -1,6 +1,6 @@
 /build*/
 
 # save files
-files/out.*.json
-files/out.*.json.tmp
-files/out.*.json.bkp-*
+files/**/out.*.json
+files/**/out.*.json.tmp
+files/**/out.*.json.bkp-*

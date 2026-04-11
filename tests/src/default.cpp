@@ -2,7 +2,10 @@
 
 #include <pajlada/settings.hpp>
 
+#include "common.hpp"
+
 using namespace pajlada::Settings;
+using SaveResult = SettingManager::SaveResult;
 using SaveMethod = SettingManager::SaveMethod;
 using LoadError = pajlada::Settings::SettingManager::LoadError;
 
@@ -10,6 +13,7 @@ TEST(Default, Reset)
 {
     auto sm = std::make_shared<SettingManager>();
     sm->saveMethod = SaveMethod::SaveManually;
+    sm->setBackupEnabled(false);
 
     // No custom default value, not available in the settings file
     Setting<int> noDefault("/noDefault", sm);
@@ -52,6 +56,9 @@ TEST(Default, Reset)
     EXPECT_EQ(loadedSameCustomDefault, 5);
     EXPECT_EQ(loadedDifferentCustomDefault, 5);
 
+    ASSERT_EQ(SaveResult::Success, sm->saveAs("files/out.default.reset.json"));
+    AssertFilesMatch("expected.default.reset.1.json", "out.default.reset.json");
+
     // Before loading, after resetting all values to their default value
     noDefault.resetToDefaultValue();
     customDefault.resetToDefaultValue();
@@ -59,6 +66,10 @@ TEST(Default, Reset)
     loadedDifferentNoDefault.resetToDefaultValue();
     loadedSameCustomDefault.resetToDefaultValue();
     loadedDifferentCustomDefault.resetToDefaultValue();
+
+    // Resetting to default value should not make a difference here - they were already default
+    ASSERT_EQ(SaveResult::Success, sm->saveAs("files/out.default.reset.json"));
+    AssertFilesMatch("expected.default.reset.1.json", "out.default.reset.json");
 
     EXPECT_EQ(noDefault.getDefaultValue(), 0);
     EXPECT_EQ(customDefault.getDefaultValue(), 5);
@@ -74,7 +85,7 @@ TEST(Default, Reset)
     EXPECT_EQ(loadedSameCustomDefault, 5);
     EXPECT_EQ(loadedDifferentCustomDefault, 5);
 
-    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.resettodefault.json"));
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.default.reset.json"));
 
     // value does not exist in json file, so should still be same as default
     EXPECT_TRUE(noDefault.isDefaultValue());
@@ -83,11 +94,11 @@ TEST(Default, Reset)
     // value exists in json file, and it's the same as the implicit default value
     EXPECT_TRUE(loadedSameNoDefault.isDefaultValue());
     // value exists in json file, but it's different from the implicit default value
-    EXPECT_TRUE(!loadedDifferentNoDefault.isDefaultValue());
+    EXPECT_FALSE(loadedDifferentNoDefault.isDefaultValue());
     // value exists in json file, and it's the same as the explicit default value
     EXPECT_TRUE(loadedSameCustomDefault.isDefaultValue());
     // value exists in json file, but it's different from the explicit default value
-    EXPECT_TRUE(!loadedDifferentCustomDefault.isDefaultValue());
+    EXPECT_FALSE(loadedDifferentCustomDefault.isDefaultValue());
 
     // After loading
     EXPECT_EQ(noDefault, 0);
@@ -104,6 +115,11 @@ TEST(Default, Reset)
     EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
     EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
 
+    // Some of the values were changed as part of the previous load call
+    // This should be reflected in the save file now
+    ASSERT_EQ(SaveResult::Success, sm->saveAs("files/out.default.reset.json"));
+    AssertFilesMatch("in.default.reset.json", "out.default.reset.json");
+
     // Reset all values to their default values
     noDefault.resetToDefaultValue();
     customDefault.resetToDefaultValue();
@@ -118,6 +134,10 @@ TEST(Default, Reset)
     EXPECT_TRUE(loadedDifferentNoDefault.isDefaultValue());
     EXPECT_TRUE(loadedSameCustomDefault.isDefaultValue());
     EXPECT_TRUE(loadedDifferentCustomDefault.isDefaultValue());
+
+    // After resetting all settings to their default values, saving should now again save an empty object
+    ASSERT_EQ(SaveResult::Success, sm->saveAs("files/out.default.reset.json"));
+    AssertFilesMatch("expected.default.reset.1.json", "out.default.reset.json");
 
     EXPECT_EQ(noDefault.getDefaultValue(), 0);
     EXPECT_EQ(customDefault.getDefaultValue(), 5);
@@ -152,6 +172,36 @@ TEST(Default, Reset)
     EXPECT_EQ(loadedDifferentNoDefault.getDefaultValue(), 0);
     EXPECT_EQ(loadedSameCustomDefault.getDefaultValue(), 5);
     EXPECT_EQ(loadedDifferentCustomDefault.getDefaultValue(), 5);
+}
+
+TEST(Default, ResetAfterSetting)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+    sm->setBackupEnabled(false);
+
+    Setting<int> a("/a", 5, sm);
+
+    ASSERT_EQ(a, 5);
+
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.default.reset-after-setting.json"));
+    AssertFilesMatch("expected.default.reset-after-setting.1.json",
+                     "out.default.reset-after-setting.json");
+
+    a = 3;
+
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.default.reset-after-setting.json"));
+    AssertFilesMatch("expected.default.reset-after-setting.2.json",
+                     "out.default.reset-after-setting.json");
+
+    a.resetToDefaultValue();
+
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.default.reset-after-setting.json"));
+    AssertFilesMatch("expected.default.reset-after-setting.3.json",
+                     "out.default.reset-after-setting.json");
 }
 
 TEST(Default, UpdateUpdateIteration)

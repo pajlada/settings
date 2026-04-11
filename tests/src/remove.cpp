@@ -160,3 +160,57 @@ TEST(Remove, Invalidated)
 
     EXPECT_DEATH({ a = 7; }, "this->isValid\\(\\)");
 }
+
+TEST(Remove, Soft)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+    sm->setBackupEnabled(false);
+
+    Setting<int> a("/rs/a", sm);
+    Setting<int> b("/rs/b", 5, sm);
+    Setting<int> c("/rs/c", sm);
+
+    // Before loading
+    ASSERT_EQ(a, 0);
+    ASSERT_EQ(b, 5);
+    ASSERT_EQ(c, 0);
+
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.removesetting-soft.json"));
+
+    // After loading
+    ASSERT_EQ(a, 5);
+    ASSERT_EQ(b, 10);
+    ASSERT_EQ(c, 0);
+
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.removesetting-soft.json"));
+    AssertFilesMatch("expected.removesetting-soft.1.json",
+                     "out.removesetting-soft.json");
+
+    // C was not defined, so removeSettingSoft should return false
+    ASSERT_FALSE(sm->removeSettingSoft(c.getPath()));
+
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.removesetting-soft.json"));
+    AssertFilesMatch("expected.removesetting-soft.1.json",
+                     "out.removesetting-soft.json");
+
+    // A was defined, so removeSetting should return true only the first time
+    ASSERT_TRUE(sm->removeSettingSoft(a.getPath()));
+    ASSERT_FALSE(sm->removeSettingSoft(a.getPath()));
+
+    ASSERT_EQ(SaveResult::Success,
+              sm->saveAs("files/out.removesetting-soft.json"));
+    AssertFilesMatch("expected.removesetting-soft.2.json",
+                     "out.removesetting-soft.json");
+
+    // Since we used removeSettingSoft, the setting should still be valid for use.
+    ASSERT_TRUE(a.isValid());
+
+    ASSERT_TRUE(a.setValue(15));
+
+    AssertFilesDontMatch("out.pre.removesetting.json",
+                         "out.post.removesetting.json");
+}
