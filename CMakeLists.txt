@@ -73,7 +73,7 @@ FetchContent_Declare(
     PajladaSerialize
     SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/serialize
     EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS 0.2.1 CONFIG
+    FIND_PACKAGE_ARGS 0.3.0 CONFIG
 )
 
 FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)

@@ -43,6 +43,10 @@ add_executable(${PROJECT_NAME}
 
     src/option-compare-before-set.cpp
 
+    src/complex.cpp
+
+    src/highlights-variant.cpp
+
     src/common.cpp
     )
 

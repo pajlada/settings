@@ -1,0 +1,14 @@
+{
+    "highlights": [
+        {
+            "id": "yourusername"
+        },
+        {
+            "id": "whispers",
+            "enabled": false
+        },
+        {
+            "id": "subscriptions"
+        }
+    ]
+}
