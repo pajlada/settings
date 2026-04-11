@@ -38,8 +38,8 @@ TEST(Remove, Simple)
     EXPECT_EQ(SaveResult::Success,
               sm->saveAs("files/out.post.removesetting.json"));
 
-    EXPECT_TRUE(!FilesMatch("out.pre.removesetting.json",
-                            "out.post.removesetting.json"));
+    AssertFilesDontMatch("out.pre.removesetting.json",
+                         "out.post.removesetting.json");
 }
 
 TEST(Remove, Nested)
@@ -78,8 +78,9 @@ TEST(Remove, Nested)
 
     EXPECT_EQ(SaveResult::Success,
               sm->saveAs("files/out.removenestedsetting.state1.json"));
-    EXPECT_TRUE(FilesMatch("out.removenestedsetting.state1.json",
-                           "in.removenestedsetting.state1.json"));
+
+    AssertFilesMatch("in.removenestedsetting.state1.json",
+                     "out.removenestedsetting.state1.json");
 
     EXPECT_TRUE(sm->removeSetting("/root/nested/a"));
 
@@ -91,8 +92,8 @@ TEST(Remove, Nested)
 
     EXPECT_EQ(SaveResult::Success,
               sm->saveAs("files/out.removenestedsetting.state2.json"));
-    EXPECT_TRUE(FilesMatch("out.removenestedsetting.state2.json",
-                           "in.removenestedsetting.state2.json"));
+    AssertFilesMatch("in.removenestedsetting.state2.json",
+                     "out.removenestedsetting.state2.json");
 
     EXPECT_TRUE(sm->removeSetting("/root/nested"));
 
@@ -104,6 +105,6 @@ TEST(Remove, Nested)
 
     EXPECT_EQ(SaveResult::Success,
               sm->saveAs("files/out.removenestedsetting.state3.json"));
-    EXPECT_TRUE(FilesMatch("out.removenestedsetting.state3.json",
-                           "in.removenestedsetting.state3.json"));
+    AssertFilesMatch("in.removenestedsetting.state3.json",
+                     "out.removenestedsetting.state3.json");
 }
