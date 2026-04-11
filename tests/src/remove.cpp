@@ -108,3 +108,53 @@ TEST(Remove, Nested)
     AssertFilesMatch("in.removenestedsetting.state3.json",
                      "out.removenestedsetting.state3.json");
 }
+
+TEST(Remove, MultipleCalls)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/rs/a", sm);
+    Setting<int> b("/rs/b", 5, sm);
+    Setting<int> c("/rs/c", sm);
+
+    // Before loading
+    EXPECT_EQ(a, 0);
+    EXPECT_EQ(b, 5);
+    EXPECT_EQ(c, 0);
+
+    ASSERT_EQ(LoadError::NoError, sm->loadFrom("files/in.removesetting.json"));
+
+    // After loading
+    EXPECT_EQ(a, 5);
+    EXPECT_EQ(b, 10);
+    EXPECT_EQ(c, 0);
+
+    // C was not defined, so removeSetting should return false
+    EXPECT_FALSE(sm->removeSetting(c.getPath()));
+
+    // A was defined, so removeSetting should return true only the first time
+    EXPECT_TRUE(sm->removeSetting(a.getPath()));
+    EXPECT_FALSE(sm->removeSetting(a.getPath()));
+}
+
+TEST(Remove, Invalidated)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+
+    Setting<int> a("/a", sm);
+
+    ASSERT_EQ(a, 0);
+
+    a = 3;
+
+    ASSERT_EQ(a, 3);
+
+    ASSERT_TRUE(a.isValid());
+
+    ASSERT_TRUE(sm->removeSetting(a.getPath()));
+
+    // After the setting is removed, it can no longer be used
+    ASSERT_FALSE(a.isValid());
+}
