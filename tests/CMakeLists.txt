@@ -68,7 +68,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE PajladaSettings PajladaSignals Paj
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
 gtest_discover_tests(${PROJECT_NAME})
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SETTINGS_DEBUG)
+target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SETTINGS_LOG_VERBOSE)
+target_compile_definitions(${PROJECT_NAME} PRIVATE PAJLADA_SERIALIZE_LOG_VERBOSE)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)

@@ -21,6 +21,8 @@ include(GNUInstallDirs)
 
 option(PAJLADA_SETTINGS_USE_CONAN "Use conan file manager to handle dependencies" OFF)
 option(PAJLADA_SETTINGS_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+option(PAJLADA_SETTINGS_VERBOSE_TESTS "Verbose tests" OFF)
+mark_as_advanced(PAJLADA_SETTINGS_VERBOSE_TESTS)
 
 # default to static lib on MSVC
 if (MSVC)
@@ -123,6 +125,10 @@ endif()
 
 # Enable std::string overloads - this needs to be public because we use these overloads in headers
 target_compile_definitions(PajladaSettings PUBLIC RAPIDJSON_HAS_STDSTRING=1)
+
+if (PAJLADA_SETTINGS_VERBOSE_TESTS)
+    target_compile_definitions(PajladaSettings PRIVATE PAJLADA_SETTINGS_LOG_VERBOSE)
+endif ()
 
 target_link_libraries(PajladaSettings PRIVATE PajladaSignals)
 target_link_libraries(PajladaSettings PRIVATE PajladaSerialize)
