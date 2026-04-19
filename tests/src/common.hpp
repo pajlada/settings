@@ -20,6 +20,23 @@ std::string ReadFileE(const std::filesystem::path &path);
 
 bool FilesMatch(const std::string &fileName1, const std::string &fileName2);
 
+/// Assert that the contents of the two files match
+///
+/// This will load the files contents as JSON files & pretty-print them,
+/// meaning formatting does not matter.
+void AssertFilesMatch(const std::string &expectedFilename,
+                      const std::string &actualFilename);
+
+/// Assert that the contents of the two files don't match
+///
+/// This will load the files contents as JSON files & pretty-print them,
+/// meaning formatting does not matter.
+void AssertFilesDontMatch(const std::string &expectedFilename,
+                          const std::string &actualFilename);
+
+/// Asserts that the given RapidJSON value matches the expected string when pretty-stringified
+void AssertValueMatch(std::string_view expected, const rapidjson::Value &v);
+
 bool RemoveFile(const std::filesystem::path &path);
 
 void RJPrettyPrint(const std::shared_ptr<pajlada::Settings::SettingManager> &sm,

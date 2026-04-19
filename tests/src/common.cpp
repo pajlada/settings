@@ -66,6 +66,68 @@ FilesMatch(const std::string &fileName1, const std::string &fileName2)
     return content1 == content2;
 }
 
+void
+AssertFilesMatch(const std::string &expectedFilename,
+                 const std::string &actualFilename)
+{
+    std::string expectedFullPath = initialPath + expectedFilename;
+    std::string actualFullPath = initialPath + actualFilename;
+
+    auto cleanContent = [](const std::string &content) -> std::string {
+        rapidjson::Document doc;
+        doc.Parse(content);
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        doc.Accept(writer);
+        return {buffer.GetString()};
+    };
+
+    auto expectedData = cleanContent(ReadFile(expectedFullPath));
+    auto actualData = cleanContent(ReadFile(actualFullPath));
+
+    ASSERT_EQ(expectedData, actualData)
+        << "Contents of expected file at " << expectedFullPath
+        << " did not match contents of actual file at " << actualFullPath;
+}
+
+void
+AssertFilesDontMatch(const std::string &expectedFilename,
+                     const std::string &actualFilename)
+{
+    std::string expectedFullPath = initialPath + expectedFilename;
+    std::string actualFullPath = initialPath + actualFilename;
+
+    auto cleanContent = [](const std::string &content) -> std::string {
+        rapidjson::Document doc;
+        doc.Parse(content);
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        doc.Accept(writer);
+        return {buffer.GetString()};
+    };
+
+    auto expectedData = cleanContent(ReadFile(expectedFullPath));
+    auto actualData = cleanContent(ReadFile(actualFullPath));
+
+    ASSERT_NE(expectedData, actualData)
+        << "Contents of expected file at " << expectedFullPath
+        << " match contents of actual file at " << actualFullPath
+        << " while they should not match";
+}
+
+void
+AssertValueMatch(std::string_view expected, const rapidjson::Value &v)
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    v.Accept(writer);
+    std::string actual(buffer.GetString());
+
+    ASSERT_EQ(expected, actual);
+}
+
 bool
 RemoveFile(const std::filesystem::path &path)
 {
