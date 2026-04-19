@@ -325,6 +325,8 @@ public:
     bool
     setValue(const Type &newValue, SignalArgs &&args = SignalArgs())
     {
+        assert(this->isValid());
+
         if (this->optionEnabled(SettingOption::CompareBeforeSet)) {
             args.compareBeforeSet = true;
         }
