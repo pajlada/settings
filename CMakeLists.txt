@@ -64,14 +64,14 @@ FetchContent_Declare(
     PajladaSignals
     SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/signals
     EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS CONFIG
+    FIND_PACKAGE_ARGS 0.1.1 CONFIG
 )
 
 FetchContent_Declare(
     PajladaSerialize
     SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/external/serialize
     EXCLUDE_FROM_ALL
-    FIND_PACKAGE_ARGS CONFIG
+    FIND_PACKAGE_ARGS 0.2.1 CONFIG
 )
 
 FetchContent_MakeAvailable(RapidJSON PajladaSignals PajladaSerialize)
