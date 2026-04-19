@@ -110,6 +110,8 @@ public:
 
     /// Invalidate the setting and all other settings that point at the same path
     /// If the setting is an object or array, any child settings will also be invalidated
+    ///
+    /// Returns true if a setting was removed
     bool removeSetting(const std::string &path);
 
 private:
