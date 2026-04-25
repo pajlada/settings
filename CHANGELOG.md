@@ -5,6 +5,8 @@
 - Breaking: Saving a setting that was previously set and is then reset to its default value with `resetToDefaultValue` will now omit that key if possible, instead of saving the Setting's default value in the JSON file. (#175)
 - Breaking: Removed support for GCC-10 & clang-14. (#176)
 - Minor: Added experimental `std::variant` support. Requires pre-release of PajladaSerialize. (#176)
+- Minor: You can now check if the setting would have returned a default value with `hasValueBeenSet`. (#177)
+- Bugfix: Resetting to a default value will now return the . (#177)
 
 ## v0.5.0
 
