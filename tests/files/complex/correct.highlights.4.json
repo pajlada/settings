@@ -1,0 +1,12 @@
+{
+    "highlights": [
+        {
+            "id": "subscription",
+            "pattern": "subscription pattern"
+        },
+        {
+            "id": "mention",
+            "pattern": "mention pattern"
+        }
+    ]
+}

@@ -2,7 +2,6 @@
 #include <rapidjson/writer.h>
 
 #include <fstream>
-#include <iostream>
 #include <pajlada/settings/backup.hpp>
 #include <pajlada/settings/detail/realpath.hpp>
 #include <pajlada/settings/internal.hpp>
@@ -45,6 +44,7 @@ bool
 SettingManager::set(const std::string &path, const rapidjson::Value &value,
                     SignalArgs args)
 {
+    PS_DEBUG("sm::set('" << path << "'): " << internal::pp(value));
     if (args.compareBeforeSet) {
         const auto *prevValue = rapidjson::Pointer(path).Get(this->document);
         if (prevValue != nullptr && *prevValue == value) {
@@ -53,12 +53,15 @@ SettingManager::set(const std::string &path, const rapidjson::Value &value,
     }
 
     if (args.resetToDefault) {
+        PS_DEBUG("sm::set('" << path << "'): reset to default");
         // Instead of updating the value in the RapidJSON document to the default value,
         // we attempt to remove the setting from the RapidJSON document.
         //
         // This achieves the same thing, but makes it possible in subsequent runs to understand
         // that the given setting should read its default value in case that has changed.
         if (!this->removeSettingSoft(path)) {
+            PS_DEBUG("sm::set('" << path
+                                 << "'): setting was not defined in document");
             // The setting was not defined in the document already - nothing changed
             return false;
         }
@@ -469,8 +472,13 @@ SettingManager::save(const std::filesystem::path &path)
 SettingManager::SaveResult
 SettingManager::saveAs(const std::filesystem::path &path)
 {
+    PS_DEBUG("sm::saveAs('" << path << "'): saving '"
+                            << internal::pp(this->document) << '\'');
+
     if (this->hasSaveMethodFlag(SaveMethod::OnlySaveIfChanged) &&
         !this->hasUnsavedChanges) {
+        PS_DEBUG("sm::saveAs('"
+                 << path << "'): skipping save, OnlySaveIfChanged is set");
         // No save necessary - no changes have been made
         return SaveResult::Skipped;
     }

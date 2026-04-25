@@ -2,11 +2,11 @@
 
 #include <rapidjson/document.h>
 
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <pajlada/settings/common.hpp>
 #include <pajlada/settings/equal.hpp>
+#include <pajlada/settings/internal.hpp>
 #include <pajlada/settings/settingdata.hpp>
 #include <pajlada/settings/settingmanager.hpp>
 #include <pajlada/signals.hpp>
@@ -403,6 +403,7 @@ public:
     void
     resetToDefaultValue(SignalArgs &&args = SignalArgs())
     {
+        PS_DEBUG("Setting::resetToDefaultValue('" << this->getPath() << "')");
         args.resetToDefault = true;
         this->setValue(this->defaultValue, std::move(args));
     }

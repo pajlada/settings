@@ -21,14 +21,9 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            compiler: g++-10
-          - os: ubuntu-22.04
             compiler: g++ # g++-11
           - os: ubuntu-22.04
             compiler: g++-12
-          - os: ubuntu-22.04
-            compiler: clang # clang-14
-            skip-coverage: true # skip coverage building on clang compilers for now
           - os: ubuntu-22.04
             compiler: clang-15
             skip-coverage: true # skip coverage building on clang compilers for now

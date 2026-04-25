@@ -6,7 +6,8 @@
       "displayName": "Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "PAJLADA_SETTINGS_BUILD_TESTS": true
+        "PAJLADA_SETTINGS_BUILD_TESTS": true,
+        "PAJLADA_SETTINGS_VERBOSE_TESTS": true
       }
     },
     {
