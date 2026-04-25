@@ -52,10 +52,24 @@ SettingManager::set(const std::string &path, const rapidjson::Value &value,
         }
     }
 
+    if (args.resetToDefault) {
+        // Instead of updating the value in the RapidJSON document to the default value,
+        // we attempt to remove the setting from the RapidJSON document.
+        //
+        // This achieves the same thing, but makes it possible in subsequent runs to understand
+        // that the given setting should read its default value in case that has changed.
+        if (!this->removeSettingSoft(path)) {
+            // The setting was not defined in the document already - nothing changed
+            return false;
+        }
+    }
+
     this->hasUnsavedChanges = true;
 
     if (args.writeToFile) {
-        rapidjson::Pointer(path).Set(this->document, value);
+        if (!args.resetToDefault) {
+            rapidjson::Pointer(path).Set(this->document, value);
+        }
 
         if (this->hasSaveMethodFlag(SaveMethod::SaveOnSettingChange)) {
             this->save();
@@ -272,6 +286,35 @@ bool
 SettingManager::removeSetting(const std::string &path)
 {
     return this->_removeSetting(path);
+}
+
+bool
+SettingManager::removeSettingSoft(const std::string &path)
+{
+    auto ptr = rapidjson::Pointer(path);
+
+    std::lock_guard<std::mutex> lock(this->settingsMutex);
+
+    std::string pathWithExtendor;
+    if (path.at(path.length() - 1) == '/') {
+        pathWithExtendor = path;
+    } else {
+        pathWithExtendor = path + '/';
+    }
+
+    auto iter = this->settings.begin();
+    auto endIter = this->settings.end();
+    for (; iter != endIter;) {
+        const auto &p = *iter;
+        if (p.first.compare(0, pathWithExtendor.length(), pathWithExtendor) ==
+            0) {
+            rapidjson::Pointer(p.first).Erase(this->document);
+        } else {
+            ++iter;
+        }
+    }
+
+    return ptr.Erase(this->document);
 }
 
 bool

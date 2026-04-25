@@ -403,6 +403,7 @@ public:
     void
     resetToDefaultValue(SignalArgs &&args = SignalArgs())
     {
+        args.resetToDefault = true;
         this->setValue(this->defaultValue, std::move(args));
     }
 
