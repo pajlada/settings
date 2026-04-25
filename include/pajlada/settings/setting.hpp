@@ -185,11 +185,11 @@ public:
     const Type &
     getValue() const
     {
+        PS_DEBUG("Setting::getValue('" << this->getPath() << "')");
         std::unique_lock<std::mutex> lock(this->valueMutex);
 
-        auto lockedSetting = this->data.lock();
-
-        if (!lockedSetting) {
+        const auto res = this->checkValueForUpdates();
+        if (res == CheckResult::InvalidSetting) {
             if (this->value) {
                 return *this->value;
             }
@@ -197,8 +197,7 @@ public:
             return this->defaultValue;
         }
 
-        auto currentUpdateIteration = lockedSetting->getUpdateIteration();
-        if (this->updateIteration == currentUpdateIteration) {
+        if (res == CheckResult::NothingChanged) {
             // Value hasn't been updated
             if (this->value) {
                 return *this->value;
@@ -206,16 +205,15 @@ public:
 
             return this->defaultValue;
         }
-        this->updateIteration = currentUpdateIteration;
 
-        auto p = lockedSetting->template unmarshal<Type>();
-        if (p) {
-            this->value = std::forward<decltype(p)>(p);
+        if (this->value.has_value()) {
+            PS_DEBUG("Setting::getValue('" << this->getPath()
+                                           << "'): returning value");
+            return this->value.value();
         }
 
-        if (this->value) {
-            return *this->value;
-        }
+        PS_DEBUG("Setting::getValue('" << this->getPath()
+                                       << "'): returning default value");
 
         return this->defaultValue;
     }
@@ -333,7 +331,11 @@ public:
 
         {
             std::unique_lock<std::mutex> lock(this->valueMutex);
-            this->value = newValue;
+            if (args.resetToDefault) {
+                this->value.reset();
+            } else {
+                this->value = newValue;
+            }
         }
 
         if (this->optionEnabled(SettingOption::DoNotWriteToJSON)) {
@@ -420,12 +422,25 @@ public:
         return this->defaultValue;
     }
 
-    // Returns true if the current value is the same as the default value
-    // std::any cannot be properly compared
+    /// Returns true if the current value is the same as the default value
+    /// std::any cannot be properly compared
     bool
     isDefaultValue() const
     {
         return IsEqual<Type>::get(this->getValue(), this->getDefaultValue());
+    }
+
+    /// Returns true if the setting has not been loaded from a json file,
+    /// not been set, or if it has had `resetToDefaultValue` called on it.
+    bool
+    hasValueBeenSet() const
+    {
+        std::unique_lock guard(this->valueMutex);
+
+        // Ensure the setting is up to date with the rapidjson::Document reality
+        this->checkValueForUpdates();
+
+        return this->value.has_value();
     }
 
     /// Remove will invalidate this setting and all other settings that point at the same path
@@ -751,6 +766,45 @@ public:
     }
 
 private:
+    enum class CheckResult : std::uint8_t {
+        InvalidSetting,
+        NothingChanged,
+        Updated,
+    };
+    CheckResult
+    checkValueForUpdates() const
+    {
+        auto lockedSetting = this->data.lock();
+
+        if (!lockedSetting) {
+            return CheckResult::InvalidSetting;
+        }
+
+        auto currentUpdateIteration = lockedSetting->getUpdateIteration();
+        if (this->updateIteration == currentUpdateIteration) {
+            return CheckResult::NothingChanged;
+        }
+
+        PS_DEBUG("Setting::checkValueForUpdates('"
+                 << this->getPath() << "'): Updated update iteration from "
+                 << this->updateIteration << " to " << currentUpdateIteration);
+        this->updateIteration = currentUpdateIteration;
+
+        auto p = lockedSetting->template unmarshal<Type>();
+        if (p) {
+            PS_DEBUG("Setting::checkValueForUpdates('"
+                     << this->getPath() << "'): setting & returning value");
+            this->value = std::forward<decltype(p)>(p);
+        } else {
+            PS_DEBUG("Setting::checkValueForUpdates('"
+                     << this->getPath()
+                     << "'): setting was reset, returning default value");
+            this->value.reset();
+        }
+
+        return CheckResult::Updated;
+    }
+
     std::vector<std::unique_ptr<Signals::ScopedConnection>> managedConnections;
 };
 
