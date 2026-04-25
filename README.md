@@ -60,10 +60,10 @@ class Server {
 
 | Version      | Compiler                      |
 | ------------ | ----------------------------- |
-| Ubuntu 22.04 | ✅ GCC 10 (`g++-10`)          |
+| Ubuntu 22.04 | ❌ GCC 10 (`g++-10`)          |
 | Ubuntu 22.04 | ✅ GCC 11 (default `g++`)     |
 | Ubuntu 22.04 | ✅ GCC 12 (`g++-12`)          |
-| Ubuntu 22.04 | ✅ Clang 14 (default `clang`) |
+| Ubuntu 22.04 | ❌ Clang 14 (default `clang`) |
 | Ubuntu 22.04 | ✅ Clang 15 (`clang-15`)      |
 | Ubuntu 24.04 | ✅ GCC 13 (default `g++`)     |
 | Ubuntu 24.04 | ✅ GCC 18 (default `clang`)   |
