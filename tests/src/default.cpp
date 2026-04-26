@@ -156,9 +156,9 @@ TEST(Default, Reset)
 
     noDefault.setDefaultValue(1);
 
-    EXPECT_EQ(noDefault, 0);
+    EXPECT_EQ(noDefault, 1);
 
-    EXPECT_FALSE(noDefault.isDefaultValue());
+    EXPECT_TRUE(noDefault.isDefaultValue());
 
     noDefault.resetToDefaultValue();
 
@@ -223,4 +223,91 @@ TEST(Default, UpdateUpdateIteration)
     EXPECT_EQ(setting.getUpdateIteration(), 0);
     EXPECT_EQ(setting.getValue(), 43);
     EXPECT_EQ(setting.getUpdateIteration(), 1);
+}
+
+TEST(Default, ResetTwo)
+{
+    auto sm = std::make_shared<SettingManager>();
+    sm->saveMethod = SaveMethod::SaveManually;
+    sm->setBackupEnabled(false);
+
+    // No custom default value, not available in the settings file
+    Setting<int> noDefault("/noDefault", sm);
+    Setting<int> other("/noDefault", sm);
+
+    ASSERT_EQ(noDefault.getDefaultValue(), 0);
+    ASSERT_EQ(other.getDefaultValue(), 0);
+
+    PS_DEBUG("noDefault getValue");
+    ASSERT_EQ(noDefault.getValue(), 0);
+    PS_DEBUG("other getValue");
+    ASSERT_EQ(other.getValue(), 0);
+
+    PS_DEBUG("noDefault isDefaultValue");
+    ASSERT_TRUE(noDefault.isDefaultValue());
+    PS_DEBUG("other isDefaultValue");
+    ASSERT_TRUE(other.isDefaultValue());
+
+    ASSERT_FALSE(noDefault.hasValueBeenSet());
+    ASSERT_FALSE(other.hasValueBeenSet());
+
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.default.resettwo-1.json"));
+
+    // value does not exist in json file, so should still be same as default
+    ASSERT_EQ(noDefault.getValue(), 0);
+    ASSERT_TRUE(noDefault.isDefaultValue());
+    ASSERT_FALSE(noDefault.hasValueBeenSet());
+    ASSERT_EQ(other.getValue(), 0);
+    ASSERT_TRUE(other.isDefaultValue());
+    ASSERT_FALSE(other.hasValueBeenSet());
+
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.default.resettwo-2.json"));
+
+    PS_DEBUG("loaded from json, should be 0");
+
+    // setting did exist in json file, but it was the same as the default value
+    ASSERT_EQ(noDefault.getValue(), 0);
+    ASSERT_TRUE(noDefault.isDefaultValue());
+    ASSERT_TRUE(noDefault.hasValueBeenSet());
+    ASSERT_EQ(other.getValue(), 0);
+    ASSERT_TRUE(other.isDefaultValue());
+    ASSERT_TRUE(other.hasValueBeenSet());
+
+    ASSERT_EQ(LoadError::NoError,
+              sm->loadFrom("files/in.default.resettwo-3.json"));
+
+    PS_DEBUG("loaded from json, should be 5");
+
+    // setting did exist in json file with a different value
+    ASSERT_EQ(noDefault.getValue(), 5);
+    ASSERT_FALSE(noDefault.isDefaultValue());
+    ASSERT_TRUE(noDefault.hasValueBeenSet());
+    ASSERT_EQ(other.getValue(), 5);
+    ASSERT_FALSE(other.isDefaultValue());
+    ASSERT_TRUE(other.hasValueBeenSet());
+
+    noDefault.resetToDefaultValue();
+
+    ASSERT_FALSE(noDefault.hasValueBeenSet());
+    ASSERT_FALSE(other.hasValueBeenSet());
+
+    PS_DEBUG("noDefault getValue");
+    ASSERT_EQ(noDefault.getValue(), 0);
+
+    PS_DEBUG("other getValue");
+    ASSERT_EQ(other.getValue(), 0);
+
+    ASSERT_TRUE(noDefault.isDefaultValue());
+    ASSERT_TRUE(other.isDefaultValue());
+
+    // Default values are per-setting, so other will not have changed
+    noDefault.setDefaultValue(3);
+    ASSERT_EQ(noDefault.getValue(), 3);
+    ASSERT_TRUE(noDefault.isDefaultValue());
+    ASSERT_FALSE(noDefault.hasValueBeenSet());
+    ASSERT_EQ(other.getValue(), 0);
+    ASSERT_TRUE(other.isDefaultValue());
+    ASSERT_FALSE(other.hasValueBeenSet());
 }
