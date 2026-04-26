@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15..4.1.1)
+cmake_minimum_required(VERSION 3.22..4.1.1)
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY On) # For rapidjson
 
 cmake_policy(SET CMP0091 NEW) # select MSVC runtime library through `CMAKE_MSVC_RUNTIME_LIBRARY`
