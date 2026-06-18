@@ -42,7 +42,7 @@ jobs:
     env:
       SETTINGS_CONFIGURE_PRESET: ${{ matrix.asan && 'debug-asan' || (matrix.skip-coverage && 'debug' || 'debug-coverage')}}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
